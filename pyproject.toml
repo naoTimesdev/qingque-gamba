@@ -1,0 +1,138 @@
+[tool.poetry]
+name = "qingque"
+version = "0.1.0"
+description = "A simple Discord interaction bot for Honkai: Star Rail"
+authors = ["noaione <hi@n4o.xyz>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+msgspec = {extras = ["toml"], version = "^0.18.2"}
+playwright = "^1.37.0"
+"discord.py" = "^2.3.2"
+Jinja2 = "^3.1.2"
+coloredlogs = "^15.0.1"
+orjson = "^3.9.5"
+redis = {extras = ["hiredis"], version = "^5.0.0"}
+aiopath = "^0.6.11"
+pillow = "^10.0.0"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.0.286"
+isort = "^5.12.0"
+black = "^23.7.0"
+typing-extensions = "^4.7.1"
+colorthief = "^0.2.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+ignore = [
+    "E203",
+    "F405",
+    "F403",
+    "F722",
+    "N806",
+    "COM812",
+    "D400",  # first line should be period, most of my docstring will be LICENSE header so no thanks
+    "D202",
+    "D401",
+    "N818",  # error
+]
+line-length = 120
+extend-exclude = [
+    "env",
+    "venv",
+    ".pytest_cache",
+    ".venv",
+    "__pycache__",
+    ".git",
+    ".mypy_cache",
+    ".vscode",
+    ".ruff_cache",
+    "**/Lib/**",
+    "dist",
+    "build"
+]
+ignore-init-module-imports = true
+target-version = "py310"
+select = [
+    "E",
+    "F",
+    "W",
+    "I",
+    "N",
+    "S",
+    "B",
+    "T",
+    "Q",
+    # "D",
+    "RUF",
+    "COM",
+    "CPY",
+    "PTH",
+    "ASYNC",
+]
+src = ["qingque", "tests", "pipelines", "cogs"]
+
+[tool.ruff.pydocstyle]
+convention = "numpy"
+ignore-decorators = ["typing.overload"]
+
+[tool.ruff.isort]
+combine-as-imports = false
+split-on-trailing-comma = true
+required-imports = ["from __future__ import annotations"]
+known-first-party = ["tests", "qingque", "cogs"]
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+
+[tool.ruff.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query"]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401", "F403", "I002", "D205"]
+"tests/*.py" = ["S101", "I002", "D"]  # assert statement used in pytest
+"pipelines/*" = ["T", "I", "S603", "D"]
+"_metadata.py" = ["I002"]
+"migrations/*" = ["T201"]
+
+[tool.black]
+line-length = 120
+target-version = ["py310"]
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | venv
+  | env
+  | _build
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+extend_skip = ["env/**", "venv/**", ".pytest_cache/**", ".venv/**", "__pycache__/**"]
+line_length = 110
+skip_gitignore = false
+combine_as_imports = false
+
+[tool.pyright]
+include = ["qingque", "pipelines", "cogs", "bot.py"]
+exclude = ["venv", "env", "node_modules", ".venv", ".env", ".nox", ".pytest_cache", ".mypy_cache", ".tox", "build", "dist", "_build", "**/__pycache__"]
+ignore = ["_testing"]
+stubPath = "./stubs"
+
+reportMissingImports = true
+venv = "."
+
+pythonVersion = "3.10"
