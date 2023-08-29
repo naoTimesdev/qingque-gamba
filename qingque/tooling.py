@@ -171,6 +171,8 @@ def setup_logger(log_path: Path):
 
     # Set back to the default of INFO even if asyncio's debug mode is enabled.
     logging.getLogger("asyncio").setLevel(logging.INFO)
+    # Remove PIL's debug logging
+    logging.getLogger("PIL.PngImagePlugin").setLevel(logging.INFO)
 
     return logger
 

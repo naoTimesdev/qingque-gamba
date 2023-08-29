@@ -1,0 +1,11 @@
+"""
+cogs
+~~~~
+A collection of cogs for qingque.
+
+:copyright: (c) 2023-present naoTimesdev
+:license: MIT, see LICENSE for more details.
+"""
+
+from .persistent import *
+from .profiles import *

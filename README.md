@@ -6,7 +6,7 @@ A simple Discord Interaction bot to see your Honkai: Star Rail profile
 
 ## Add
 
-TODO
+[Invite](https://discord.com/api/oauth2/authorize?client_id=1146085026086264953&permissions=277025770560&scope=bot)
 
 ## Running it Yourself
 

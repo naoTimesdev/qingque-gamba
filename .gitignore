@@ -372,3 +372,5 @@ test_colorama*.png
 master.zip
 StarRailRes.zip
 player_*.json
+
+config.toml
