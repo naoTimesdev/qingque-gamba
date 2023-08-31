@@ -27,14 +27,10 @@ from __future__ import annotations
 import asyncio
 import functools
 import logging
-from enum import Enum
 from io import BytesIO
 from typing import Any, TypeAlias
 
-import msgspec
-import orjson
 from aiopath import AsyncPath
-from msgspec import field
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 from qingque.mihomo.models.base import MihomoBase
@@ -45,10 +41,10 @@ from qingque.mihomo.models.helper import get_actual_moc_floor, get_uid_region
 from qingque.mihomo.models.player import PlayerInfo
 from qingque.mihomo.models.relics import Relic, RelicSet
 from qingque.mihomo.models.stats import StatsAtrributes, StatsField, StatsProperties
+from qingque.starrail.loader import SRSDataLoader
+from qingque.starrail.models.relics import SRSRelicType
 
 __all__ = (
-    "SRSRelicType",
-    "SRSRelic",
     "SRSCardStats",
     "StarRailCard",
 )
@@ -139,35 +135,6 @@ def draw_ellipse(
     image.paste(outline, mask=mask)
 
 
-class SRSRelicType(str, Enum):
-    Head = "HEAD"
-    Hand = "HAND"
-    Body = "BODY"
-    Foot = "FOOT"
-    PlanarOrb = "NECK"
-    PlanarRope = "OBJECT"
-
-    @property
-    def order(self) -> int:
-        return {
-            SRSRelicType.Head: 1,
-            SRSRelicType.Hand: 2,
-            SRSRelicType.Body: 3,
-            SRSRelicType.Foot: 4,
-            SRSRelicType.PlanarOrb: 5,
-            SRSRelicType.PlanarRope: 6,
-        }[self]
-
-
-class SRSRelic(MihomoBase, frozen=True):
-    id: str
-    set_id: str
-    name: str
-    rarity: int
-    type: SRSRelicType
-    icon_url: str = field(name="icon")
-
-
 class SRSCardStats(MihomoBase, frozen=True):
     name: str
     icon_url: str | None = None
@@ -206,7 +173,9 @@ class StarRailCard:
         # Inner canvas is 1568x910
         self._canvas = Image.new("RGBA", (1568, 910), (255, 255, 255))
         self._assets_folder = AsyncPath(__file__).parent.parent / "assets" / "srs"
-        self._index_folder = self._assets_folder / "index" / f"{self._language.value}"
+        # self._index_folder = self._assets_folder / "index" / f"{self._language.value}"
+
+        self._index_data: SRSDataLoader = SRSDataLoader(self._language)
 
         self._foreground: RGB = (255, 255, 255)
         self._background: RGB = (0, 0, 0)
@@ -214,7 +183,6 @@ class StarRailCard:
         self._universe_font_path: AsyncPath = self._assets_folder / ".." / "fonts" / "FirstWorld.ttf"
 
         self._stats_field_to_name: dict[StatsField, str] = {}
-        self._relics: dict[str, SRSRelic] = {}
 
         self._extended_by: int = 0
 
@@ -588,15 +556,8 @@ class StarRailCard:
             index_icon += 1
 
     async def _set_index_properties_name(self):
-        properties_json = orjson.loads(await (self._index_folder / "properties.json").read_bytes())
-        for _, fields in properties_json.items():
-            field_name = StatsField(fields["field"])
-            self._stats_field_to_name[field_name] = fields["name"]
-
-    async def _set_index_relics(self):
-        relics_json = orjson.loads(await (self._index_folder / "relics.json").read_bytes())
-        for relic in relics_json.values():
-            self._relics[relic["id"]] = msgspec.json.decode(orjson.dumps(relic), type=SRSRelic)
+        for _, fields in self._index_data.properties.items():
+            self._stats_field_to_name[fields.kind] = fields.name
 
     async def _create_placeholder_slot(
         self,
@@ -754,11 +715,8 @@ class StarRailCard:
                 )
 
                 # Write the field name
-                sub_stat_name = sub_stat.name
-                if sub_stat.percent:
-                    sub_stat_name = f"{sub_stat_name}%"
                 await self._write_text(
-                    sub_stat_name,
+                    sub_stat.name,
                     (left + box_size + 20 + 32 + 4, top_margin + 16 + (idx * 26)),
                     anchor="lt",
                     align="left",
@@ -787,12 +745,12 @@ class StarRailCard:
     async def _create_main_relics(self):
         sorted_relics = sorted(
             self._character.relics,
-            key=lambda r: self._relics[r.id].type.order,
+            key=lambda r: self._index_data.relics[r.id].type.order,
         )
         # Group the relics by planar and non-planar
         main_relics: list[Relic] = []
         for relic in sorted_relics:
-            relic_index = self._relics[relic.id]
+            relic_index = self._index_data.relics[relic.id]
             if relic_index.type in (SRSRelicType.PlanarOrb, SRSRelicType.PlanarRope):
                 continue
             main_relics.append(relic)
@@ -880,12 +838,12 @@ class StarRailCard:
     async def _create_planar_and_light_cone(self):
         sorted_relics = sorted(
             self._character.relics,
-            key=lambda r: self._relics[r.id].type.order,
+            key=lambda r: self._index_data.relics[r.id].type.order,
         )
         # Group the relics by planar and non-planar
         planar_relics: list[Relic] = []
         for relic in sorted_relics:
-            relic_index = self._relics[relic.id]
+            relic_index = self._index_data.relics[relic.id]
             if relic_index.type in (SRSRelicType.PlanarOrb, SRSRelicType.PlanarRope):
                 planar_relics.append(relic)
 
@@ -1022,8 +980,8 @@ class StarRailCard:
         self._assets_folder = await self._assets_folder.absolute()
         if not await self._assets_folder.exists():
             raise FileNotFoundError("The assets folder does not exist.")
+        await self._index_data.async_loads()
         await self._set_index_properties_name()
-        await self._set_index_relics()
 
         # Calculate average color of the preview image.
         logger.info("Initializing the canvas card information...")
@@ -1141,9 +1099,7 @@ class StarRailCard:
         if self._player.progression.forgotten_hall is not None:
             forgotten_hall = get_actual_moc_floor(self._player.progression.forgotten_hall)
             if forgotten_hall.moc_finished_floor > 0:
-                right_side_text = (
-                    f"MoC: Floor {forgotten_hall.moc_finished_floor} | {right_side_text}"
-                )
+                right_side_text = f"MoC: Floor {forgotten_hall.moc_finished_floor} | {right_side_text}"
         await self._write_text(
             right_side_text,
             (main_canvas.width - 75, height_mid),
@@ -1166,4 +1122,5 @@ class StarRailCard:
         bytes_io.seek(0)
         all_bytes = await self._loop.run_in_executor(None, bytes_io.read)
         bytes_io.close()
+        self._index_data.unloads()
         return all_bytes

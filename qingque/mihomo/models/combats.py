@@ -109,6 +109,8 @@ class SkillEffectType(str, Enum):
     """Enhancing or boosting allies"""
     Debuff = "Impair"
     """Debuffing or weakening enemies"""
+    Defence = "Defence"
+    """Defending allies from incoming attacks, usually give a shield."""
     Restore = "Restore"
     """Restoring allies health, overall skill points or something similar."""
     Passive = "Support"

@@ -25,6 +25,9 @@ black = "^23.7.0"
 typing-extensions = "^4.7.1"
 colorthief = "^0.2.1"
 
+[tool.poetry.scripts]
+srscard = "qingque.starrail"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

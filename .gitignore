@@ -346,6 +346,8 @@ _testing/
 
 logs/**/*.log
 
+!qingque/scripts/**/*.py
+
 # Downloaded assets
 qingque/assets/srs/**/*.jpg
 qingque/assets/srs/**/*.png
