@@ -26,7 +26,8 @@ typing-extensions = "^4.7.1"
 colorthief = "^0.2.1"
 
 [tool.poetry.scripts]
-srscard = "qingque.starrail"
+srscard = "qingque.cli.generator:main"
+srsbot = "qingque.cli.bot:main"
 
 [build-system]
 requires = ["poetry-core"]

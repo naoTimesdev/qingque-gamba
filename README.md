@@ -12,8 +12,15 @@ A simple Discord Interaction bot to see your Honkai: Star Rail profile
 
 **Requirements**:
 - Python 3.10+
+- Poetry
 - Redis Database
 - Working server
+
+1. Run `poetry install` to install all deps
+2. Create `config.toml` from `config.toml.example` and fill everything.
+3. Start bot by running `poetry run srsbot`
+
+You can also generate your card without the bot by just running: `poetry run srscard [UID]` (See `poetry run srscard --help` for more info)
 
 ## To be Implemented
 - [ ] Deploy it for public use

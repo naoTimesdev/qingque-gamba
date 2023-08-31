@@ -144,16 +144,17 @@ class RollingFileHandler(RotatingFileHandler):
             self._safe_rename(source, dest)
 
 
-def setup_logger(log_path: Path):
-    log_path.parent.mkdir(exist_ok=True)
+def setup_logger(log_path: Path | None = None):
+    if log_path is not None:
+        log_path.parent.mkdir(exist_ok=True)
 
-    file_handler = RollingFileHandler(log_path, maxBytes=5_242_880, backupCount=5, encoding="utf-8")
-    logging.basicConfig(
-        level=logging.DEBUG,
-        handlers=[file_handler],
-        format="[%(asctime)s] - (%(name)s)[%(levelname)s](%(funcName)s): %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
+        file_handler = RollingFileHandler(log_path, maxBytes=5_242_880, backupCount=5, encoding="utf-8")
+        logging.basicConfig(
+            level=logging.DEBUG,
+            handlers=[file_handler],
+            format="[%(asctime)s] - (%(name)s)[%(levelname)s](%(funcName)s): %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
     logger = logging.getLogger()
     coloredlogs.install(
         fmt="[%(asctime)s %(hostname)s][%(levelname)s] (%(name)s[%(process)d]): %(funcName)s: %(message)s",
