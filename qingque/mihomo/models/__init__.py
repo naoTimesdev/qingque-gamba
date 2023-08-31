@@ -10,6 +10,7 @@ This module contains the models for the Mihomo API.
 from .characters import *
 from .combats import *
 from .constants import *
+from .helper import *
 from .player import *
 from .relics import *
 from .stats import *

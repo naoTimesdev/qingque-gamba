@@ -24,12 +24,12 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from io import BytesIO
-
 import discord
 from discord import app_commands
 
 from qingque.bot import QingqueClient
+from qingque.extensions.files import FileBytes
+from qingque.mihomo.models.helper import get_actual_moc_floor
 from qingque.models.embed_paging import EmbedPaginatedView
 from qingque.models.persistence import QingqueProfile
 from qingque.starrail.generator import StarRailCard
@@ -56,8 +56,15 @@ async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: in
         uid = profile.uid
 
     await inter.response.defer(ephemeral=False, thinking=True)
+    original_message = await inter.original_response()
     logger.info(f"Getting profile info for UID {uid}")
-    data_player, language = await mihomo.get_player(uid)
+    try:
+        data_player, language = await mihomo.get_player(uid)
+    except Exception as e:
+        logger.error(f"Error getting profile info for UID {uid}: {e}")
+        error_message = str(e)
+        await original_message.edit(content=f"Something went wrong, please try again later.\n`{error_message}`")
+        return
     logger.info(f"Getting profile card for UID {uid}")
 
     embeds: list[discord.Embed] = []
@@ -69,8 +76,7 @@ async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: in
 
         logger.info(f"Adding character {character.name} profile card for UID {uid}")
         filename = f"{data_player.player.id}_{idx:02d}_{character.id}.png"
-        bytes_io = BytesIO(card_data)
-        file = discord.File(bytes_io, filename=filename)
+        file = FileBytes(card_data, filename=filename)
         embed = discord.Embed(title=f"{character.name} (Lv {character.level:02d})")
         description = []
         progression = data_player.player.progression
@@ -80,11 +86,11 @@ async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: in
             description.append(f"**Light Cones**: {progression.light_cones}")
         if progression.simulated_universe.value > 0:
             description.append(f"**Simulated Universe**: World {progression.simulated_universe.value}")
-        forgotten_hall = progression.forgotten_hall
-        if forgotten_hall.finished_floor.value > 0:
-            description.append(f"**Forgotten Hall**: Floor {forgotten_hall.finished_floor.value}")
-        if forgotten_hall.moc_finished_floor.value > 0:
-            description.append(f"**Memory of Chaos**: Floor {forgotten_hall.moc_finished_floor.value}")
+        forgotten_hall = get_actual_moc_floor(progression.forgotten_hall)
+        if forgotten_hall.finished_floor > 0:
+            description.append(f"**Forgotten Hall**: Floor {forgotten_hall.finished_floor}")
+        if forgotten_hall.moc_finished_floor > 0:
+            description.append(f"**Memory of Chaos**: Floor {forgotten_hall.moc_finished_floor}")
 
         embed.description = "\n".join(description)
         embed.set_image(url=f"attachment://{filename}")
@@ -97,4 +103,4 @@ async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: in
 
     logger.info("Sending to Discord...")
     pagination_view = EmbedPaginatedView(embeds, inter.user.id, files)
-    await pagination_view.start(inter)
+    await pagination_view.start(inter, message=original_message)

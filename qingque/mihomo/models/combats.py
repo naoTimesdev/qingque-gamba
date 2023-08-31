@@ -54,6 +54,8 @@ class ElementType(str, Enum):
     # Alias
     Thunder = "Lightning"
 
+    Unknown = ""
+
 
 class PathType(str, Enum):
     Destruction = "Warrior"

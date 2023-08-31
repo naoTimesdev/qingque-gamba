@@ -32,8 +32,6 @@ from .base import MihomoBase
 from .characters import Character
 
 __all__ = (
-    "ForgottenHallFloor",
-    "MemoryOfChaosFloor",
     "SimulatedUniverse",
     "PlayerAvatar",
     "PlayerForgottenHall",
@@ -41,78 +39,6 @@ __all__ = (
     "PlayerInfo",
     "Player",
 )
-
-
-class ForgottenHallFloor(int, Enum):
-    Unknown = 0
-    """Unknown floor."""
-    Belobog1 = 1
-    """The Last Vestiges of Towering Citadel: Stage 1"""
-    Belobog2 = 2
-    """The Last Vestiges of Towering Citadel: Stage 2"""
-    Belobog3 = 3
-    """The Last Vestiges of Towering Citadel: Stage 3"""
-    Belobog4 = 4
-    """The Last Vestiges of Towering Citadel: Stage 4"""
-    Belobog5 = 5
-    """The Last Vestiges of Towering Citadel: Stage 5"""
-    Belobog6 = 6
-    """The Last Vestiges of Towering Citadel: Stage 6"""
-    Belobog7 = 7
-    """The Last Vestiges of Towering Citadel: Stage 7"""
-    Belobog8 = 8
-    """The Last Vestiges of Towering Citadel: Stage 8"""
-    Belobog9 = 9
-    """The Last Vestiges of Towering Citadel: Stage 9"""
-    Belobog10 = 10
-    """The Last Vestiges of Towering Citadel: Stage 10"""
-    Belobog11 = 11
-    """The Last Vestiges of Towering Citadel: Stage 11"""
-    Belobog12 = 12
-    """The Last Vestiges of Towering Citadel: Stage 12"""
-    Belobog13 = 13
-    """The Last Vestiges of Towering Citadel: Stage 13"""
-    Belobog14 = 14
-    """The Last Vestiges of Towering Citadel: Stage 14"""
-    Belobog15 = 15
-    """The Last Vestiges of Towering Citadel: Stage 15"""
-    Xianzhou1 = 16
-    """The Voyage of Navis Astriger: Stage 1"""
-    Xianzhou2 = 17
-    """The Voyage of Navis Astriger: Stage 2"""
-    Xianzhou3 = 18
-    """The Voyage of Navis Astriger: Stage 3"""
-    Xianzhou4 = 19
-    """The Voyage of Navis Astriger: Stage 4"""
-    Xianzhou5 = 20
-    """The Voyage of Navis Astriger: Stage 5"""
-    Xianzhou6 = 21
-    """The Voyage of Navis Astriger: Stage 6"""
-
-
-class MemoryOfChaosFloor(int, Enum):
-    Unknown = 0
-    """Unknown floor."""
-    Stage1 = 1
-    """Memory of Chaos: Stage 1"""
-    Stage2 = 2
-    """Memory of Chaos: Stage 2"""
-    Stage3 = 3
-    """Memory of Chaos: Stage 3"""
-    Stage4 = 4
-    """Memory of Chaos: Stage 4"""
-    Stage5 = 5
-    """Memory of Chaos: Stage 5"""
-    Stage6 = 6
-    """Memory of Chaos: Stage 6"""
-    Stage7 = 7
-    """Memory of Chaos: Stage 7"""
-    Stage8 = 8
-    """Memory of Chaos: Stage 8"""
-    Stage9 = 9
-    """Memory of Chaos: Stage 9"""
-    Stage10 = 10
-    """Memory of Chaos: Stage 10"""
 
 
 class SimulatedUniverse(int, Enum):
@@ -144,9 +70,9 @@ class PlayerAvatar(MihomoBase, frozen=True):
 
 
 class PlayerForgottenHall(MihomoBase, frozen=True):
-    finished_floor: ForgottenHallFloor = field(name="pre_maze_group_index")
+    finished_floor: int = field(name="pre_maze_group_index")
     """:class:`ForgottenHallFloor`: The finished floor index of the Forgotten Hall."""
-    moc_finished_floor: MemoryOfChaosFloor = field(name="maze_group_index")
+    moc_finished_floor: int = field(name="maze_group_index")
     """:class:`MemoryOfChaosFloor`: The finished floor index of the Memory of Chaos."""
     moc_floor_id: int = field(name="maze_group_id")
     """:class:`int`: The floor ID of the Memory of Chaos."""

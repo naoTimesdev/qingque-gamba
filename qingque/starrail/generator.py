@@ -41,6 +41,7 @@ from qingque.mihomo.models.base import MihomoBase
 from qingque.mihomo.models.characters import Character
 from qingque.mihomo.models.combats import ElementType, SkillTrace, SkillUsageType
 from qingque.mihomo.models.constants import MihomoLanguage
+from qingque.mihomo.models.helper import get_actual_moc_floor, get_uid_region
 from qingque.mihomo.models.player import PlayerInfo
 from qingque.mihomo.models.relics import Relic, RelicSet
 from qingque.mihomo.models.stats import StatsAtrributes, StatsField, StatsProperties
@@ -105,23 +106,6 @@ logger = logging.getLogger("qingque.starrail.card_generator")
 #  - Left: 62
 #  - Right: 1506
 #  - Bottom: 830
-
-
-def get_region(uid: str):
-    region = uid[0]
-    match region:
-        case "1" | "2" | "5":
-            return "China"
-        case "6":
-            return "NA"
-        case "7":
-            return "EU"
-        case "8":
-            return "Asia"
-        case "9":
-            return "TW/HK/MO"
-        case _:
-            return None
 
 
 def draw_ellipse(
@@ -1136,7 +1120,7 @@ class StarRailCard:
             (16, 16),
             self._canvas,
         )
-        player_region = get_region(self._player.id)
+        player_region = get_uid_region(self._player.id)
         starting_foot = self._canvas.height
         height_mid = starting_foot + ((main_canvas.height - starting_foot) // 2) + 8
         player_uid = f"UID: {self._player.id}"
@@ -1144,7 +1128,7 @@ class StarRailCard:
             player_uid += f" | Region: {player_region}"
         player_uid += f" | Level: {self._player.level:02d}"
         if hide_uid:
-            player_uid = "Level: {self._player.level:02d}"
+            player_uid = f"Level: {self._player.level:02d}"
         await self._write_text(
             player_uid,
             (75, height_mid),
@@ -1155,9 +1139,10 @@ class StarRailCard:
         )
         right_side_text = f"Achievements: {self._player.progression.achivements}"
         if self._player.progression.forgotten_hall is not None:
-            if self._player.progression.forgotten_hall.moc_finished_floor > 0:
+            forgotten_hall = get_actual_moc_floor(self._player.progression.forgotten_hall)
+            if forgotten_hall.moc_finished_floor > 0:
                 right_side_text = (
-                    f"MoC: Floor {self._player.progression.forgotten_hall.moc_finished_floor} | {right_side_text}"
+                    f"MoC: Floor {forgotten_hall.moc_finished_floor} | {right_side_text}"
                 )
         await self._write_text(
             right_side_text,
