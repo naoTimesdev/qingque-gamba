@@ -37,10 +37,10 @@ from qingque.mihomo.models.base import MihomoBase
 from qingque.mihomo.models.characters import Character
 from qingque.mihomo.models.combats import ElementType, SkillTrace, SkillUsageType
 from qingque.mihomo.models.constants import MihomoLanguage
-from qingque.mihomo.models.helper import get_actual_moc_floor, get_uid_region
 from qingque.mihomo.models.player import PlayerInfo
 from qingque.mihomo.models.relics import Relic, RelicSet
 from qingque.mihomo.models.stats import StatsAtrributes, StatsField, StatsProperties
+from qingque.models.region import HYVServer
 from qingque.starrail.loader import SRSDataLoader
 from qingque.starrail.models.relics import SRSRelicType
 
@@ -1081,12 +1081,12 @@ class StarRailCard:
             (16, 16),
             self._canvas,
         )
-        player_region = get_uid_region(self._player.id)
+        player_region = HYVServer.from_uid(self._player.id, ignore_error=True)
         starting_foot = self._canvas.height
         height_mid = starting_foot + ((main_canvas.height - starting_foot) // 2) + 8
         player_uid = f"UID: {self._player.id}"
         if player_region is not None:
-            player_uid += f" | Region: {player_region}"
+            player_uid += f" | Region: {player_region.short}"
         player_uid += f" | Level: {self._player.level:02d}"
         if hide_uid:
             player_uid = f"Level: {self._player.level:02d}"
@@ -1100,7 +1100,7 @@ class StarRailCard:
         )
         right_side_text = f"Achievements: {self._player.progression.achivements}"
         if self._player.progression.forgotten_hall is not None:
-            forgotten_hall = get_actual_moc_floor(self._player.progression.forgotten_hall)
+            forgotten_hall = self._player.progression.forgotten_hall
             if forgotten_hall.moc_finished_floor > 0:
                 right_side_text = f"MoC: Floor {forgotten_hall.moc_finished_floor} | {right_side_text}"
         await self._write_text(

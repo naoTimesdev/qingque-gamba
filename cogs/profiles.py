@@ -29,7 +29,6 @@ from discord import app_commands
 
 from qingque.bot import QingqueClient
 from qingque.extensions.files import FileBytes
-from qingque.mihomo.models.helper import get_actual_moc_floor
 from qingque.models.embed_paging import EmbedPaginatedView
 from qingque.models.persistence import QingqueProfile
 from qingque.starrail.generator import StarRailCard
@@ -86,7 +85,7 @@ async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: in
             description.append(f"**Light Cones**: {progression.light_cones}")
         if progression.simulated_universe.value > 0:
             description.append(f"**Simulated Universe**: World {progression.simulated_universe.value}")
-        forgotten_hall = get_actual_moc_floor(progression.forgotten_hall)
+        forgotten_hall = progression.forgotten_hall
         if forgotten_hall.finished_floor > 0:
             description.append(f"**Forgotten Hall**: Floor {forgotten_hall.finished_floor}")
         if forgotten_hall.moc_finished_floor > 0:
