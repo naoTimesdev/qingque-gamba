@@ -37,6 +37,7 @@ from qingque.models.region import HYVRegion, HYVServer
 from .constants import CHRONICLES_ROUTE, STARRAIL_SERVER, USER_AGENT
 from .ds import get_ds_headers
 from .models.base import HYLanguage, HYResponse
+from .models.characters import ChronicleCharacters
 from .models.notes import ChronicleNotes
 from .models.overview import ChronicleOverview, ChronicleUserInfo, ChronicleUserOverview
 
@@ -155,7 +156,7 @@ class HYLabClient:
 
         Returns
         -------
-        :class:`ChronicleNotes`
+        :class:`ChronicleUserOverview`
             The battle chronicles for the given UID.
 
         Raises
@@ -248,6 +249,63 @@ class HYLabClient:
             get_ds_headers(HYVRegion.from_server(server), lang=lang),
             cookies=self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, lang=lang),
             type=ChronicleNotes,
+        )
+
+        return resp.data
+
+    async def get_battle_chronicles_characters(
+        self,
+        uid: int,
+        *,
+        hylab_id: int | None = None,
+        hylab_token: str | None = None,
+        hylab_cookie: str | None = None,
+        lang: HYLanguage = HYLanguage.EN,
+    ) -> ChronicleCharacters | None:
+        """
+        Get the battle chronicles characters for the given UID.
+
+        Parameters
+        ----------
+        uid: :class:`int`
+            The UID to get the battle chronicles for.
+        hylab_id: :class:`int | None`
+            Override HoyoLab ID. (ltuid)
+        hylab_token: :class:`str | None`
+            Override HoyoLab token. (ltoken)
+        hylab_cookie: :class:`str | None`
+            Override HoyoLab cookie token. (cookie_token)
+        lang: :class:`HYLanguage`
+            The language to use.
+
+        Returns
+        -------
+        :class:`ChronicleCharacters`
+            The battle chronicles for the given UID.
+
+        Raises
+        ------
+        :exc:`.HYLabException`
+            An error occurred while getting the battle chronicles.
+        :exc:`aiohttp.ClientResponseError`
+            An error occurred while requesting the battle chronicles.
+        """
+
+        server = HYVServer.from_uid(str(uid))
+        region = HYVRegion.from_server(server)
+
+        params = {
+            "server": STARRAIL_SERVER[server],
+            "role_id": str(uid),
+        }
+
+        resp = await self._request(
+            "GET",
+            CHRONICLES_ROUTE.get_route(region) / "avatar" / "info",
+            params,
+            get_ds_headers(HYVRegion.from_server(server), lang=lang),
+            cookies=self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, lang=lang),
+            type=ChronicleCharacters,
         )
 
         return resp.data

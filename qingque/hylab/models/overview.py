@@ -24,32 +24,19 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from enum import Enum
-
 from msgspec import Struct, field
 
 from qingque.hylab.constants import SERVER_TO_STARRAIL_REGION
 
+from .common import HYElementType
+
 __all__ = (
-    "HYElementType",
     "ChronicleOverviewStats",
     "ChronicleOverviewCharacter",
     "ChronicleOverview",
     "ChronicleUserInfo",
     "ChronicleUserOverview",
 )
-
-
-class HYElementType(str, Enum):
-    Physical = "physical"
-    Fire = "fire"
-    Ice = "ice"
-    Lightning = "lightning"
-    Wind = "wind"
-    Quantum = "quantum"
-    Imaginary = "imaginary"
-
-    Unknown = ""
 
 
 class ChronicleOverviewStats(Struct):

@@ -8,6 +8,8 @@ The models for the Hoyo API wrapper in Python.
 """
 
 from .base import *
+from .characters import *
+from .common import *
 from .errors import *
 from .notes import *
 from .overview import *
