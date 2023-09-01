@@ -28,11 +28,15 @@ from enum import Enum
 
 from msgspec import Struct, field
 
+from qingque.hylab.constants import SERVER_TO_STARRAIL_REGION
+
 __all__ = (
     "HYElementType",
     "ChronicleOverviewStats",
     "ChronicleOverviewCharacter",
     "ChronicleOverview",
+    "ChronicleUserInfo",
+    "ChronicleUserOverview",
 )
 
 
@@ -104,3 +108,26 @@ class ChronicleOverview(Struct):
     """:class:`str`: The URL of the user's avatar."""
     phone_background_url: str = field(name="phone_background_image_url")
     """:class:`str`: The URL of the user's phone background."""
+
+
+class ChronicleUserInfo(Struct):
+    name: str = field(name="nickname")
+    """:class:`str`: The name of the user."""
+    server: str = field(name="region")
+    """:class:`str`: The server of the user."""
+    level: int
+    """:class:`int`: The level of the user."""
+    avatar_url: str = field(name="avatar")
+    """:class:`str`: The URL of the user's avatar."""
+
+    @property
+    def region(self):
+        """:class:`str`: The region of the user."""
+        return SERVER_TO_STARRAIL_REGION[self.server]
+
+
+class ChronicleUserOverview(Struct):
+    user_info: ChronicleUserInfo | None
+    """:class:`ChronicleUserInfo`: The info of the user."""
+    overview: ChronicleOverview | None
+    """:class:`ChronicleOverview`: The overview of the user."""

@@ -24,6 +24,7 @@ SOFTWARE.
 
 from __future__ import annotations
 
+from enum import Enum
 from typing import Generic, TypeVar
 
 import msgspec
@@ -40,6 +41,7 @@ from .errors import (
 )
 
 __all__ = (
+    "HYLanguage",
     "HYResponse",
     "HYGeeTestError",
     "HYGeeTestResponse",
@@ -87,13 +89,47 @@ class HYResponse(Struct, Generic[RespT], omit_defaults=True):
             raise HYLabException(self)
 
     @classmethod
-    def make_response(cls: type[HYResponse[RespT]], data: bytes) -> "HYResponse"[RespT]:
+    def make_response(cls: type[HYResponse[RespT]], data: bytes, *, type: type[RespT]) -> "HYResponse"[RespT]:
         try:
             resp = msgspec.json.decode(data, type=HYResponse[HYGeeTestResponse])
-            raise HYGeetestTriggered(resp)
+            if resp.data is not None:
+                raise HYGeetestTriggered(resp)
         except msgspec.DecodeError:
             # Not geetest error
             pass
 
-        resp = msgspec.json.decode(data, type=HYResponse[RespT])
+        resp = msgspec.json.decode(data, type=HYResponse[type])
         return resp
+
+
+class HYLanguage(str, Enum):
+    CHS = "zh-cn"
+    """Chinese Simplified"""
+    CHT = "zh-tw"
+    """Chinese Traditional"""
+    DE = "de-de"
+    """German"""
+    EN = "en-us"
+    """English (US)"""
+    ES = "es-es"
+    """Spanish"""
+    FR = "fr-fr"
+    """French"""
+    ID = "id-id"
+    """Indonesian"""
+    IT = "it-it"
+    """Italian"""
+    JP = "ja-jp"
+    """Japanese"""
+    KR = "ko-kr"
+    """Korean"""
+    PT = "pt-pt"
+    """Portuguese"""
+    RU = "ru-ru"
+    """Russian"""
+    TH = "th-th"
+    """Thai"""
+    TR = "tr-tr"
+    """Turkish"""
+    VN = "vi-vn"
+    """Vietnamese"""

@@ -35,6 +35,7 @@ __all__ = (
     "CLAIM_ROUTE",
     "DAILY_ROUTE",
     "STARRAIL_SERVER",
+    "SERVER_TO_STARRAIL_REGION",
     "STARRAIL_GAME_BIZ",
     "USER_AGENT",
     "DS_SALT",
@@ -83,6 +84,16 @@ STARRAIL_SERVER = {
     HYVServer.Europe: "prod_official_eur",
     HYVServer.Asia: "prod_official_asia",
     HYVServer.Taiwan: "prod_official_cht",
+}
+SERVER_TO_STARRAIL_REGION = {
+    "prod_gf_cn": HYVServer.ChinaA,
+    "prod_gf01_cn": HYVServer.ChinaA,
+    "prod_gf02_cn": HYVServer.ChinaB,
+    "prod_qd_cn": HYVServer.ChinaC,
+    "prod_official_usa": HYVServer.NorthAmerica,
+    "prod_official_eur": HYVServer.Europe,
+    "prod_official_asia": HYVServer.Asia,
+    "prod_official_cht": HYVServer.Taiwan,
 }
 STARRAIL_GAME_BIZ = {
     HYVRegion.China: "hkrpg_cn",

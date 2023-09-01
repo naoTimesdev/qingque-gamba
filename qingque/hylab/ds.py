@@ -33,6 +33,7 @@ from typing import Any, Mapping
 
 import orjson
 
+from qingque.hylab.models.base import HYLanguage
 from qingque.models.region import HYVRegion
 
 from .constants import DS_SALT
@@ -71,21 +72,21 @@ def get_ds_headers(
     region: HYVRegion | None = None,
     data: Any | None = None,
     params: Mapping[str, Any] | None = None,
-    lang: str | None = None,
+    lang: HYLanguage | None = None,
 ) -> dict[str, Any]:
     match region:
         case HYVRegion.China:
             return {
                 "x-rpc-app_version": "2.11.1",
                 "x-rpc-client_type": "5",
-                "ds": generate_cn_dynamic_salt(data, params),
+                "DS": generate_cn_dynamic_salt(data, params),
             }
         case HYVRegion.Overseas:
             return {
                 "x-rpc-app_version": "1.5.0",
                 "x-rpc-client_type": "5",
-                "x-rpc-language": lang,
-                "ds": generate_dynamic_salt(),
+                "x-rpc-language": lang.value if lang else HYLanguage.EN.value,
+                "DS": generate_dynamic_salt(),
             }
         case _:
             raise ValueError(f"Invalid region: {region!r}")
