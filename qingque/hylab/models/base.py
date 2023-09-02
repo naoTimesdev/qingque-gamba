@@ -25,10 +25,13 @@ SOFTWARE.
 from __future__ import annotations
 
 from enum import Enum
+from functools import cached_property
 from typing import Generic, TypeVar
 
 import msgspec
 from msgspec import Struct, field
+
+from qingque.mihomo.models.constants import MihomoLanguage
 
 from .errors import (
     ERRORS,
@@ -61,7 +64,14 @@ class HYGeeTestResponse(Struct):
     gt_result: HYGeeTestError
 
 
-class HYResponse(Struct, Generic[RespT], omit_defaults=True):
+class _BaseResponse(Struct, omit_defaults=True):
+    pass
+
+
+class HYResponse(
+    _BaseResponse,
+    Generic[RespT],
+):
     code: int = field(name="retcode", default=0)
     """:class:`int`: The response code."""
     message: str = field(name="message", default="OK")
@@ -133,3 +143,10 @@ class HYLanguage(str, Enum):
     """Turkish"""
     VN = "vi-vn"
     """Vietnamese"""
+
+    @cached_property
+    def mihomo(self):
+        name = self.name.lower()
+        if name == "chs":
+            name = "cn"
+        return MihomoLanguage(name)

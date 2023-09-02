@@ -11,5 +11,7 @@ from .base import *
 from .characters import *
 from .common import *
 from .errors import *
+from .forgotten_hall import *
 from .notes import *
 from .overview import *
+from .simuniverse import *

@@ -38,8 +38,10 @@ from .constants import CHRONICLES_ROUTE, STARRAIL_SERVER, USER_AGENT
 from .ds import get_ds_headers
 from .models.base import HYLanguage, HYResponse
 from .models.characters import ChronicleCharacters
+from .models.forgotten_hall import ChronicleForgottenHall
 from .models.notes import ChronicleNotes
 from .models.overview import ChronicleOverview, ChronicleUserInfo, ChronicleUserOverview
+from .models.simuniverse import ChronicleSimulatedUniverse
 
 __all__ = ("HYLabClient",)
 HYModelT = TypeVar("HYModelT", bound=msgspec.Struct)
@@ -157,7 +159,7 @@ class HYLabClient:
         Returns
         -------
         :class:`ChronicleUserOverview`
-            The battle chronicles for the given UID.
+            The battle chronicles overview for the given UID.
 
         Raises
         ------
@@ -224,7 +226,7 @@ class HYLabClient:
         Returns
         -------
         :class:`ChronicleNotes`
-            The battle chronicles for the given UID.
+            The battle chronicles real-time notes for the given UID.
 
         Raises
         ------
@@ -281,7 +283,7 @@ class HYLabClient:
         Returns
         -------
         :class:`ChronicleCharacters`
-            The battle chronicles for the given UID.
+            The battle chronicles characters for the given UID.
 
         Raises
         ------
@@ -306,6 +308,127 @@ class HYLabClient:
             get_ds_headers(HYVRegion.from_server(server), lang=lang),
             cookies=self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, lang=lang),
             type=ChronicleCharacters,
+        )
+
+        return resp.data
+
+    async def get_battle_chronicles_forgotten_hall(
+        self,
+        uid: int,
+        *,
+        previous: bool = False,
+        hylab_id: int | None = None,
+        hylab_token: str | None = None,
+        hylab_cookie: str | None = None,
+        lang: HYLanguage = HYLanguage.EN,
+    ) -> ChronicleForgottenHall | None:
+        """
+        Get the battle chronicles forgotten hall for the given UID.
+
+        Parameters
+        ----------
+        uid: :class:`int`
+            The UID to get the battle chronicles for.
+        previous: :class:`bool`
+            Whether to get the previous record or not.
+        hylab_id: :class:`int | None`
+            Override HoyoLab ID. (ltuid)
+        hylab_token: :class:`str | None`
+            Override HoyoLab token. (ltoken)
+        hylab_cookie: :class:`str | None`
+            Override HoyoLab cookie token. (cookie_token)
+        lang: :class:`HYLanguage`
+            The language to use.
+
+        Returns
+        -------
+        :class:`ChronicleForgottenHall`
+            The battle chronicles forgotten hall for the given UID.
+
+        Raises
+        ------
+        :exc:`.HYLabException`
+            An error occurred while getting the battle chronicles.
+        :exc:`aiohttp.ClientResponseError`
+            An error occurred while requesting the battle chronicles.
+        """
+
+        server = HYVServer.from_uid(str(uid))
+        region = HYVRegion.from_server(server)
+
+        params = {
+            "server": STARRAIL_SERVER[server],
+            "role_id": str(uid),
+            "schedule_type": 2 if previous else 1,
+            "need_all": "true",
+        }
+
+        resp = await self._request(
+            "GET",
+            CHRONICLES_ROUTE.get_route(region) / "challenge",
+            params,
+            get_ds_headers(HYVRegion.from_server(server), lang=lang),
+            cookies=self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, lang=lang),
+            type=ChronicleForgottenHall,
+        )
+
+        return resp.data
+
+    async def get_battle_chronicles_simulated_universe(
+        self,
+        uid: int,
+        *,
+        hylab_id: int | None = None,
+        hylab_token: str | None = None,
+        hylab_cookie: str | None = None,
+        lang: HYLanguage = HYLanguage.EN,
+    ) -> ChronicleSimulatedUniverse | None:
+        """
+        Get the battle chronicles simulated universe for the given UID.
+
+        Parameters
+        ----------
+        uid: :class:`int`
+            The UID to get the battle chronicles for.
+        hylab_id: :class:`int | None`
+            Override HoyoLab ID. (ltuid)
+        hylab_token: :class:`str | None`
+            Override HoyoLab token. (ltoken)
+        hylab_cookie: :class:`str | None`
+            Override HoyoLab cookie token. (cookie_token)
+        lang: :class:`HYLanguage`
+            The language to use.
+
+        Returns
+        -------
+        :class:`ChronicleSimulatedUniverse`
+            The battle chronicles simulated universe for the given UID.
+
+        Raises
+        ------
+        :exc:`.HYLabException`
+            An error occurred while getting the battle chronicles.
+        :exc:`aiohttp.ClientResponseError`
+            An error occurred while requesting the battle chronicles.
+        """
+
+        server = HYVServer.from_uid(str(uid))
+        region = HYVRegion.from_server(server)
+
+        params = {
+            "server": STARRAIL_SERVER[server],
+            "role_id": str(uid),
+            "schedule_type": 3,
+            "need_detail": "true",
+        }
+
+        resp = await self._request(
+            "GET",
+            CHRONICLES_ROUTE.get_route(region) / "rogue",
+            params,
+            get_ds_headers(HYVRegion.from_server(server), lang=lang),
+            cookies=self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, lang=lang),
+            type=ChronicleSimulatedUniverse,
         )
 
         return resp.data

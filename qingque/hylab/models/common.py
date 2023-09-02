@@ -24,9 +24,15 @@ SOFTWARE.
 
 from __future__ import annotations
 
+from datetime import datetime as dt
 from enum import Enum
 
-__all__ = ("HYElementType",)
+from msgspec import Struct
+
+__all__ = (
+    "HYElementType",
+    "ChronicleDate",
+)
 
 
 class HYElementType(str, Enum):
@@ -39,3 +45,20 @@ class HYElementType(str, Enum):
     Imaginary = "imaginary"
 
     Unknown = ""
+
+
+class ChronicleDate(Struct):
+    year: int
+    """:class:`int`: The year of the date."""
+    month: int
+    """:class:`int`: The month of the date."""
+    day: int
+    """:class:`int`: The day of the date."""
+    hour: int
+    """:class:`int`: The hour of the date."""
+    minute: int
+    """:class:`int`: The minute of the date."""
+
+    @property
+    def datetime(self) -> dt:
+        return dt(self.year, self.month, self.day, self.hour, self.minute)
