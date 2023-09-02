@@ -874,11 +874,7 @@ class StarRailMihomoCard(StarRailDrawing):
         # Outer canvas
         main_canvas = Image.new("RGBA", (1600, self._canvas.height + 90), self._foreground)
         # 16px padding left, right, top on where to paste the old canvas
-        await self._paste_image(
-            self._canvas,
-            (16, 16),
-            self._canvas,
-        )
+        await self._paste_image(self._canvas, (16, 16), self._canvas, canvas=main_canvas)
         player_region = HYVServer.from_uid(self._player.id, ignore_error=True)
         starting_foot = self._canvas.height
         height_mid = starting_foot + ((main_canvas.height - starting_foot) // 2) + 8

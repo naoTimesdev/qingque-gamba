@@ -51,7 +51,7 @@ class StarRailDrawing:
         self._language: MihomoLanguage = language if isinstance(language, MihomoLanguage) else language.mihomo
         self._loop: asyncio.AbstractEventLoop = asyncio.get_running_loop()
 
-        self._assets_folder = AsyncPath(__file__).parent.parent / "assets" / "srs"
+        self._assets_folder = AsyncPath(__file__).parent.parent.parent / "assets" / "srs"
         self._index_data: SRSDataLoader = SRSDataLoader(self._language)
 
         self._foreground: RGB = (255, 255, 255)
