@@ -31,7 +31,7 @@ from qingque.bot import QingqueClient
 from qingque.extensions.files import FileBytes
 from qingque.models.embed_paging import EmbedPaginatedView
 from qingque.models.persistence import QingqueProfile
-from qingque.starrail.generator import StarRailCard
+from qingque.starrail.generator import StarRailMihomoCard
 from qingque.tooling import get_logger
 
 __all__ = ("qqprofile_srprofile",)
@@ -69,7 +69,7 @@ async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: in
     embeds: list[discord.Embed] = []
     files: list[discord.File] = []
     for idx, character in enumerate(data_player.characters, 1):
-        card_char = StarRailCard(character, data_player.player, language=language)
+        card_char = StarRailMihomoCard(character, data_player.player, language=language)
         logger.info(f"Generating character {character.name} profile card for UID {uid}")
         card_data = await card_char.create()
 

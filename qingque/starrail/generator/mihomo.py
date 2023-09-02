@@ -24,14 +24,9 @@ SOFTWARE.
 
 from __future__ import annotations
 
-import asyncio
-import functools
 import logging
-from io import BytesIO
-from typing import Any, TypeAlias
 
-from aiopath import AsyncPath
-from PIL import Image, ImageDraw, ImageFont, ImageOps
+from PIL import Image
 
 from qingque.mihomo.models.base import MihomoBase
 from qingque.mihomo.models.characters import Character
@@ -41,14 +36,14 @@ from qingque.mihomo.models.player import PlayerInfo
 from qingque.mihomo.models.relics import Relic, RelicSet
 from qingque.mihomo.models.stats import StatsAtrributes, StatsField, StatsProperties
 from qingque.models.region import HYVServer
-from qingque.starrail.loader import SRSDataLoader
 from qingque.starrail.models.relics import SRSRelicType
+
+from .base import RGB, StarRailDrawing
 
 __all__ = (
     "SRSCardStats",
-    "StarRailCard",
+    "StarRailMihomoCard",
 )
-RGB: TypeAlias = tuple[int, int, int]
 
 _COLOR_DOMINANT: dict[str, RGB | list[RGB]] = {
     "1001": [(230, 160, 205), (202, 253, 250)],
@@ -90,7 +85,7 @@ _COLOR_DOMINANT: dict[str, RGB | list[RGB]] = {
     "8003": [(234, 149, 56), (49, 42, 42)],
     "8004": [(234, 149, 56), (49, 42, 42)],
 }
-logger = logging.getLogger("qingque.starrail.card_generator")
+logger = logging.getLogger("qingque.starrail.generator.mihomo")
 
 
 # Sizing:
@@ -105,37 +100,6 @@ logger = logging.getLogger("qingque.starrail.card_generator")
 #  - Left: 62
 #  - Right: 1506
 #  - Bottom: 830
-
-
-def draw_ellipse(
-    image: Image.Image,
-    bounds: list[int],
-    width: int = 1,
-    outline: str | RGB = "white",
-    antialias: int = 4,
-):
-    """Improved ellipse drawing function, based on PIL.ImageDraw.
-
-    Source: https://stackoverflow.com/a/34926008
-    """
-
-    # Use a single channel image (mode='L') as mask.
-    # The size of the mask can be increased relative to the imput image
-    # to get smoother looking results.
-    mask = Image.new(size=[int(dim * antialias) for dim in image.size], mode="L", color="black")  # type: ignore
-    draw = ImageDraw.Draw(mask)
-
-    # draw outer shape in white (color) and inner shape in black (transparent)
-    for offset, fill in (width / -2.0, "white"), (width / 2.0, "black"):
-        left, top = [(value + offset) * antialias for value in bounds[:2]]
-        right, bottom = [(value - offset) * antialias for value in bounds[2:]]
-        draw.ellipse([left, top, right, bottom], fill=fill)
-
-    # downsample the mask using PIL.Image.LANCZOS
-    # (a high-quality downsampling filter).
-    mask = mask.resize(image.size, Image.LANCZOS)
-    # paste outline color to input image through the mask
-    image.paste(outline, mask=mask)
 
 
 class SRSCardStats(MihomoBase, frozen=True):
@@ -156,7 +120,7 @@ class SRSCardStats(MihomoBase, frozen=True):
         )
 
 
-class StarRailCard:
+class StarRailMihomoCard(StarRailDrawing):
     CHARACTER_TOP = 164
     CHARACTER_BOTTOM = CHARACTER_TOP + 352
     CHARACTER_LEFT = 1006
@@ -167,140 +131,17 @@ class StarRailCard:
     def __init__(
         self, character: Character, player: PlayerInfo, *, language: MihomoLanguage = MihomoLanguage.EN
     ) -> None:
+        super().__init__(language=language)
         self._player: PlayerInfo = player
         self._character: Character = character
-        self._language: MihomoLanguage = language
-        self._loop = asyncio.get_running_loop()
 
         # Initialize the card canvas.
         # Inner canvas is 1568x910
-        self._canvas = Image.new("RGBA", (1568, 910), (255, 255, 255))
-        self._assets_folder = AsyncPath(__file__).parent.parent / "assets" / "srs"
-        # self._index_folder = self._assets_folder / "index" / f"{self._language.value}"
-
-        self._index_data: SRSDataLoader = SRSDataLoader(self._language)
-
-        self._foreground: RGB = (255, 255, 255)
-        self._background: RGB = (0, 0, 0)
-        self._font_path: AsyncPath = self._assets_folder / ".." / "fonts" / "SDK_SC_Web.ttf"
-        self._universe_font_path: AsyncPath = self._assets_folder / ".." / "fonts" / "FirstWorld.ttf"
-
+        self._make_canvas(width=1568, height=910)
         self._stats_field_to_name: dict[StatsField, str] = {}
-
-        self._extended_by: int = 0
 
     def is_trailblazer(self):
         return int(self._character.id) >= 8001
-
-    async def _async_open(self, img_path: AsyncPath) -> Image.Image:
-        io = BytesIO()
-        read_data = await img_path.read_bytes()
-        io.write(read_data)
-        io.seek(0)
-        # Open as RGBA in case the image is transparent.
-        as_image = (await self._loop.run_in_executor(None, Image.open, io)).convert("RGBA")
-        return as_image
-
-    async def _create_font(self, font_path: AsyncPath, size: int = 20):
-        font = await self._loop.run_in_executor(None, ImageFont.truetype, str(font_path), size)
-        return font
-
-    async def _get_draw(self, *, canvas: Image.Image | None = None):
-        canvas = canvas or self._canvas
-        return await self._loop.run_in_executor(None, ImageDraw.Draw, canvas)
-
-    async def _extend_canvas_down(self, height: int):
-        new_canvas = Image.new("RGBA", (self._canvas.width, self._canvas.height + height), (255, 255, 255))
-        # Paste background
-        # self._canvas.paste(dominant_and_inversion, (0, 0, self._canvas.width, self._canvas.height))
-        await self._loop.run_in_executor(
-            None, new_canvas.paste, self._background, (0, 0, new_canvas.width, new_canvas.height)
-        )
-        await self._loop.run_in_executor(None, new_canvas.paste, self._canvas, (0, 0), self._canvas)
-        self._canvas = new_canvas
-        self._extended_by += height
-
-    async def _write_text(
-        self,
-        content: str,
-        box: tuple[float, float] | tuple[float, float, float, float],
-        font_size: int = 20,
-        font_path: AsyncPath | None = None,
-        use_bg: bool = False,
-        no_elipsis: bool = False,
-        alpha: int = 255,
-        *,
-        canvas: Image.Image | None = None,
-        **kwargs: Any,
-    ):
-        kwargs.pop("fill", None)
-        kwargs.pop("font", None)
-        kwargs.pop("xy", None)
-        kwargs.pop("text", None)
-        canvas = canvas or self._canvas
-
-        if len(box) != 2 and len(box) != 4:
-            raise ValueError(f"Invalid box size: {box}")
-
-        right = -1
-        if len(box) == 4:
-            # Pop the last two
-            right, _ = box[2:]  # type: ignore
-            box = box[:2]
-
-        font_path = font_path or self._font_path
-        font = await self._create_font(font_path, font_size)
-        composite: Image.Image | None = None
-        if alpha < 255:
-            composite = Image.new("RGBA", self._canvas.size, (255, 255, 255, 0))
-            draw = await self._get_draw(canvas=composite)
-        else:
-            draw = await self._get_draw(canvas=canvas)
-
-        if right != -1:
-            box_width = right - box[0]
-            # We want to ensure the text fit the box.
-            # Use textlength to determine how much we need to cut off the text with ...
-
-            original_content = content
-            # Get the text length
-            text_width = await self._loop.run_in_executor(None, draw.textlength, content, font)
-            while text_width > box_width:
-                # Cut off content + ...
-                content = content[:-1]
-                if not content:
-                    break
-                tst_content = content + " ..." if not no_elipsis else content
-                text_width = await self._loop.run_in_executor(None, draw.textlength, tst_content, font)
-            if not no_elipsis and original_content != content:
-                content += " ..."
-
-        fill = self._background if use_bg else self._foreground
-        draw_text = functools.partial(draw.text, fill=(*fill, alpha), font=font, **kwargs)
-        await self._loop.run_in_executor(None, draw_text, box, content)
-        length_width = await self._loop.run_in_executor(None, draw.textlength, content, font)
-        if composite is not None:
-            await self._loop.run_in_executor(None, canvas.alpha_composite, composite)
-        return length_width
-
-    async def _create_box(
-        self, box: tuple[tuple[float, float], tuple[float, float]], use_bg: bool = False, width: int = 0
-    ):
-        draw = await self._get_draw()
-        fill = self._background if use_bg else self._foreground
-        outline = None
-        if width > 0:
-            outline = self._foreground if use_bg else self._background
-            fill = None
-        draw_rect = functools.partial(draw.rectangle, fill=fill, width=width, outline=outline)
-        await self._loop.run_in_executor(None, draw_rect, box)
-
-    async def _tint_image(self, im: Image.Image, color: RGB):
-        alpha = im.split()[3]
-        gray = await self._loop.run_in_executor(None, ImageOps.grayscale, im)
-        result = await self._loop.run_in_executor(None, ImageOps.colorize, gray, color, color)
-        await self._loop.run_in_executor(None, result.putalpha, alpha)
-        return result
 
     def _get_element(self, element: ElementType):
         elem_txt = element.name
@@ -331,9 +172,8 @@ class StarRailCard:
         # Crop the bottom part of the image.
         _pr_top_crop = 20
         _pr_bot_crop = preview_image.height - 342 + _pr_top_crop
-        preview_image = await self._loop.run_in_executor(
-            None,
-            preview_image.crop,
+        preview_image = await self._crop_image(
+            preview_image,
             (0, _pr_top_crop, preview_image.width, preview_image.height - _pr_bot_crop),
         )
 
@@ -345,13 +185,7 @@ class StarRailCard:
         )
 
         # Put the preview image on the canvas, shift by 4px to the right and bottom.
-        await self._loop.run_in_executor(
-            None,
-            self._canvas.paste,
-            preview_image,
-            (self.CHARACTER_LEFT + 4, self.CHARACTER_TOP + 4),
-            preview_image,
-        )
+        await self._paste_image(preview_image, (self.CHARACTER_LEFT + 4, self.CHARACTER_TOP + 4), preview_image)
 
         # Write the Level text
         # Pad: 14px, y: center between image and bottom
@@ -390,26 +224,17 @@ class StarRailCard:
             align="left",
         )
 
+        # Element image
         element_img = await self._async_open(self._get_element(self._character.element.id))
         element_img = await self._tint_image(element_img, self._background)
-        # Resize
-        element_img = await self._loop.run_in_executor(None, element_img.resize, (96, 96))
-        await self._loop.run_in_executor(
-            None,
-            self._canvas.paste,
-            element_img,
-            (self.CHARACTER_RIGHT - 108, self.CHARACTER_TOP + 64),
-            element_img,
-        )
+        element_img = await self._resize_image(element_img, (96, 96))
+        await self._paste_image(element_img, (self.CHARACTER_RIGHT - 108, self.CHARACTER_TOP + 64), element_img)
 
         # Write the character trailblaze path
         path_img = await self._async_open(self._assets_folder / self._character.path.icon_url)
         path_img = await self._tint_image(path_img, self._background)
-        # Resize
-        path_img = await self._loop.run_in_executor(None, path_img.resize, (96, 96))
-        await self._loop.run_in_executor(
-            None,
-            self._canvas.paste,
+        path_img = await self._resize_image(path_img, (96, 96))
+        await self._paste_image(
             path_img,
             (self.CHARACTER_RIGHT - 108, self.CHARACTER_TOP + 176),
             path_img,
@@ -443,14 +268,12 @@ class StarRailCard:
         # Put the rarity stars
         stars_icon = await self._async_open(self._assets_folder / "icon" / "deco" / "StarBig_WhiteGlow.png")
         stars_icon = await self._tint_image(stars_icon, self._background)
-        stars_icon = await self._loop.run_in_executor(None, stars_icon.resize, (24, 24))
+        stars_icon = await self._resize_image(stars_icon, (24, 24))
         star_right_start = self.CHARACTER_RIGHT - 24 - 4
         top_marg_star = self.CHARACTER_TOP + 20 + 12
         for idx in range(self._character.rarity):
             # Every 24px, we want to put the star from right to left.
-            await self._loop.run_in_executor(
-                None,
-                self._canvas.paste,
+            await self._paste_image(
                 stars_icon,
                 (star_right_start - (idx * 24), top_marg_star),
                 stars_icon,
@@ -524,13 +347,11 @@ class StarRailCard:
             # Tint icon
             tinted_icon = await self._tint_image(img_icon, self._foreground)
             # Resize icon
-            tinted_icon = await self._loop.run_in_executor(None, tinted_icon.resize, (size, size))
+            tinted_icon = await self._resize_image(tinted_icon, (size, size))
 
             # Put icon
             top_margin = starting_top + (index_icon * size)
-            await self._loop.run_in_executor(
-                None,
-                self._canvas.paste,
+            await self._paste_image(
                 tinted_icon,
                 (left_start, top_margin),
                 tinted_icon,
@@ -577,12 +398,10 @@ class StarRailCard:
             use_bg=True,
         )
         relic_img = await self._async_open(self._assets_folder / "icon/character/None.png")
-        relic_img = await self._loop.run_in_executor(None, relic_img.resize, (96, 96))
+        relic_img = await self._resize_image(relic_img, (96, 96))
         relic_img = await self._tint_image(relic_img, self._foreground)
 
-        await self._loop.run_in_executor(
-            None,
-            self._canvas.paste,
+        await self._paste_image(
             relic_img,
             (left + 21, top_margin + 21),
             relic_img,
@@ -623,11 +442,9 @@ class StarRailCard:
             use_bg=True,
         )
         relic_img = await self._async_open(self._assets_folder / box_icon)
-        relic_img = await self._loop.run_in_executor(None, relic_img.resize, (96, 96))
+        relic_img = await self._resize_image(relic_img, (96, 96))
 
-        await self._loop.run_in_executor(
-            None,
-            self._canvas.paste,
+        await self._paste_image(
             relic_img,
             (left + 21, top_margin + 21),
             relic_img,
@@ -686,13 +503,11 @@ class StarRailCard:
 
         stars_icon = await self._async_open(self._assets_folder / "icon" / "deco" / "StarBig_WhiteGlow.png")
         stars_icon = await self._tint_image(stars_icon, self._foreground)
-        stars_icon = await self._loop.run_in_executor(None, stars_icon.resize, (14, 14))
+        stars_icon = await self._resize_image(stars_icon, (14, 14))
         star_right_start = left + box_size - 14 - 8
         star_bottom_start = top_margin + box_size - 14 - 8
         for star_idx in range(rarity):
-            await self._loop.run_in_executor(
-                None,
-                self._canvas.paste,
+            await self._paste_image(
                 stars_icon,
                 (star_right_start - (star_idx * (14 - 2)), star_bottom_start),
                 stars_icon,
@@ -704,11 +519,9 @@ class StarRailCard:
                 # Tint icon
                 relic_icon = await self._tint_image(relic_icon, self._foreground)
                 # Resize icon
-                relic_icon = await self._loop.run_in_executor(None, relic_icon.resize, (32, 32))
+                relic_icon = await self._resize_image(relic_icon, (32, 32))
 
-                await self._loop.run_in_executor(
-                    None,
-                    self._canvas.paste,
+                await self._paste_image(
                     relic_icon,
                     (
                         left + box_size + 20,
@@ -803,7 +616,7 @@ class StarRailCard:
         # Extend if has more than 2 sets
         if len(grouped_sets) > 2:
             extend_by = (len(grouped_sets) - 2) * (26 + 2)
-            delta_extend = extend_by - self._extended_by
+            delta_extend = extend_by - self._extend_down_by
             if delta_extend > 0:
                 await self._extend_canvas_down(delta_extend)
 
@@ -913,11 +726,9 @@ class StarRailCard:
         for idx, skill in enumerate(sorted_skills):
             skill_icon = await self._async_open(self._assets_folder / skill.icon_url)
             skill_icon = await self._tint_image(skill_icon, self._foreground)
-            skill_icon = await self._loop.run_in_executor(None, skill_icon.resize, (box_size - 4, box_size - 4))
+            skill_icon = await self._resize_image(skill_icon, (box_size - 4, box_size - 4))
 
-            await self._loop.run_in_executor(
-                None,
-                self._canvas.paste,
+            await self._paste_image(
                 skill_icon,
                 (LEFT + (idx * margin) + 2, TOP),
                 skill_icon,
@@ -962,11 +773,9 @@ class StarRailCard:
         for idx, trace in enumerate(enabled_traces):
             trace_icon = await self._async_open(self._assets_folder / trace.icon_url)
             trace_icon = await self._tint_image(trace_icon, self._foreground)
-            trace_icon = await self._loop.run_in_executor(None, trace_icon.resize, (box_size - 4, box_size - 4))
+            trace_icon = await self._resize_image(trace_icon, (box_size - 4, box_size - 4))
 
-            await self._loop.run_in_executor(
-                None,
-                self._canvas.paste,
+            await self._paste_image(
                 trace_icon,
                 (LEFT + (idx * margin) + 2, TOP),
                 trace_icon,
@@ -994,11 +803,11 @@ class StarRailCard:
 
         # Set the background color to dominant color.
         if isinstance(dominant_and_inversion, list):
-            self._canvas.paste(dominant_and_inversion[0], (0, 0, self._canvas.width, self._canvas.height))
+            await self._paste_image(dominant_and_inversion[0], (0, 0, self._canvas.width, self._canvas.height))
             self._foreground = dominant_and_inversion[1]
             self._background = dominant_and_inversion[0]
         else:
-            self._canvas.paste(dominant_and_inversion, (0, 0, self._canvas.width, self._canvas.height))
+            await self._paste_image(dominant_and_inversion, (0, 0, self._canvas.width, self._canvas.height))
             self._foreground = tuple(255 - c for c in dominant_and_inversion)
             self._background = dominant_and_inversion
 
@@ -1012,22 +821,13 @@ class StarRailCard:
         )
         # Player avatar
         avatar_icon = await self._async_open(self._assets_folder / self._player.avatar.icon_url)
-        avatar_icon = await self._loop.run_in_executor(
-            None,
-            avatar_icon.resize,
-            (120, 120),
-        )
-        await self._loop.run_in_executor(
-            None,
-            self._canvas.paste,
+        avatar_icon = await self._resize_image(avatar_icon, (120, 120))
+        await self._paste_image(
             avatar_icon,
             (self.RELIC_LEFT, self.CHARACTER_TOP - 144),
             avatar_icon,
         )
-        await self._loop.run_in_executor(
-            None,
-            draw_ellipse,
-            self._canvas,
+        await self._create_circle(
             [self.RELIC_LEFT, self.CHARACTER_TOP - 144, self.RELIC_LEFT + 120, self.CHARACTER_TOP - 144 + 120],
             4,
             self._foreground,
@@ -1055,7 +855,7 @@ class StarRailCard:
         # Create footer
         logger.info("Creating the character footer...")
         await self._write_text(
-            "Supported by Interstellar Peace Corporation",
+            "Supported by Interastral Peace Corporation",
             (20, self._canvas.height - 20),
             font_size=20,
             alpha=128,
@@ -1074,9 +874,7 @@ class StarRailCard:
         # Outer canvas
         main_canvas = Image.new("RGBA", (1600, self._canvas.height + 90), self._foreground)
         # 16px padding left, right, top on where to paste the old canvas
-        await self._loop.run_in_executor(
-            None,
-            main_canvas.paste,
+        await self._paste_image(
             self._canvas,
             (16, 16),
             self._canvas,
@@ -1114,12 +912,11 @@ class StarRailCard:
 
         # Save the image.
         logger.info("Saving the image...")
-        bytes_io = BytesIO()
-        await self._loop.run_in_executor(None, main_canvas.save, bytes_io, "PNG")
+        bytes_io = await self._async_save_bytes(main_canvas)
 
         logger.info("Cleaning up...")
-        await self._loop.run_in_executor(None, main_canvas.close)
-        await self._loop.run_in_executor(None, self._canvas.close)
+        await self._async_close(main_canvas)
+        await self._async_close(self._canvas)
 
         # Return the bytes.
         bytes_io.seek(0)

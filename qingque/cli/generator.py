@@ -30,7 +30,7 @@ from pathlib import Path
 from typing import cast
 
 from qingque.mihomo import MihomoAPI
-from qingque.starrail import StarRailCard
+from qingque.starrail.generator import StarRailMihomoCard
 from qingque.tooling import setup_logger
 
 
@@ -59,7 +59,7 @@ async def runner(args: Argument):
         character = player.characters[0]
 
     log.info(f"Creating card for {character.name} ({character.id})")
-    card = StarRailCard(character, player.player, language=lang)
+    card = StarRailMihomoCard(character, player.player, language=lang)
     return await card.create(hide_uid=args.hide_uid, hide_credits=args.hide_credits), character
 
 
