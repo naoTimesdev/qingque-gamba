@@ -116,7 +116,7 @@ class StarRailDrawing:
         box: tuple[float, float] | tuple[float, float, float, float],
         font_size: int = 20,
         font_path: AsyncPath | None = None,
-        use_bg: bool = False,
+        color: RGB | None = None,
         no_elipsis: bool = False,
         alpha: int = 255,
         *,
@@ -167,7 +167,7 @@ class StarRailDrawing:
             if not no_elipsis and original_content != content:
                 content += " ..."
 
-        fill = self._background if use_bg else self._foreground
+        fill = color or self._foreground
         draw_text = functools.partial(draw.text, fill=(*fill, alpha), font=font, **kwargs)
         await self._loop.run_in_executor(None, draw_text, box, content)
         length_width = await self._loop.run_in_executor(None, draw.textlength, content, font)
@@ -178,7 +178,7 @@ class StarRailDrawing:
     async def _create_box(
         self,
         box: tuple[tuple[float, float], tuple[float, float]],
-        use_bg: bool = False,
+        color: RGB | None = None,
         width: int = 0,
         *,
         canvas: Image.Image | None = None,
@@ -187,10 +187,10 @@ class StarRailDrawing:
             raise RuntimeError("Canvas is not initialized, and no canvas is provided.")
 
         draw = await self._get_draw(canvas=canvas)
-        fill = self._background if use_bg else self._foreground
+        fill = color or self._foreground
         outline = None
         if width > 0:
-            outline = self._foreground if use_bg else self._background
+            outline = color or self._foreground
             fill = None
         draw_rect = functools.partial(draw.rectangle, fill=fill, width=width, outline=outline)
         await self._loop.run_in_executor(None, draw_rect, box)

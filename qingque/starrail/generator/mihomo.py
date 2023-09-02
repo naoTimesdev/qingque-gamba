@@ -193,7 +193,7 @@ class StarRailMihomoCard(StarRailDrawing):
             "Level",
             (self.CHARACTER_LEFT + 14, self.CHARACTER_BOTTOM - 22),
             font_size=24,
-            use_bg=True,
+            color=self._background,
             anchor="lm",
             align="left",
         )
@@ -203,7 +203,7 @@ class StarRailMihomoCard(StarRailDrawing):
             str(self._character.level).zfill(2),
             (self.CHARACTER_RIGHT - 14, self.CHARACTER_BOTTOM - 22),
             font_size=24,
-            use_bg=True,
+            color=self._background,
             anchor="rm",
             align="right",
         )
@@ -219,7 +219,7 @@ class StarRailMihomoCard(StarRailDrawing):
             f"E{self._character.eidolon}",
             (self.CHARACTER_LEFT + 8, self.CHARACTER_TOP + 8),
             font_size=19,
-            use_bg=True,
+            color=self._background,
             anchor="lt",
             align="left",
         )
@@ -245,7 +245,7 @@ class StarRailMihomoCard(StarRailDrawing):
             f"{self._character.element.name} / {self._character.path.name}",
             (self.CHARACTER_RIGHT - 4, self.CHARACTER_TOP + 8),
             font_size=20,
-            use_bg=True,
+            color=self._background,
             anchor="rt",
             align="right",
         )
@@ -260,7 +260,7 @@ class StarRailMihomoCard(StarRailDrawing):
             f"{self._character.element.name} / {self._character.path.name}",
             (self.CHARACTER_RIGHT - 4, self.CHARACTER_TOP + 8),
             font_size=20,
-            use_bg=True,
+            color=self._background,
             anchor="rt",
             align="right",
         )
@@ -363,7 +363,7 @@ class StarRailMihomoCard(StarRailDrawing):
                 raise ValueError(f"Cannot find stats name for {stats_field.name}")
             await self._write_text(
                 stats_name,
-                (left_start + size + 10, top_margin + (size // 2) + 2),
+                (left_start + size + 4, top_margin + (size // 2) + 2),
                 20,
                 anchor="lm",
                 align="left",
@@ -395,7 +395,7 @@ class StarRailMihomoCard(StarRailDrawing):
         await self._create_box(
             ((left, top_margin), (left + box_size, top_margin + box_size)),
             width=8,
-            use_bg=True,
+            color=self._foreground,
         )
         relic_img = await self._async_open(self._assets_folder / "icon/character/None.png")
         relic_img = await self._resize_image(relic_img, (96, 96))
@@ -418,7 +418,7 @@ class StarRailMihomoCard(StarRailDrawing):
         await self._write_text(
             text,
             (left + box_size + 25 + 4, top_margin + 4 + 6),
-            use_bg=True,
+            color=self._background,
             anchor="lt",
             align="left",
         )
@@ -439,7 +439,7 @@ class StarRailMihomoCard(StarRailDrawing):
         await self._create_box(
             ((left, top_margin), (left + box_size, top_margin + box_size)),
             width=8,
-            use_bg=True,
+            color=self._foreground,
         )
         relic_img = await self._async_open(self._assets_folder / box_icon)
         relic_img = await self._resize_image(relic_img, (96, 96))
@@ -472,7 +472,7 @@ class StarRailMihomoCard(StarRailDrawing):
             await self._write_text(
                 box_indicator,
                 (left + 4 + 20, top_margin + 4 + 10),
-                use_bg=True,
+                color=self._background,
                 font_size=16,
                 anchor="mm",
             )
@@ -485,7 +485,7 @@ class StarRailMihomoCard(StarRailDrawing):
         await self._write_text(
             main_stat.name,
             tuple(bbox_main_name),
-            use_bg=True,
+            color=self._background,
             no_elipsis=not main_stat.cut_off,
             anchor="lt",
             align="left",
@@ -496,7 +496,7 @@ class StarRailMihomoCard(StarRailDrawing):
             await self._write_text(
                 stats_format.format(main_stat.value),
                 (left + box_size + 25 + 254 - 4, top_margin + 4 + 6),
-                use_bg=True,
+                color=self._background,
                 anchor="rt",
                 align="right",
             )
@@ -631,7 +631,7 @@ class StarRailMihomoCard(StarRailDrawing):
                 f"{select_relic.need}",
                 (self.RELIC_LEFT + 10.5, TOP + (idx * 26) + 10.5),
                 font_size=16,
-                use_bg=True,
+                color=self._background,
                 anchor="mm",
                 align="center",
             )
@@ -744,7 +744,7 @@ class StarRailMihomoCard(StarRailDrawing):
                 (LEFT + (idx * margin) + 19, TOP + 11),
                 font_size=16,
                 anchor="mm",
-                use_bg=True,
+                color=self._background,
             )
 
             await self._write_text(
@@ -888,7 +888,7 @@ class StarRailMihomoCard(StarRailDrawing):
             player_uid,
             (75, height_mid),
             font_size=30,
-            use_bg=True,
+            color=self._background,
             anchor="lm",
             canvas=main_canvas,
         )
@@ -901,7 +901,7 @@ class StarRailMihomoCard(StarRailDrawing):
             right_side_text,
             (main_canvas.width - 75, height_mid),
             font_size=30,
-            use_bg=True,
+            color=self._background,
             anchor="rm",
             canvas=main_canvas,
         )
