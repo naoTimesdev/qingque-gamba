@@ -88,7 +88,7 @@ class QingqueClient(discord.Client):
         await self.load_extensions()
         self.logger.info("Syncing commands...")
         await self.tree.sync()
-        self.logger.info("Bot is ready.")
+        self.logger.info("Bot is ready to go")
 
     async def available_extensions(self):
         COGS_FOLDER = AsyncPath(ROOT_DIR / "cogs")
@@ -140,3 +140,7 @@ class QingqueClient(discord.Client):
             self.logger.info("Redis client closed.")
 
         return await super().close()
+
+    async def on_ready(self):
+        self.logger.info("Bot is ready, changing status...")
+        await self.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name="Celestial Jade"))

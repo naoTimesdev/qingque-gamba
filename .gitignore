@@ -377,3 +377,4 @@ player_*.json
 chronicle_*.json
 
 config.toml
+*.7z
