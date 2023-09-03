@@ -195,7 +195,7 @@ class StarRailMihomoCard(StarRailDrawing):
         # Write the Level text
         # Pad: 14px, y: center between image and bottom
         await self._write_text(
-            "Level",
+            self._i18n.t("mihomo.level"),
             (self.CHARACTER_LEFT + 14, self.CHARACTER_BOTTOM - 22),
             font_size=24,
             color=self._background,
@@ -697,7 +697,7 @@ class StarRailMihomoCard(StarRailDrawing):
             cone_stats.insert(
                 0,
                 SRSCardStats(
-                    "Level",
+                    self._i18n.t("mihomo.level"),
                     value=light_cone.level,
                     cut_off=True,
                 ),
