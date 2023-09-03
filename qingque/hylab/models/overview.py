@@ -42,8 +42,8 @@ __all__ = (
 class ChronicleOverviewStats(Struct):
     active: int = field(name="active_days", default=1)
     """:class:`int`: The number of active days."""
-    avatar_count: int = field(name="avatar_num", default=1)
-    """:class:`int`: The number of avatars."""
+    characters: int = field(name="avatar_num", default=1)
+    """:class:`int`: The number of characters."""
     achievements: int = field(name="achievement_num", default=0)
     """:class:`int`: The number of achievements."""
     chests: int = field(name="chest_num", default=0)
