@@ -91,7 +91,7 @@ async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: in
         if progression.achivements > 0:
             description.append(f"**{t('achivements')}**: {progression.achivements}")
         if progression.light_cones > 0:
-            description.append(f"*{t('light_cones')}**: {progression.light_cones}")
+            description.append(f"**{t('light_cones')}**: {progression.light_cones}")
         if progression.simulated_universe.value > 0:
             rogue_world = t("rogue_world", [str(progression.simulated_universe.value)])
             description.append(f"**{t('rogue')}**: {rogue_world}")

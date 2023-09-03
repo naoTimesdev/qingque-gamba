@@ -30,7 +30,10 @@
             "all_res": "All RES",
             "unknown": "Unknown"
         },
-        "credits": "Data dari Mihomo | Dibuat oleh @noaione | Ide dari StarDB"
+        "credits": "Data dari Mihomo | Dibuat oleh @noaione | Ide dari StarDB",
+        "region": "Region",
+        "level": "Level",
+        "moc": "MoC"
     },
     "chronicles": {
         "days_active": "Hari aktif",

@@ -826,6 +826,8 @@ class StarRailMihomoCard(StarRailDrawing):
         await self._index_data.async_loads()
         await self._set_index_properties_name()
 
+        t = self._i18n.t
+
         # Calculate average color of the preview image.
         logger.info("Initializing the canvas card information...")
         dominant_and_inversion = _COLOR_DOMINANT.get(self._character.id)
@@ -896,7 +898,7 @@ class StarRailMihomoCard(StarRailDrawing):
         )
         if not hide_credits:
             await self._write_text(
-                "Data from Mihomo | Created by @noaione | Idea from StarDB",
+                t("mihomo.credits"),
                 (self._canvas.width - 20, self._canvas.height - 20),
                 font_size=20,
                 alpha=128,
@@ -912,10 +914,10 @@ class StarRailMihomoCard(StarRailDrawing):
         height_mid = starting_foot + ((main_canvas.height - starting_foot) // 2) + 8
         player_uid = f"UID: {self._player.id}"
         if player_region is not None:
-            player_uid += f" | Region: {player_region.short}"
-        player_uid += f" | Level: {self._player.level:02d}"
+            player_uid += f" | {t('mihomo.region')}: {player_region.short}"
+        player_uid += f" | {t('mihomo.level')}: {self._player.level:02d}"
         if hide_uid:
-            player_uid = f"Level: {self._player.level:02d}"
+            player_uid = f"{t('mihomo.level')}: {self._player.level:02d}"
         await self._write_text(
             player_uid,
             (75, height_mid),
@@ -924,11 +926,12 @@ class StarRailMihomoCard(StarRailDrawing):
             anchor="lm",
             canvas=main_canvas,
         )
-        right_side_text = f"Achievements: {self._player.progression.achivements}"
+        right_side_text = f"{t('chronicles.achievements')}: {self._player.progression.achivements}"
         if self._player.progression.forgotten_hall is not None:
             forgotten_hall = self._player.progression.forgotten_hall
             if forgotten_hall.moc_finished_floor > 0:
-                right_side_text = f"MoC: Floor {forgotten_hall.moc_finished_floor} | {right_side_text}"
+                moc_floor = t("moc_floor", [str(forgotten_hall.moc_finished_floor)])
+                right_side_text = f"{t('mihomo.moc')}: {moc_floor} | {right_side_text}"
         await self._write_text(
             right_side_text,
             (main_canvas.width - 75, height_mid),

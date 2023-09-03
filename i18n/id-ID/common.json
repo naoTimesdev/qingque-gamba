@@ -14,5 +14,6 @@
             "asia": "Asia",
             "taiwan": "Taiwan/Hong Kong/Macau"
         }
-    }
+    },
+    "moc_floor": "Floor {0}"
 }
