@@ -12,5 +12,6 @@ from .combats import *
 from .constants import *
 from .player import *
 from .relics import *
+from .simuniverse import *
 from .stats import *
 from .weapons import *

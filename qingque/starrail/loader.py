@@ -33,6 +33,7 @@ from aiopath import AsyncPath
 from msgspec import Struct
 
 from qingque.mihomo.models.constants import MihomoLanguage
+from qingque.mihomo.models.simuniverse import SRSSimUniverseBlessing, SRSSimUniverseCurio
 
 from .models import (
     SRSAchievement,
@@ -89,6 +90,8 @@ class SRSDataLoader:
         self._relics_stats: KVModel[SRSRelicStats] | None = None
         self._relics_sub_stats: KVModel[SRSRelicSubStats] | None = None
         self._relics_sets: KVModel[SRSRelicSet] | None = None
+        self._rogue_curios: KVModel[SRSSimUniverseCurio] | None = None
+        self._rogue_blessings: KVModel[SRSSimUniverseBlessing] | None = None
 
         self.__loader_maps: dict[str, tuple[type[Struct], str]] = {
             "achievements": (SRSAchievement, "_achievements"),
@@ -111,6 +114,8 @@ class SRSDataLoader:
             "relic_main_affixes": (SRSRelicStats, "_relics_stats"),
             "relic_sub_affixes": (SRSRelicSubStats, "_relics_sub_stats"),
             "relic_sets": (SRSRelicSet, "_relics_sets"),
+            "rogue_curios": (SRSSimUniverseCurio, "_rogue_curios"),
+            "rogue_blessings": (SRSSimUniverseBlessing, "_rogue_blessings"),
         }
 
     @overload
@@ -278,3 +283,15 @@ class SRSDataLoader:
         if self._relics_sets is None:
             raise RuntimeError("You must load the data first.")
         return self._relics_sets
+
+    @property
+    def simuniverse_curios(self) -> KVModel[SRSSimUniverseCurio]:
+        if self._rogue_curios is None:
+            raise RuntimeError("You must load the data first.")
+        return self._rogue_curios
+
+    @property
+    def simuniverse_blessings(self) -> KVModel[SRSSimUniverseBlessing]:
+        if self._rogue_blessings is None:
+            raise RuntimeError("You must load the data first.")
+        return self._rogue_blessings
