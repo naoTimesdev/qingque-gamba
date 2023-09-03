@@ -375,6 +375,7 @@ master.zip
 StarRailRes.zip
 player_*.json
 chronicle_*.json
+chronicles_image_test*.png
 
 config.toml
 *.7z

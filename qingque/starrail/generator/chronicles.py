@@ -39,6 +39,9 @@ logger = logging.getLogger("qingque.starrail.generator.chronicles")
 
 
 class StarRailChronicleNotesCard(StarRailDrawing):
+    MARGIN_LR = 75
+    MARGIN_IMGT = 10
+
     def __init__(
         self,
         overview: ChronicleUserOverview,
@@ -76,12 +79,12 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         active_icon = await self._tint_image(active_icon, self._foreground)
         await self._paste_image(
             active_icon,
-            (70, days_icon_top),
+            (self.MARGIN_LR - 5, days_icon_top),
             active_icon,
         )
         await self._write_text(
             content="Days Active",
-            box=(75 + active_icon.width, days_top),
+            box=(self.MARGIN_LR + self.MARGIN_IMGT + active_icon.width, days_top),
             font_size=30,
             anchor="lt",
             align="left",
@@ -89,7 +92,7 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         )
         await self._write_text(
             content=f"{self._overview.stats.active:,}",
-            box=(75 + active_icon.width, days_top + 45),
+            box=(self.MARGIN_LR + self.MARGIN_IMGT + active_icon.width, days_top + 45),
             font_size=40,
             anchor="lt",
             align="left",
@@ -104,12 +107,12 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         avatar_icon = await self._tint_image(avatar_icon, self._foreground)
         await self._paste_image(
             avatar_icon,
-            (70, avatar_image_top),
+            (self.MARGIN_LR - 5, avatar_image_top),
             avatar_icon,
         )
         await self._write_text(
             content="Characters",
-            box=(75 + avatar_icon.width, avatar_top),
+            box=(self.MARGIN_LR + self.MARGIN_IMGT + avatar_icon.width, avatar_top),
             font_size=30,
             anchor="lt",
             align="left",
@@ -117,7 +120,7 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         )
         await self._write_text(
             content=f"{self._overview.stats.characters:,}",
-            box=(75 + avatar_icon.width, avatar_top + 45),
+            box=(self.MARGIN_LR + self.MARGIN_IMGT + avatar_icon.width, avatar_top + 45),
             font_size=40,
             anchor="lt",
             align="left",
@@ -132,12 +135,12 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         achivement_icon = await self._tint_image(achivement_icon, self._foreground)
         await self._paste_image(
             achivement_icon,
-            (70, achivement_image_top),
+            (self.MARGIN_LR - 5, achivement_image_top),
             achivement_icon,
         )
         await self._write_text(
             content="Achievements",
-            box=(75 + achivement_icon.width, achivement_top),
+            box=(self.MARGIN_LR + self.MARGIN_IMGT + achivement_icon.width, achivement_top),
             font_size=30,
             anchor="lt",
             align="left",
@@ -145,7 +148,7 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         )
         await self._write_text(
             content=f"{self._overview.stats.achievements:,}",
-            box=(75 + achivement_icon.width, achivement_top + 45),
+            box=(self.MARGIN_LR + self.MARGIN_IMGT + achivement_icon.width, achivement_top + 45),
             font_size=40,
             anchor="lt",
             align="left",
@@ -161,12 +164,12 @@ class StarRailChronicleNotesCard(StarRailDrawing):
             abyss_icon = await self._tint_image(abyss_icon, self._foreground)
             await self._paste_image(
                 abyss_icon,
-                (70, abyss_image_top),
+                (self.MARGIN_LR - 5, abyss_image_top),
                 abyss_icon,
             )
             await self._write_text(
                 content="Memory of Chaos",
-                box=(75 + abyss_icon.width, abyss_top),
+                box=(self.MARGIN_LR + self.MARGIN_IMGT + abyss_icon.width, abyss_top),
                 font_size=30,
                 anchor="lt",
                 align="left",
@@ -174,7 +177,7 @@ class StarRailChronicleNotesCard(StarRailDrawing):
             )
             await self._write_text(
                 content=self._overview.stats.moc_floor,
-                box=(75 + abyss_icon.width, abyss_top + 45),
+                box=(self.MARGIN_LR + self.MARGIN_IMGT + abyss_icon.width, abyss_top + 45),
                 font_size=24,
                 anchor="lt",
                 align="left",
@@ -198,12 +201,12 @@ class StarRailChronicleNotesCard(StarRailDrawing):
 
         await self._paste_image(
             tb_power_icon,
-            (self._canvas.width - tb_power_icon.width - 70, tb_power_top),
+            (self._canvas.width - tb_power_icon.width - self.MARGIN_LR + 5, tb_power_top),
             tb_power_icon,
         )
         await self._write_text(
             content="Trailblaze Power",
-            box=(self._canvas.width - tb_power_icon.width - 75, tb_power_top + 25),
+            box=(self._canvas.width - tb_power_icon.width - self.MARGIN_LR - self.MARGIN_IMGT, tb_power_top + 25),
             font_size=30,
             anchor="rt",
             align="right",
@@ -211,7 +214,7 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         )
         await self._write_text(
             content=f"{self._chronicle.stamina:,}/{self._chronicle.max_stamina:,}",
-            box=(self._canvas.width - tb_power_icon.width - 75, tb_power_top + 70),
+            box=(self._canvas.width - tb_power_icon.width - self.MARGIN_LR - self.MARGIN_IMGT, tb_power_top + 70),
             font_size=40,
             anchor="rt",
             align="right",
@@ -226,12 +229,15 @@ class StarRailChronicleNotesCard(StarRailDrawing):
 
         await self._paste_image(
             reserve_tb_power_icon,
-            (self._canvas.width - reserve_tb_power_icon.width - 80, reserve_tb_power_top + 10),
+            (self._canvas.width - reserve_tb_power_icon.width - self.MARGIN_LR - 5, reserve_tb_power_top + 10),
             reserve_tb_power_icon,
         )
         await self._write_text(
             content="Reserved Trailblaze Power",
-            box=(self._canvas.width - tb_power_icon.width - 75, reserve_tb_power_top + 25),
+            box=(
+                self._canvas.width - tb_power_icon.width - self.MARGIN_LR - self.MARGIN_IMGT,
+                reserve_tb_power_top + 25,
+            ),
             font_size=30,
             anchor="rt",
             align="right",
@@ -239,7 +245,10 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         )
         await self._write_text(
             content=f"{self._chronicle.reserve_stamina:,}",
-            box=(self._canvas.width - tb_power_icon.width - 75, reserve_tb_power_top + 70),
+            box=(
+                self._canvas.width - tb_power_icon.width - self.MARGIN_LR - self.MARGIN_IMGT,
+                reserve_tb_power_top + 70,
+            ),
             font_size=40,
             anchor="rt",
             align="right",
@@ -255,12 +264,12 @@ class StarRailChronicleNotesCard(StarRailDrawing):
 
         await self._paste_image(
             train_icon,
-            (self._canvas.width - train_icon.width - 70, train_icon_top),
+            (self._canvas.width - train_icon.width - self.MARGIN_LR + 5, train_icon_top),
             train_icon,
         )
         await self._write_text(
             content="Daily Training",
-            box=(self._canvas.width - train_icon.width - 75, train_top),
+            box=(self._canvas.width - train_icon.width - self.MARGIN_LR - self.MARGIN_IMGT, train_top),
             font_size=30,
             anchor="rt",
             align="right",
@@ -268,7 +277,7 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         )
         await self._write_text(
             content=f"{self._chronicle.training_score:,}/{self._chronicle.training_max_score:,}",
-            box=(self._canvas.width - train_icon.width - 75, train_top + 45),
+            box=(self._canvas.width - train_icon.width - self.MARGIN_LR - self.MARGIN_IMGT, train_top + 45),
             font_size=40,
             anchor="rt",
             align="right",
@@ -284,12 +293,12 @@ class StarRailChronicleNotesCard(StarRailDrawing):
 
         await self._paste_image(
             echo_icon,
-            (self._canvas.width - echo_icon.width - 70, echo_icon_top),
+            (self._canvas.width - echo_icon.width - self.MARGIN_LR + 5, echo_icon_top),
             echo_icon,
         )
         await self._write_text(
             content="Echo of War",
-            box=(self._canvas.width - echo_icon.width - 75, echo_top),
+            box=(self._canvas.width - echo_icon.width - self.MARGIN_LR - self.MARGIN_IMGT, echo_top),
             font_size=30,
             anchor="rt",
             align="right",
@@ -297,7 +306,7 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         )
         await self._write_text(
             content=f"{self._chronicle.eow_available:,}/{self._chronicle.eow_limit:,}",
-            box=(self._canvas.width - echo_icon.width - 75, echo_top + 45),
+            box=(self._canvas.width - echo_icon.width - self.MARGIN_LR - self.MARGIN_IMGT, echo_top + 45),
             font_size=40,
             anchor="rt",
             align="right",
@@ -382,7 +391,7 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         logger.info("Writing username...")
         await self._write_text(
             content=self._user_info.name,
-            box=(75, 75),
+            box=(self.MARGIN_LR, 75),
             font_size=86,
             anchor="lt",
         )
