@@ -419,7 +419,9 @@ class StarRailChronicleNotesCard(StarRailDrawing):
 
         # Create a timestamp (top right)
         if not hide_timestamp:
-            dt = datetime.now(tz=timezone(timedelta(hours=8)))
+            dt = datetime.utcfromtimestamp(self._chronicle.requested_at)
+            # Shift to UTC+8
+            dt = dt.replace(tzinfo=timezone.utc).astimezone(tz=timezone(timedelta(hours=8)))
             # Format to Day, Month YYYY HH:MM
             fmt_timestamp = dt.strftime("%a, %b %d %Y %H:%M")
             await self._write_text(
