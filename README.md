@@ -3,11 +3,15 @@
 ![Qingque my beloved](https://p.ihateani.me/toufriwg.png "Qingque my Beloved")
 ![Hoyolab Profile](https://p.ihateani.me/gjkpnmps.png "Hoyolab Profile")
 
+<div align="center">
+<a href="https://github.com/psf/black" target="_blank"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code style: black"></a>&nbsp;<a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json" alt="Ruff"></a>&nbsp;<a href="https://github.com/naoTimesdev/qingque-gamba/blob/master/LICENSE"><img src="https://img.shields.io/github/license/naoTimesdev/qingque-gamba"></a>&nbsp;<a href="https://crowdin.com/project/qingque-gamba" target="_blank"><img src="https://badges.crowdin.net/qingque-gamba/localized.svg" alt="Crowdin Localization" /></a>
+<br/><br/>
 A simple Discord Interaction bot to see your Honkai: Star Rail profile
+</div>
+<div align="center">
+<a href="https://discord.com/api/oauth2/authorize?client_id=1146085026086264953&permissions=412317240384&scope=bot%20applications.commands">Invite</a> | <a href="https://crowdin.com/project/qingque-gamba">Translate</a>
+</div>
 
-## Add
-
-[Invite](https://discord.com/api/oauth2/authorize?client_id=1146085026086264953&permissions=412317240384&scope=bot%20applications.commands)
 
 ## Running it Yourself
 
@@ -17,6 +21,7 @@ A simple Discord Interaction bot to see your Honkai: Star Rail profile
 - Redis Database
 - Working server
 
+**Running**:
 1. Run `poetry install` to install all deps
 2. Create `config.toml` from `config.toml.example` and fill everything.
 3. Start bot by running `poetry run srsbot`
