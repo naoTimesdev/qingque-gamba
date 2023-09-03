@@ -25,7 +25,7 @@ SOFTWARE.
 from __future__ import annotations
 
 import logging
-from typing import Any
+from datetime import datetime, timedelta, timezone
 
 from qingque.hylab.models.base import HYLanguage
 from qingque.hylab.models.notes import ChronicleNotes
@@ -318,7 +318,7 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         await self._async_close(train_icon)
         await self._async_close(echo_icon)
 
-    async def _create_decoration(self):
+    async def _create_decoration(self, hide_credits: bool = False):
         # DialogFrameDeco1.png (orig 395x495)
 
         deco_top_right = await self._async_open(
@@ -362,11 +362,14 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         deco_bot_mid = await self._tint_image(deco_bot_mid, self._foreground)
         # 360 x 48, put in the middle with 25 padding
 
+        deco_bot_mid_vert_box = self._canvas.height - deco_bot_mid.height - 35
+        if not hide_credits:
+            deco_bot_mid_vert_box -= 10
         await self._paste_image(
             deco_bot_mid,
             (
                 (self._canvas.width // 2) - (deco_bot_mid.width // 2),
-                self._canvas.height - deco_bot_mid.height - 35,
+                deco_bot_mid_vert_box,
             ),
             deco_bot_mid,
         )
@@ -377,7 +380,7 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         await self._async_close(deco_bot_right)
         await self._async_close(deco_bot_mid)
 
-    async def create(self, **kwargs: Any) -> bytes:
+    async def create(self, *, hide_credits: bool = False, hide_timestamp: bool = False) -> bytes:
         self._assets_folder = await self._assets_folder.absolute()
         if not await self._assets_folder.exists():
             raise FileNotFoundError("The assets folder does not exist.")
@@ -413,6 +416,30 @@ class StarRailChronicleNotesCard(StarRailDrawing):
             font_path=self._universe_font_path,
             anchor="ls",
         )
+
+        # Create a timestamp (top right)
+        if not hide_timestamp:
+            dt = datetime.now(tz=timezone(timedelta(hours=8)))
+            # Format to Day, Month YYYY HH:MM
+            fmt_timestamp = dt.strftime("%a, %b %d %Y %H:%M")
+            await self._write_text(
+                f"{fmt_timestamp} UTC+8",
+                (20, 20),
+                font_size=20,
+                anchor="lt",
+                align="left",
+                alpha=round(0.2 * 255),
+            )
+
+        # Create the credits
+        if not hide_credits:
+            await self._write_text(
+                "Data from HoyoLab | Created by @noaione",
+                (self._canvas.width // 2, self._canvas.height - 20),
+                font_size=16,
+                alpha=128,
+                anchor="ms",
+            )
 
         # Save the image.
         logger.info("Saving the image...")

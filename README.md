@@ -1,7 +1,7 @@
 # Qingque Gamba
 
 ![Qingque my beloved](https://p.ihateani.me/toufriwg.png "Qingque my Beloved")
-![Hoyolab Profile](https://p.ihateani.me/whfxlqze.png "Hoyolab Profile")
+![Hoyolab Profile](https://p.ihateani.me/gjkpnmps.png "Hoyolab Profile")
 
 A simple Discord Interaction bot to see your Honkai: Star Rail profile
 
