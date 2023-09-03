@@ -279,6 +279,12 @@ class StarRailMihomoCard(StarRailDrawing):
                 stars_icon,
             )
 
+        # Close all images
+        await self._async_close(preview_image)
+        await self._async_close(element_img)
+        await self._async_close(path_img)
+        await self._async_close(stars_icon)
+
     async def _combine_character_stats(self):
         stats_meta: dict[StatsField, int | float] = {
             StatsField.HP: 1,
@@ -379,6 +385,10 @@ class StarRailMihomoCard(StarRailDrawing):
 
             index_icon += 1
 
+        # Close all images
+        for _, img_icon in icon_sets.items():
+            await self._async_close(img_icon)
+
     async def _set_index_properties_name(self):
         for _, fields in self._index_data.properties.items():
             self._stats_field_to_name[fields.kind] = fields.name
@@ -422,6 +432,9 @@ class StarRailMihomoCard(StarRailDrawing):
             anchor="lt",
             align="left",
         )
+
+        # Close image
+        await self._async_close(relic_img)
 
     async def _create_stats_box(
         self,
@@ -539,6 +552,9 @@ class StarRailMihomoCard(StarRailDrawing):
                     font_size=16,
                 )
 
+                # Close image
+                await self._async_close(relic_icon)
+
             else:
                 # Use name instead
                 await self._write_text(
@@ -557,6 +573,10 @@ class StarRailMihomoCard(StarRailDrawing):
                     anchor="rt",
                     align="right",
                 )
+
+        # Close images
+        await self._async_close(relic_img)
+        await self._async_close(stars_icon)
 
     async def _create_main_relics(self):
         sorted_relics = sorted(
@@ -754,6 +774,9 @@ class StarRailMihomoCard(StarRailDrawing):
                 anchor="mm",
             )
 
+            # Close image
+            await self._async_close(skill_icon)
+
         enabled_traces: list[SkillTrace] = []
         for trace in self._character.traces:
             if "skilltree" in trace.icon_url and trace.level > 0:
@@ -787,6 +810,9 @@ class StarRailMihomoCard(StarRailDrawing):
                 font_size=14,
                 anchor="mm",
             )
+
+            # Close image
+            await self._async_close(trace_icon)
 
     async def create(self, *, hide_uid: bool = False, hide_credits: bool = False):
         self._assets_folder = await self._assets_folder.absolute()
@@ -833,6 +859,7 @@ class StarRailMihomoCard(StarRailDrawing):
             self._foreground,
             8,
         )
+        await self._async_close(avatar_icon)
 
         # Create the character card header.
         logger.info("Creating the character card header...")
