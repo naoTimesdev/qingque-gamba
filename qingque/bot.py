@@ -33,6 +33,7 @@ from aiopath import AsyncPath
 from discord import app_commands
 from discord.flags import Intents
 
+from qingque.hylab.client import HYLabClient
 from qingque.mihomo.client import MihomoAPI
 from qingque.models.config import QingqueConfig
 from qingque.redisdb import RedisDatabase
@@ -51,6 +52,7 @@ class QingqueClient(discord.Client):
 
         self._config: QingqueConfig = config
         self._mihomo: MihomoAPI | None = None
+        self._hoyoapi: HYLabClient | None = None
         self._redis: RedisDatabase | None = None
 
     @property
@@ -58,6 +60,12 @@ class QingqueClient(discord.Client):
         if self._mihomo is None:
             raise RuntimeError("Mihomo client is not setup yet.")
         return self._mihomo
+
+    @property
+    def hoyoapi(self) -> HYLabClient:
+        if self._hoyoapi is None:
+            raise RuntimeError("HYLab client is not setup yet.")
+        return self._hoyoapi
 
     @property
     def config(self) -> QingqueConfig:
@@ -85,6 +93,11 @@ class QingqueClient(discord.Client):
         self.logger.info("Setting up Mihomo client...")
         self._mihomo = MihomoAPI()
         self.logger.info("Loading extensions...")
+        if self._config.hoyolab is not None:
+            self.logger.info("Setting up HYLab client...")
+            hoyolab = HYLabClient(self._config.hoyolab.ltuid, self._config.hoyolab.ltoken)
+            self.logger.info("HYLab client connected.")
+            self._hoyoapi = hoyolab
         await self.load_extensions()
         self.logger.info("Syncing commands...")
         await self.tree.sync()
@@ -133,6 +146,11 @@ class QingqueClient(discord.Client):
             self.logger.info("Closing Mihomo client...")
             await self._mihomo.close()
             self.logger.info("Mihomo client closed.")
+
+        if self._hoyoapi is not None:
+            self.logger.info("Closing HYLab client...")
+            await self._hoyoapi.close()
+            self.logger.info("HYLab client closed.")
 
         if self._redis is not None:
             self.logger.info("Closing Redis client...")

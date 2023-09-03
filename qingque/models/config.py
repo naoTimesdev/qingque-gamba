@@ -42,7 +42,9 @@ __all__ = (
 
 class QingqueConfigHoyolab(Struct):
     ltuid: int
+    """:class:`int`: The ltuid."""
     ltoken: str
+    """:class:`str`: The ltoken."""
 
 
 class QingqueConfigRedis(Struct):
