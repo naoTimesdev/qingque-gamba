@@ -1,12 +1,13 @@
 # Qingque Gamba
 
-![Qingque my beloved](https://p.ihateani.me/wfrjtmor.png "Qingque my Beloved")
+![Qingque my beloved](https://p.ihateani.me/toufriwg.png "Qingque my Beloved")
+![Hoyolab Profile](https://p.ihateani.me/whfxlqze.png "Hoyolab Profile")
 
 A simple Discord Interaction bot to see your Honkai: Star Rail profile
 
 ## Add
 
-[Invite](https://discord.com/api/oauth2/authorize?client_id=1146085026086264953&permissions=277025770560&scope=bot)
+[Invite](https://discord.com/api/oauth2/authorize?client_id=1146085026086264953&permissions=412317240384&scope=bot%20applications.commands)
 
 ## Running it Yourself
 
@@ -23,9 +24,12 @@ A simple Discord Interaction bot to see your Honkai: Star Rail profile
 You can also generate your card without the bot by just running: `poetry run srscard [UID]` (See `poetry run srscard --help` for more info)
 
 ## To be Implemented
-- [ ] Deploy it for public use
+- [x] Deploy it for public use
 - [ ] Profile card
 - [ ] Battle chronicles stuff
+  - [x] Overview/Real-time notes
+  - [ ] Simulated Universe/Rogue
+  - [ ] Forgotten Hall/Memory of Chaos/Abyss
 - [ ] Relic scoring system (borrowed either from MobileMeta or Mar-7th)
 
 ## Credits
