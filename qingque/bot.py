@@ -34,6 +34,7 @@ from discord import app_commands
 from discord.flags import Intents
 
 from qingque.hylab.client import HYLabClient
+from qingque.i18n import load_i18n_languages
 from qingque.mihomo.client import MihomoAPI
 from qingque.models.config import QingqueConfig
 from qingque.redisdb import RedisDatabase
@@ -46,6 +47,7 @@ ROOT_DIR = Path(__file__).parent.absolute().parent
 class QingqueClient(discord.Client):
     def __init__(self, config: QingqueConfig, *, intents: Intents, **options: Any) -> None:
         super().__init__(intents=intents, **options)
+        load_i18n_languages()
 
         self.logger = get_logger("qingque.client")
         self.tree = app_commands.CommandTree(self)

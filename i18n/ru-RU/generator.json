@@ -1,0 +1,46 @@
+{
+    "mihomo": {
+        "stats_simple": {
+            "hp": "HP",
+            "atk": "ATK",
+            "def": "DEF",
+            "spd": "SPD",
+            "crit_rate": "CRIT Rate",
+            "crit_dmg": "CRIT DMG",
+            "break_effect": "BREAK",
+            "heal_rate": "HEAL",
+            "energy_regen": "ERR",
+            "effect_hit_rate": "EHR",
+            "effect_res": "ERS",
+            "phys_boost": "Phys DMG",
+            "fire_boost": "Fire DMG",
+            "ice_boost": "Ice DMG",
+            "lightning_boost": "Lightning DMG",
+            "wind_boost": "Wind DMG",
+            "quantum_boost": "Quantum DMG",
+            "imaginary_boost": "Imaginary DMG",
+            "all_boost": "All DMG",
+            "phys_res": "Phys RES",
+            "fire_res": "Fire RES",
+            "ice_res": "Ice RES",
+            "lightning_res": "Lightning RES",
+            "wind_res": "Wind RES",
+            "quantum_res": "Quantum RES",
+            "imaginary_res": "Imaginary RES",
+            "all_res": "All RES",
+            "unknown": "Unknown"
+        },
+        "credits": "Data from Mihomo | Created by @noaione | Idea from StarDB"
+    },
+    "chronicles": {
+        "days_active": "Days Active",
+        "characters": "Characters",
+        "achievements": "Achievements",
+        "moc": "Memory of Chaos",
+        "tb_power": "Trailblaze Power",
+        "reserve_tb_power": "Reserved Trailblaze Power",
+        "daily_quest": "Daily Training",
+        "echo_of_war": "Echo of War",
+        "credits": "Data from HoyoLab | Created by @noaione"
+    }
+}

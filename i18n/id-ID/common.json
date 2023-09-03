@@ -1,0 +1,18 @@
+{
+    "region": {
+        "short": {
+            "china": "China",
+            "na": "Amerika",
+            "eur": "Eropa",
+            "asia": "Asia",
+            "taiwan": "TW/HK/MO"
+        },
+        "long": {
+            "china": "Republik Rakyat China",
+            "na": "Amerika Utara",
+            "eur": "Eropa",
+            "asia": "Asia",
+            "taiwan": "Taiwan/Hong Kong/Macau"
+        }
+    }
+}

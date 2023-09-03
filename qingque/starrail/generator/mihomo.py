@@ -28,6 +28,7 @@ import logging
 
 from PIL import Image
 
+from qingque.i18n import QingqueLanguage
 from qingque.mihomo.models.base import MihomoBase
 from qingque.mihomo.models.characters import Character
 from qingque.mihomo.models.combats import ElementType, SkillTrace, SkillUsageType
@@ -129,7 +130,11 @@ class StarRailMihomoCard(StarRailDrawing):
     RELIC_LEFT = 62
 
     def __init__(
-        self, character: Character, player: PlayerInfo, *, language: MihomoLanguage = MihomoLanguage.EN
+        self,
+        character: Character,
+        player: PlayerInfo,
+        *,
+        language: MihomoLanguage | QingqueLanguage = MihomoLanguage.EN,
     ) -> None:
         super().__init__(language=language)
         self._player: PlayerInfo = player

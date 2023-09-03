@@ -40,6 +40,9 @@ class ChronicleNoteAssignmentStatus(str, Enum):
     Ongoing = "Ongoing"
     Finished = "Finished"
 
+    def is_ongoing(self) -> bool:
+        return self is ChronicleNoteAssignmentStatus.Ongoing
+
 
 class ChronicleNoteAssignment(Struct):
     status: ChronicleNoteAssignmentStatus = field(name="status", default=ChronicleNoteAssignmentStatus.Ongoing)

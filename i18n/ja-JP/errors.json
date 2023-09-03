@@ -1,0 +1,10 @@
+{
+    "bind_uid": "You haven't binded your UID yet.",
+    "bind_hoyolab": "You haven't binded your HoyoLab account yet.",
+    "hoyolab_public": "Your HoyoLab data is not public, please make it public!",
+    "hoyolab_unavailable": "Your HoyoLab data is not available, please make it public if you haven't!",
+    "exception": "Something went wrong, please try again later.\n{0}",
+    "srs_unloaded": "You must load the data first.",
+    "gen_mihomo_box": "Invalid box indicator: {0}",
+    "api_not_enabled": "API is not enabled."
+}

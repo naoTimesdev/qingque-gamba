@@ -33,6 +33,7 @@ from aiopath import AsyncPath
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 from qingque.hylab.models.base import HYLanguage
+from qingque.i18n import QingqueLanguage, get_i18n
 from qingque.mihomo.models.constants import MihomoLanguage
 
 from ..loader import SRSDataLoader
@@ -47,9 +48,17 @@ RGB: TypeAlias = tuple[int, int, int]
 class StarRailDrawing:
     _canvas: Image.Image
 
-    def __init__(self, *, language: MihomoLanguage | HYLanguage = MihomoLanguage.EN) -> None:
+    def __init__(self, *, language: MihomoLanguage | HYLanguage | QingqueLanguage = MihomoLanguage.EN) -> None:
+        if isinstance(language, HYLanguage):
+            language = language.mihomo
+        elif isinstance(language, QingqueLanguage):
+            language = language.to_mihomo()
         self._language: MihomoLanguage = language if isinstance(language, MihomoLanguage) else language.mihomo
         self._loop: asyncio.AbstractEventLoop = asyncio.get_running_loop()
+        if isinstance(language, QingqueLanguage):
+            self._i18n = get_i18n().copy(language)
+        else:
+            self._i18n = get_i18n().copy(QingqueLanguage.from_mihomo(self._language))
 
         self._assets_folder = AsyncPath(__file__).parent.parent.parent / "assets" / "srs"
         self._index_data: SRSDataLoader = SRSDataLoader(self._language)

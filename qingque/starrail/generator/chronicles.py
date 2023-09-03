@@ -30,6 +30,7 @@ from datetime import datetime, timedelta, timezone
 from qingque.hylab.models.base import HYLanguage
 from qingque.hylab.models.notes import ChronicleNotes
 from qingque.hylab.models.overview import ChronicleOverview, ChronicleUserInfo, ChronicleUserOverview
+from qingque.i18n import QingqueLanguage
 from qingque.mihomo.models.constants import MihomoLanguage
 
 from .base import StarRailDrawing
@@ -47,7 +48,7 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         overview: ChronicleUserOverview,
         chronicle: ChronicleNotes,
         *,
-        language: MihomoLanguage | HYLanguage = MihomoLanguage.EN,
+        language: MihomoLanguage | HYLanguage | QingqueLanguage = MihomoLanguage.EN,
     ) -> None:
         super().__init__(language=language)
         self._chronicle: ChronicleNotes = chronicle
@@ -83,7 +84,7 @@ class StarRailChronicleNotesCard(StarRailDrawing):
             active_icon,
         )
         await self._write_text(
-            content="Days Active",
+            content=self._i18n.t("chronicles.days_active") or "Days Active",
             box=(self.MARGIN_LR + self.MARGIN_IMGT + active_icon.width, days_top),
             font_size=30,
             anchor="lt",
@@ -111,7 +112,7 @@ class StarRailChronicleNotesCard(StarRailDrawing):
             avatar_icon,
         )
         await self._write_text(
-            content="Characters",
+            content=self._i18n.t("chronicles.characters") or "Characters",
             box=(self.MARGIN_LR + self.MARGIN_IMGT + avatar_icon.width, avatar_top),
             font_size=30,
             anchor="lt",
@@ -139,7 +140,7 @@ class StarRailChronicleNotesCard(StarRailDrawing):
             achivement_icon,
         )
         await self._write_text(
-            content="Achievements",
+            content=self._i18n.t("chronicles.achievements") or "Achievements",
             box=(self.MARGIN_LR + self.MARGIN_IMGT + achivement_icon.width, achivement_top),
             font_size=30,
             anchor="lt",
@@ -168,7 +169,7 @@ class StarRailChronicleNotesCard(StarRailDrawing):
                 abyss_icon,
             )
             await self._write_text(
-                content="Memory of Chaos",
+                content=self._i18n.t("chronicles.moc") or "Memory of Chaos",
                 box=(self.MARGIN_LR + self.MARGIN_IMGT + abyss_icon.width, abyss_top),
                 font_size=30,
                 anchor="lt",
@@ -205,7 +206,7 @@ class StarRailChronicleNotesCard(StarRailDrawing):
             tb_power_icon,
         )
         await self._write_text(
-            content="Trailblaze Power",
+            content=self._i18n.t("chronicles.tb_power") or "Trailblaze Power",
             box=(self._canvas.width - tb_power_icon.width - self.MARGIN_LR - self.MARGIN_IMGT, tb_power_top + 25),
             font_size=30,
             anchor="rt",
@@ -233,7 +234,7 @@ class StarRailChronicleNotesCard(StarRailDrawing):
             reserve_tb_power_icon,
         )
         await self._write_text(
-            content="Reserved Trailblaze Power",
+            content=self._i18n.t("chronicles.reserve_tb_power") or "Reserved Trailblaze Power",
             box=(
                 self._canvas.width - tb_power_icon.width - self.MARGIN_LR - self.MARGIN_IMGT,
                 reserve_tb_power_top + 25,
@@ -268,7 +269,7 @@ class StarRailChronicleNotesCard(StarRailDrawing):
             train_icon,
         )
         await self._write_text(
-            content="Daily Training",
+            content=self._i18n.t("chronicles.daily_quest") or "Daily Training",
             box=(self._canvas.width - train_icon.width - self.MARGIN_LR - self.MARGIN_IMGT, train_top),
             font_size=30,
             anchor="rt",
@@ -297,7 +298,7 @@ class StarRailChronicleNotesCard(StarRailDrawing):
             echo_icon,
         )
         await self._write_text(
-            content="Echo of War",
+            content=self._i18n.t("chronicles.echo_of_war") or "Echo of War",
             box=(self._canvas.width - echo_icon.width - self.MARGIN_LR - self.MARGIN_IMGT, echo_top),
             font_size=30,
             anchor="rt",
@@ -436,7 +437,7 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         # Create the credits
         if not hide_credits:
             await self._write_text(
-                "Data from HoyoLab | Created by @noaione",
+                self._i18n.t("chronicles.credits") or "Data from HoyoLab | Created by @noaione",
                 (self._canvas.width // 2, self._canvas.height - 20),
                 font_size=16,
                 alpha=128,
