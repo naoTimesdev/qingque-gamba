@@ -24,10 +24,13 @@ SOFTWARE.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import discord
 from discord.interactions import Interaction
 
-from qingque.bot import QingqueClient
+if TYPE_CHECKING:
+    from qingque.bot import QingqueClient
 
 __all__ = ("EmbedPaginatedView",)
 
