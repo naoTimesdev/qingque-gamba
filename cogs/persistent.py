@@ -152,6 +152,9 @@ async def qqpersist_srbind(inter: discord.Interaction[QingqueClient], uid: int):
 
 
 @app_commands.command(name="srhoyobind", description=locale_str("srhoyobind.desc"))
+@app_commands.describe(hoyo_id=locale_str("srhoyobind.desc_id"))
+@app_commands.describe(hoyo_token=locale_str("srhoyobind.desc_token"))
+@app_commands.describe(hoyo_cookie=locale_str("srhoyobind.desc_cookie_token"))
 async def qqpersist_srhoyobind(
     inter: discord.Interaction[QingqueClient],
     hoyo_id: int,
