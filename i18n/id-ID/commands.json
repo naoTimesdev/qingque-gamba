@@ -1,0 +1,13 @@
+{
+    "srprofile": {
+        "desc": "Lihat profil kartu anda.",
+        "uid_desc": "UID gim anda, jika tidak diberikan akan menggunakan UID yang dibind."
+    },
+    "srchronicle": {
+        "desc": "Lihat profil chronicle anda dari HoyoLab."
+    },
+    "srbind": {
+        "desc": "Bind UID akun dengan akun Discord anda.",
+        "uid_desc": "UID yang anda ingin bind."
+    }
+}

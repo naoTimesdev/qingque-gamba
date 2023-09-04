@@ -1,0 +1,13 @@
+{
+    "srprofile": {
+        "desc": "See your profile card.",
+        "uid_desc": "Your in-game UID, if not provided will use the binded UID."
+    },
+    "srchronicle": {
+        "desc": "See your profile chronicle from HoyoLab."
+    },
+    "srbind": {
+        "desc": "Bind your UID to your Discord account.",
+        "uid_desc": "The UID you want to bind."
+    }
+}

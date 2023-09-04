@@ -1,0 +1,13 @@
+{
+    "srprofile": {
+        "desc": "プロフィールカードをご覧ください。",
+        "uid_desc": "あなたのゲーム内UIDが提供されていない場合は、バインドされたUIDが使用されます。"
+    },
+    "srchronicle": {
+        "desc": "HoyoLabの戦績をご覧ください。"
+    },
+    "srbind": {
+        "desc": "UIDをDiscordアカウントにバインドする。",
+        "uid_desc": "バインドしたいUID。"
+    }
+}
