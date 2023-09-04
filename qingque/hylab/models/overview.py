@@ -53,6 +53,16 @@ class ChronicleOverviewStats(Struct):
 
     # There is also field_ext_map, but I'll ignore it.
 
+    def __post_init__(self):
+        # Cleanup the moc_floor
+        if self.moc_floor is None:
+            return
+
+        # Some MoC Floor are like this:
+        # - Memory Stage <unbreak>15</unbreak>
+        # Strip the <unbreak> tag.
+        self.moc_floor = self.moc_floor.replace("<unbreak>", "").replace("</unbreak>", "").strip()
+
 
 class ChronicleOverviewCharacter(Struct):
     id: int

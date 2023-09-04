@@ -248,7 +248,8 @@ async def qqprofile_srchronicle(inter: discord.Interaction[QingqueClient]):
     descriptions = []
     tb_power_txt = f"**{t('tb_power')}**: {hoyo_realtime.stamina:,}/{hoyo_realtime.max_stamina:,}"
     if hoyo_realtime.stamina_recover_in > 0:
-        recover_txt = t("tb_power_recover", [f"<t:{hoyo_realtime.stamina_reset_at}:R>"])
+        recover_in = int(round(hoyo_realtime.stamina_reset_at))
+        recover_txt = t("tb_power_recover", [f"<t:{recover_in}:R>"])
         tb_power_txt += f" {recover_txt}"
     descriptions.append(tb_power_txt)
     if hoyo_realtime.reserve_stamina > 0:
@@ -274,15 +275,15 @@ async def qqprofile_srchronicle(inter: discord.Interaction[QingqueClient]):
     for idx, assignment in enumerate(hoyo_realtime.assignments, 1):
         assign_values = []
         assign_values.append(f"**{t('assignment.name')}**: {assignment.name}")
-        assign_stat = f"**{t('assignment.status')}**: "
+        assign_stat = f"**{t('assignment.status.title')}**: "
         if assignment.status.is_ongoing():
             assign_stat += t("assignment.status.ongoing")
         else:
             assign_stat += t("assignment.status.finished")
         assign_values.append(assign_stat)
-        relative_done = hoyo_realtime.requested_at + assignment.time_left
+        relative_done = int(round(hoyo_realtime.requested_at + assignment.time_left))
         assign_values.append(f"**{t('assignment.finish')}**: <t:{relative_done}:R>")
-        embed.add_field(name=f"{t('assignment.title')} {idx}", value="\n".join(assign_values), inline=True)
+        embed.add_field(name=f"{t('assignment.title', [str(idx)])}", value="\n".join(assign_values), inline=True)
 
     logger.info("Sending to Discord...")
     await original_message.edit(content=None, embed=embed, attachments=[card_file])
