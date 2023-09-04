@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import discord
 from discord import app_commands
+from discord.app_commands import locale_str
 
 from qingque.bot import QingqueClient
 from qingque.models.confirm import ConfirmView
@@ -36,8 +37,9 @@ __all__ = ("qqpersist_srbind",)
 logger = get_logger("cogs.persistent")
 
 
-@app_commands.command(name="srbind", description="Bind your UID to the bot.")
-@app_commands.describe(uid="The UID you want to bind.")
+@app_commands.command(name="srbind")
+@app_commands.describe(description=locale_str("srbind.desc"))
+@app_commands.describe(uid=locale_str("srbind.uid_desc"))
 async def qqpersist_srbind(inter: discord.Interaction[QingqueClient], uid: int):
     discord_id = inter.user.id
     logger.info(f"Binding UID {uid} to {discord_id}")

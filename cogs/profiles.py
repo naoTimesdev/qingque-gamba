@@ -29,6 +29,7 @@ from io import BytesIO
 
 import discord
 from discord import app_commands
+from discord.app_commands import locale_str
 
 from qingque.bot import QingqueClient
 from qingque.extensions.files import FileBytes
@@ -46,8 +47,9 @@ logger = get_logger("cogs.profiles")
 SRS_BASE = "https://raw.githubusercontent.com/Mar-7th/StarRailRes/master/"
 
 
-@app_commands.command(name="srprofile", description="See your profile card.")
-@app_commands.describe(uid="Your in-game UID, if not provided will use the binded UID.")
+@app_commands.command(name="srprofile")
+@app_commands.describe(description=locale_str("srprofile.desc"))
+@app_commands.describe(uid=locale_str("srprofile.uid_desc"))
 async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: int | None = None):
     mihomo = inter.client.mihomo
     lang = QingqueLanguage.from_discord(inter.locale)
@@ -117,7 +119,8 @@ async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: in
     await pagination_view.start(inter, message=original_message)
 
 
-@app_commands.command(name="srchronicle", description="See your profile chronicle from HoyoLab.")
+@app_commands.command(name="srchronicle")
+@app_commands.describe(description=locale_str("srchronicle.desc"))
 async def qqprofile_srchronicle(inter: discord.Interaction[QingqueClient]):
     lang = QingqueLanguage.from_discord(inter.locale)
     t = functools.partial(get_i18n().t, language=lang)

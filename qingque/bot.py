@@ -31,10 +31,12 @@ from typing import Any
 import discord
 from aiopath import AsyncPath
 from discord import app_commands
+from discord.app_commands.translator import TranslationContextTypes, Translator, locale_str
+from discord.enums import Locale
 from discord.flags import Intents
 
 from qingque.hylab.client import HYLabClient
-from qingque.i18n import load_i18n_languages
+from qingque.i18n import QingqueLanguage, get_i18n, load_i18n_languages
 from qingque.mihomo.client import MihomoAPI
 from qingque.models.config import QingqueConfig
 from qingque.redisdb import RedisDatabase
@@ -42,6 +44,15 @@ from qingque.tooling import get_logger
 
 __all__ = ("QingqueClient",)
 ROOT_DIR = Path(__file__).parent.absolute().parent
+
+
+class QingqueClientI18n(Translator):
+    def __init__(self) -> None:
+        self._i18n = get_i18n()
+
+    async def translate(self, string: locale_str, locale: Locale, context: TranslationContextTypes) -> str | None:
+        lang = QingqueLanguage.from_discord(locale)
+        return self._i18n.t(string.message, language=lang)
 
 
 class QingqueClient(discord.Client):
@@ -81,6 +92,7 @@ class QingqueClient(discord.Client):
 
     async def setup_hook(self) -> None:
         self.logger.info("Setting up the bot...")
+        await self.tree.set_translator(QingqueClientI18n())
 
         self.logger.info("Setting up Redis client...")
         redisdb = RedisDatabase(
