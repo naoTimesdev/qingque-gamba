@@ -1,11 +1,11 @@
 {
-    "achivements": "Achivements",
+    "achivements": "Achievements",
     "light_cones": "Light Cones",
     "rogue": "Simulated Universe",
     "rogue_world": "World {0}",
     "abyss": "Forgotten Hall",
     "abyss_hard": "Memory of Chaos",
-    "character_header": "{0} (Lv {1})",
+    "character_header": "{0} (Lv. {1})",
     "tb_power": "Trailblaze Power",
     "tb_power_recover": "(Recover in {0})",
     "tb_power_reserve": "Reserve Power",
