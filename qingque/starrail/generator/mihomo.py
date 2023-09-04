@@ -567,7 +567,7 @@ class StarRailMihomoCard(StarRailDrawing):
                 # Write the field name
                 await self._write_text(
                     sub_stat.name,
-                    (left + box_size + 20 + 32 + 2, top_margin + 16 + (idx * 26) + 14),
+                    (left + box_size + 20 + 32 + 2, top_margin + 16 + (idx * 26) + 13),
                     anchor="ls",
                     align="left",
                     font_size=16,
