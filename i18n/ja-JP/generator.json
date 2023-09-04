@@ -34,11 +34,11 @@
         "region": "地域",
         "level": "レベル",
         "moc": "MoC",
-        "tb_name": "Trailblazer ({0})",
-        "no_relic": "No Relic",
-        "no_weapon": "No Light Cone",
-        "skill": "Skill",
-        "talent": "Talent"
+        "tb_name": "開拓者 ({0})",
+        "no_relic": "遺物なし",
+        "no_weapon": "光円錐なし",
+        "skill": "戦闘スキル",
+        "talent": "天賦"
     },
     "chronicles": {
         "days_active": "活動日数",

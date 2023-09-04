@@ -35,8 +35,8 @@
         "level": "Level",
         "moc": "MoC",
         "tb_name": "Trailblazer ({0})",
-        "no_relic": "No Relic",
-        "no_weapon": "No Light Cone",
+        "no_relic": "Relic Kosong",
+        "no_weapon": "Light Cone Kosong",
         "skill": "Skill",
         "talent": "Talent"
     },
