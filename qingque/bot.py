@@ -31,7 +31,12 @@ from typing import Any
 import discord
 from aiopath import AsyncPath
 from discord import app_commands
-from discord.app_commands.translator import TranslationContextTypes, Translator, locale_str
+from discord.app_commands.translator import (
+    TranslationContextLocation,
+    TranslationContextTypes,
+    Translator,
+    locale_str,
+)
 from discord.enums import Locale
 from discord.flags import Intents
 
@@ -51,6 +56,12 @@ class QingqueClientI18n(Translator):
         self._i18n = get_i18n()
 
     async def translate(self, string: locale_str, locale: Locale, context: TranslationContextTypes) -> str | None:
+        if context.location in [
+            TranslationContextLocation.command_name,
+            TranslationContextLocation.parameter_name,
+            TranslationContextLocation.group_name,
+        ]:
+            return context.data.name
         lang = QingqueLanguage.from_discord(locale)
         return self._i18n.t(string.message, language=lang)
 
