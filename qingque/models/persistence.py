@@ -25,7 +25,6 @@ SOFTWARE.
 from __future__ import annotations
 
 from enum import Enum
-from functools import cached_property
 
 from msgspec import Struct
 
@@ -56,11 +55,11 @@ class QingqueProfileV2Game(Struct):
     uid: int
     """:class:`int`: The user game UID."""
 
-    @cached_property
+    @property
     def server(self) -> HYVServer:
         return HYVServer.from_uid(str(self.uid))
 
-    @cached_property
+    @property
     def region(self) -> HYVRegion:
         return HYVRegion.from_server(self.server)
 

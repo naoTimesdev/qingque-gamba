@@ -78,20 +78,25 @@ async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: in
         profile = await get_profile_from_persistent(inter.user.id, inter.client.redis)
         if profile is None:
             return await original_message.edit(content=t("bind_uid"))
-        select_account = AccountSelectView(profile.games, inter.locale, timeout=30)
-        original_message = await original_message.edit(content=t("srchoices.ask_account"), view=select_account)
-        await select_account.wait()
+        if len(profile.games) == 1:
+            uid = profile.games[0].uid
+        elif len(profile.games) == 0:
+            return await original_message.edit(content=t("bind_uid"))
+        else:
+            select_account = AccountSelectView(profile.games, inter.locale, timeout=30)
+            original_message = await original_message.edit(content=t("srchoices.ask_account"), view=select_account)
+            await select_account.wait()
 
-        if (error := select_account.error) is not None:
-            logger.error(f"Error getting profile info for Discord ID {inter.user.id}: {error}")
-            error_message = str(error)
-            await original_message.edit(content=t("exception", [f"`{error_message}`"]))
-            return
+            if (error := select_account.error) is not None:
+                logger.error(f"Error getting profile info for Discord ID {inter.user.id}: {error}")
+                error_message = str(error)
+                await original_message.edit(content=t("exception", [f"`{error_message}`"]))
+                return
 
-        if select_account.account is None:
-            return await original_message.edit(content=t("srchoices.timeout"))
+            if select_account.account is None:
+                return await original_message.edit(content=t("srchoices.timeout"))
 
-        uid = select_account.account.uid
+            uid = select_account.account.uid
 
     logger.info(f"Getting profile info for UID {uid}")
     try:
@@ -163,24 +168,31 @@ async def qqprofile_srchronicle(inter: discord.Interaction[QingqueClient]):
     profile = await get_profile_from_persistent(inter.user.id, inter.client.redis)
     if profile is None:
         return await original_message.edit(content=t("bind_uid"))
-    select_account = AccountSelectView(profile.games, inter.locale, timeout=30)
-    original_message = await original_message.edit(content=t("srchoices.ask_account"), view=select_account)
-    await select_account.wait()
-
-    if (error := select_account.error) is not None:
-        logger.error(f"Error getting profile info for Discord ID {inter.user.id}: {error}")
-        error_message = str(error)
-        await original_message.edit(content=t("exception", [f"`{error_message}`"]))
-        return
-
-    if select_account.account is None:
-        return await original_message.edit(content=t("srchoices.timeout"))
+    if len(profile.games) == 0:
+        return await original_message.edit(content=t("bind_uid"))
 
     if profile.hylab_id is None:
         logger.warning(f"Discord ID {inter.user.id} haven't binded their HoyoLab account yet.")
         await inter.response.send_message(t("bind_hoyolab"), ephemeral=True)
 
-    sel_uid = select_account.account.uid
+    if len(profile.games) > 1:
+        select_account = AccountSelectView(profile.games, inter.locale, timeout=30)
+        original_message = await original_message.edit(content=t("srchoices.ask_account"), view=select_account)
+        await select_account.wait()
+
+        if (error := select_account.error) is not None:
+            logger.error(f"Error getting profile info for Discord ID {inter.user.id}: {error}")
+            error_message = str(error)
+            await original_message.edit(content=t("exception", [f"`{error_message}`"]))
+            return
+
+        if select_account.account is None:
+            return await original_message.edit(content=t("srchoices.timeout"))
+
+        sel_uid = select_account.account.uid
+    else:
+        sel_uid = profile.games[0].uid
+
     logger.info(f"Getting profile overview for UID {sel_uid}")
     try:
         hoyo_overview = await hoyoapi.get_battle_chronicles_overview(

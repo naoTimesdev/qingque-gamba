@@ -25,7 +25,6 @@ SOFTWARE.
 from __future__ import annotations
 
 from enum import Enum
-from functools import cached_property
 
 from msgspec import Struct, field
 
@@ -121,7 +120,7 @@ class ChronicleRogueBlessingKind(Struct):
     count: int = field(name="cnt")
     """:class:`int`: The number of blessings of the kind."""
 
-    @cached_property
+    @property
     def type(self) -> RogueBlessingType:
         return RogueBlessingType(self.id)
 
