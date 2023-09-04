@@ -128,7 +128,7 @@ async def qqpersist_srbind(inter: discord.Interaction[QingqueClient], uid: int):
     await view.wait()
 
     if view.action is None:
-        return await original_response.edit(content=t("srbind.timeout"))
+        return await original_response.edit(content=t("srbind.timeout"), view=None)
     elif view.action == HoyoBindAction.Bind:
         # Bind
         if uid_ingame:
@@ -137,7 +137,7 @@ async def qqpersist_srbind(inter: discord.Interaction[QingqueClient], uid: int):
         profile.games.append(QingqueProfileV2Game(kind=QingqueProfileV2GameKind.StarRail, uid=uid))
 
         await inter.client.redis.set(f"qqgamba:profilev2:{discord_id}", profile)
-        await original_response.edit(content=t("srbind.binded", {"uid": str(uid)}))
+        await original_response.edit(content=t("srbind.binded", {"uid": str(uid)}), view=None)
     elif view.action == HoyoBindAction.Remove:
         # Remove
         if not uid_ingame:
@@ -145,10 +145,10 @@ async def qqpersist_srbind(inter: discord.Interaction[QingqueClient], uid: int):
         profile.games = [game for game in profile.games if game.uid != uid]
 
         await inter.client.redis.set(f"qqgamba:profilev2:{discord_id}", profile)
-        await original_response.edit(content=t("srbind.removed", {"uid": str(uid)}))
+        await original_response.edit(content=t("srbind.removed", {"uid": str(uid)}), view=None)
     elif view.action == HoyoBindAction.Cancel:
         # Cancel
-        await original_response.edit(content=t("srbind.cancelled"))
+        await original_response.edit(content=t("srbind.cancelled"), view=None)
 
 
 @app_commands.command(name="srhoyobind", description=locale_str("srhoyobind.desc"))
@@ -170,8 +170,15 @@ async def qqpersist_srhoyobind(
 
     profile = await inter.client.redis.get(f"qqgamba:profilev2:{discord_id}", type=QingqueProfileV2)
     if profile is None:
-        return await inter.response.send_message(content=t("srhoyobind.bind_first"), ephemeral=True)
-    if len(profile.games):
+        legacy_profile = await inter.client.redis.get(f"qqgamba:profile:{discord_id}", type=QingqueProfile)
+        if legacy_profile is None:
+            return await inter.response.send_message(content=t("srhoyobind.bind_first"), ephemeral=True)
+        logger.info(f"Discord ID {discord_id} already binded via legacy profile, migrating...")
+        profile = QingqueProfileV2.from_legacy(legacy_profile)
+        # Save it first, delete the legacy profile later
+        await inter.client.redis.set(f"qqgamba:profilev2:{discord_id}", profile)
+        await inter.client.redis.rm(f"qqgamba:profile:{discord_id}")
+    if len(profile.games) < 1:
         return await inter.response.send_message(content=t("srhoyobind.bind_first"), ephemeral=True)
 
     await inter.response.defer(ephemeral=True, thinking=True)
@@ -182,9 +189,9 @@ async def qqpersist_srhoyobind(
         await view.wait()
 
         if view is None:
-            return await response.edit(content=t("srhoyobind.timeout"))
+            return await response.edit(content=t("srhoyobind.timeout"), view=None)
         elif view.value is False:
-            return await response.edit(content=t("srhoyobind.cancelled"))
+            return await response.edit(content=t("srhoyobind.cancelled"), view=None)
 
     profile.hylab_id = hoyo_id
     profile.hylab_token = hoyo_token
