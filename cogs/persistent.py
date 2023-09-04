@@ -31,6 +31,7 @@ from discord import app_commands
 from discord.app_commands import locale_str
 
 from qingque.bot import QingqueClient
+from qingque.hylab.models.errors import HYLabException
 from qingque.i18n import get_i18n_discord
 from qingque.models.confirm import ConfirmView
 from qingque.models.persistence import (
@@ -132,6 +133,7 @@ async def qqpersist_srbind(inter: discord.Interaction[QingqueClient], uid: int):
         # Bind
         if uid_ingame:
             return await original_response.edit(content=t("srbind.already_bind"))
+
         profile.games.append(QingqueProfileV2Game(kind=QingqueProfileV2GameKind.StarRail, uid=uid))
 
         await inter.client.redis.set(f"qqgamba:profilev2:{discord_id}", profile)
@@ -159,8 +161,17 @@ async def qqpersist_srhoyobind(
     discord_id = inter.user.id
     t = get_i18n_discord(inter.locale)
 
+    try:
+        hoyoapi = inter.client.hoyoapi
+    except RuntimeError:
+        logger.warning("HYLab API is not enabled.")
+        await inter.response.send_message(t("api_not_enabled"), ephemeral=True)
+        return
+
     profile = await inter.client.redis.get(f"qqgamba:profilev2:{discord_id}", type=QingqueProfileV2)
     if profile is None:
+        return await inter.response.send_message(content=t("srhoyobind.bind_first"), ephemeral=True)
+    if len(profile.games):
         return await inter.response.send_message(content=t("srhoyobind.bind_first"), ephemeral=True)
 
     await inter.response.defer(ephemeral=True, thinking=True)
@@ -178,6 +189,25 @@ async def qqpersist_srhoyobind(
     profile.hylab_id = hoyo_id
     profile.hylab_token = hoyo_token
     profile.hylab_cookie = hoyo_cookie
+
+    # Test if the token is valid
+    first_uid = profile.games[0].uid
+    try:
+        logger.info(f"Testing HYLab token for UID {first_uid}...")
+        await hoyoapi.get_battle_chronicles_overview(
+            first_uid,
+            hylab_id=hoyo_id,
+            hylab_token=hoyo_token,
+            hylab_cookie=hoyo_cookie,
+        )
+    except HYLabException as e:
+        logger.error(f"Failed to bind UID {first_uid} to HYLab ID {hoyo_id}: {e}", exc_info=e)
+        return await response.edit(content=t("srhoyobind.invalid_token"))
+    except Exception as exc:
+        logger.error(f"Error getting profile overview for UID {first_uid}: {exc}")
+        error_message = str(exc)
+        await response.edit(content=t("exception", [f"`{error_message}`"]))
+        return
 
     await inter.client.redis.set(f"qqgamba:profilev2:{discord_id}", profile)
     await response.edit(content=t("srhoyobind.binded"))
