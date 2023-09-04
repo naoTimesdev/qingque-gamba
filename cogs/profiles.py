@@ -47,8 +47,7 @@ logger = get_logger("cogs.profiles")
 SRS_BASE = "https://raw.githubusercontent.com/Mar-7th/StarRailRes/master/"
 
 
-@app_commands.command(name="srprofile")
-@app_commands.describe(description=locale_str("srprofile.desc"))
+@app_commands.command(name="srprofile", description=locale_str("srprofile.desc"))
 @app_commands.describe(uid=locale_str("srprofile.uid_desc"))
 async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: int | None = None):
     mihomo = inter.client.mihomo
@@ -119,8 +118,7 @@ async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: in
     await pagination_view.start(inter, message=original_message)
 
 
-@app_commands.command(name="srchronicle")
-@app_commands.describe(description=locale_str("srchronicle.desc"))
+@app_commands.command(name="srchronicle", description=locale_str("srchronicle.desc"))
 async def qqprofile_srchronicle(inter: discord.Interaction[QingqueClient]):
     lang = QingqueLanguage.from_discord(inter.locale)
     t = functools.partial(get_i18n().t, language=lang)

@@ -37,8 +37,7 @@ __all__ = ("qqpersist_srbind",)
 logger = get_logger("cogs.persistent")
 
 
-@app_commands.command(name="srbind")
-@app_commands.describe(description=locale_str("srbind.desc"))
+@app_commands.command(name="srbind", description=locale_str("srbind.desc"))
 @app_commands.describe(uid=locale_str("srbind.uid_desc"))
 async def qqpersist_srbind(inter: discord.Interaction[QingqueClient], uid: int):
     discord_id = inter.user.id
