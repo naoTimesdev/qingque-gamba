@@ -282,7 +282,7 @@ async def qqprofile_srchronicle(inter: discord.Interaction[QingqueClient]):
             assign_stat += t("assignment.status.finished")
         assign_values.append(assign_stat)
         relative_done = int(round(hoyo_realtime.requested_at + assignment.time_left))
-        assign_values.append(f"**{t('assignment.finish')}**: <t:{relative_done}:R>")
+        assign_values.append(f"**{t('assignment.finish')}**: <t:{relative_done}:f>")
         embed.add_field(name=f"{t('assignment.title', [str(idx)])}", value="\n".join(assign_values), inline=True)
 
     logger.info("Sending to Discord...")
