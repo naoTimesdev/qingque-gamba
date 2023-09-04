@@ -160,7 +160,9 @@ class QingqueI18n:
     def __init__(self) -> None:
         self._LOCALES_DATA = {}
 
-    def _get_from_lang(self, key: str, language: QingqueLanguage) -> str | None:
+    def _get_from_lang(self, key: str, language: QingqueLanguage | str) -> str | None:
+        if isinstance(language, str):
+            language = QingqueLanguage(language)
         if language not in self._LOCALES_DATA:
             return None
         locale = self._LOCALES_DATA[language]
@@ -175,12 +177,16 @@ class QingqueI18n:
         return text
 
     def t(
-        self, key: str, params: list[str] | dict[str, str] | None = None, *, language: QingqueLanguage | None = None
+        self,
+        key: str,
+        params: list[str] | dict[str, str] | None = None,
+        *,
+        language: QingqueLanguage | str | None = None,
     ) -> str:
         language = language or self._DEFAULT
         translation = self._get_from_lang(key, language)
         if translation is None:
-            logger.debug(f"Translation for {key} in {language.name} is not found, fallback to {self._DEFAULT.name}")
+            logger.debug(f"Translation for {key} in {language} is not found, fallback to {self._DEFAULT.name}")
             translation = self._get_from_lang(key, self._DEFAULT)
             if translation is None:
                 logger.debug(f"Translation for {key} in {self._DEFAULT.name} is not found, fallback to raw key")
