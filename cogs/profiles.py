@@ -36,8 +36,10 @@ from qingque.extensions.files import FileBytes
 from qingque.hylab.models.base import HYLanguage
 from qingque.hylab.models.errors import HYDataNotPublic
 from qingque.i18n import QingqueLanguage, get_i18n
+from qingque.models.account_select import AccountSelectView
 from qingque.models.embed_paging import EmbedPaginatedView
-from qingque.models.persistence import QingqueProfile
+from qingque.models.persistence import QingqueProfile, QingqueProfileV2
+from qingque.redisdb import RedisDatabase
 from qingque.starrail.generator import StarRailMihomoCard
 from qingque.starrail.generator.chronicles import StarRailChronicleNotesCard
 from qingque.tooling import get_logger
@@ -47,6 +49,21 @@ logger = get_logger("cogs.profiles")
 SRS_BASE = "https://raw.githubusercontent.com/Mar-7th/StarRailRes/master/"
 
 
+async def get_profile_from_persistent(discord_id: int, redis: RedisDatabase) -> QingqueProfileV2 | None:
+    logger.info(f"Getting profile info for Discord ID {discord_id}")
+    profile = await redis.get(f"qqgamba:profilev2:{discord_id}", type=QingqueProfileV2)
+    if profile is None:
+        legacy_profile = await redis.get(f"qqgamba:profile:{discord_id}", type=QingqueProfile)
+        if legacy_profile is None:
+            logger.warning(f"Discord ID {discord_id} haven't binded their UID yet.")
+            return None
+        logger.warning(f"Discord ID {discord_id} use legacy profile design, migrating...")
+        profile = QingqueProfileV2.from_legacy(legacy_profile)
+        await redis.set(f"qqgamba:profilev2:{discord_id}", profile)
+        await redis.rm(f"qqgamba:profile:{discord_id}")
+    return profile
+
+
 @app_commands.command(name="srprofile", description=locale_str("srprofile.desc"))
 @app_commands.describe(uid=locale_str("srprofile.uid_desc"))
 async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: int | None = None):
@@ -54,18 +71,28 @@ async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: in
     lang = QingqueLanguage.from_discord(inter.locale)
     t = functools.partial(get_i18n().t, language=lang)
 
+    await inter.response.defer(ephemeral=False, thinking=True)
+
+    original_message = await inter.original_response()
     if uid is None:
-        logger.info(f"Getting profile info for Discord ID {inter.user.id}")
-        profile = await inter.client.redis.get(f"qqgamba:profile:{inter.user.id}", type=QingqueProfile)
+        profile = await get_profile_from_persistent(inter.user.id, inter.client.redis)
         if profile is None:
-            logger.warning(f"Discord ID {inter.user.id} haven't binded their UID yet.")
-            await inter.response.send_message(t("bind_uid"), ephemeral=True)
+            return await original_message.edit(content=t("bind_uid"))
+        select_account = AccountSelectView(profile.games, inter.locale, timeout=30)
+        original_message = await original_message.edit(content=t("srchoices.ask_account"), view=select_account)
+        await select_account.wait()
+
+        if (error := select_account.error) is not None:
+            logger.error(f"Error getting profile info for Discord ID {inter.user.id}: {error}")
+            error_message = str(error)
+            await original_message.edit(content=t("exception", [f"`{error_message}`"]))
             return
 
-        uid = profile.uid
+        if select_account.account is None:
+            return await original_message.edit(content=t("srchoices.timeout"))
 
-    await inter.response.defer(ephemeral=False, thinking=True)
-    original_message = await inter.original_response()
+        uid = select_account.account.uid
+
     logger.info(f"Getting profile info for UID {uid}")
     try:
         data_player, _ = await mihomo.get_player(uid)
@@ -130,66 +157,76 @@ async def qqprofile_srchronicle(inter: discord.Interaction[QingqueClient]):
         await inter.response.send_message(t("api_not_enabled"), ephemeral=True)
         return
 
-    logger.info(f"Getting profile info for Discord ID {inter.user.id}")
-    profile = await inter.client.redis.get(f"qqgamba:profile:{inter.user.id}", type=QingqueProfile)
+    await inter.response.defer(ephemeral=False, thinking=True)
+
+    original_message = await inter.original_response()
+    profile = await get_profile_from_persistent(inter.user.id, inter.client.redis)
     if profile is None:
-        logger.warning(f"Discord ID {inter.user.id} haven't binded their UID yet.")
-        await inter.response.send_message(t("bind_uid"), ephemeral=True)
+        return await original_message.edit(content=t("bind_uid"))
+    select_account = AccountSelectView(profile.games, inter.locale, timeout=30)
+    original_message = await original_message.edit(content=t("srchoices.ask_account"), view=select_account)
+    await select_account.wait()
+
+    if (error := select_account.error) is not None:
+        logger.error(f"Error getting profile info for Discord ID {inter.user.id}: {error}")
+        error_message = str(error)
+        await original_message.edit(content=t("exception", [f"`{error_message}`"]))
         return
+
+    if select_account.account is None:
+        return await original_message.edit(content=t("srchoices.timeout"))
 
     if profile.hylab_id is None:
         logger.warning(f"Discord ID {inter.user.id} haven't binded their HoyoLab account yet.")
         await inter.response.send_message(t("bind_hoyolab"), ephemeral=True)
 
-    uid = profile.uid
-    await inter.response.defer(ephemeral=False, thinking=True)
-    original_message = await inter.original_response()
-    logger.info(f"Getting profile overview for UID {uid}")
+    sel_uid = select_account.account.uid
+    logger.info(f"Getting profile overview for UID {sel_uid}")
     try:
         hoyo_overview = await hoyoapi.get_battle_chronicles_overview(
-            profile.uid,
+            sel_uid,
             hylab_id=profile.hylab_id,
             hylab_token=profile.hylab_token,
             lang=HYLanguage(lang.value.lower()),
         )
     except HYDataNotPublic:
-        logger.warning(f"UID {uid} data is not public.")
+        logger.warning(f"UID {sel_uid} data is not public.")
         await original_message.edit(content=t("hoyolab_public"))
         return
     except Exception as e:
-        logger.error(f"Error getting profile info for UID {uid}: {e}")
+        logger.error(f"Error getting profile info for UID {sel_uid}: {e}")
         error_message = str(e)
         await original_message.edit(content=t("exception", [f"`{error_message}`"]))
         return
-    logger.info(f"Getting profile real-time notes for UID {uid}")
+    logger.info(f"Getting profile real-time notes for UID {sel_uid}")
     try:
         hoyo_realtime = await hoyoapi.get_battle_chronicles_notes(
-            profile.uid,
+            sel_uid,
             hylab_id=profile.hylab_id,
             hylab_token=profile.hylab_token,
             lang=HYLanguage(lang.value.lower()),
         )
     except HYDataNotPublic:
-        logger.warning(f"UID {uid} data is not public.")
+        logger.warning(f"UID {sel_uid} data is not public.")
         await original_message.edit(content=t("hoyolab_public"))
         return
     except Exception as e:
-        logger.error(f"Error getting profile info for UID {uid}: {e}")
+        logger.error(f"Error getting profile info for UID {sel_uid}: {e}")
         error_message = str(e)
         await original_message.edit(content=t("exception", [f"`{error_message}`"]))
         return
 
     if hoyo_realtime is None:
-        logger.warning(f"UID {uid} data is not available.")
+        logger.warning(f"UID {sel_uid} data is not available.")
         await original_message.edit(content=t("hoyolab_unavailable"))
         return
 
     if hoyo_overview.overview is None:
-        logger.warning(f"UID {uid} data is not available. (Overview)")
+        logger.warning(f"UID {sel_uid} data is not available. (Overview)")
         await original_message.edit(content=t("hoyolab_unavailable"))
         return
     if hoyo_overview.user_info is None:
-        logger.warning(f"UID {uid} data is not available. (User Info)")
+        logger.warning(f"UID {sel_uid} data is not available. (User Info)")
         await original_message.edit(content=t("hoyolab_unavailable"))
         return
 
@@ -214,12 +251,12 @@ async def qqprofile_srchronicle(inter: discord.Interaction[QingqueClient]):
     descriptions.append(f"**{t('echo_of_war')}**: {hoyo_realtime.eow_available:,}/{hoyo_realtime.eow_limit:,}")
     embed.description = "\n".join(descriptions)
 
-    logger.info(f"Generating profile card for {uid}...")
+    logger.info(f"Generating profile card for {sel_uid}...")
     card_char = StarRailChronicleNotesCard(hoyo_overview, hoyo_realtime)
     card_data = await card_char.create()
 
     card_io = BytesIO(card_data)
-    card_file = discord.File(card_io, f"{uid}_ChroniclesOverview.png")
+    card_file = discord.File(card_io, f"{sel_uid}_ChroniclesOverview.png")
     embed.set_image(url=f"attachment://{card_file.filename}")
 
     for idx, assignment in enumerate(hoyo_realtime.assignments, 1):

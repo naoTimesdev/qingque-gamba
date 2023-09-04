@@ -24,11 +24,13 @@ SOFTWARE.
 
 from __future__ import annotations
 
+import functools
 import logging
 from enum import Enum
 from string import Formatter
-from typing import Any, cast
+from typing import Any, Protocol, cast
 
+import discord
 import orjson
 from discord import Locale
 
@@ -40,6 +42,8 @@ __all__ = (
     "QingqueI18n",
     "get_i18n",
     "load_i18n_languages",
+    "PartialTranslate",
+    "get_i18n_discord",
 )
 
 logger = logging.getLogger("qingque.i18n")
@@ -238,3 +242,13 @@ def load_i18n_languages():
                 _QINGQUE_I18N.load(language, cast(KVI18nDict, json_data))
 
     _LANGUAGE_LOADED = True
+
+
+class PartialTranslate(Protocol):
+    def __call__(self, key: str, params: list[str] | dict[str, str] | None = ...) -> str:
+        ...
+
+
+def get_i18n_discord(locale: discord.Locale) -> PartialTranslate:
+    lang = QingqueLanguage.from_discord(locale)
+    return functools.partial(get_i18n().t, language=lang)

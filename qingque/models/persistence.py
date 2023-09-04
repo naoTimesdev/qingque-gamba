@@ -24,7 +24,12 @@ SOFTWARE.
 
 from __future__ import annotations
 
+from enum import Enum
+from functools import cached_property
+
 from msgspec import Struct
+
+from qingque.models.region import HYVRegion, HYVServer
 
 __all__ = ("QingqueProfile",)
 
@@ -39,3 +44,50 @@ class QingqueProfile(Struct):
     """:class:`int | None`: The user HoyoLab ID."""
     hylab_token: str | None = None
     """:class:`str | None`: The user HoyoLab token."""
+
+
+class QingqueProfileV2GameKind(str, Enum):
+    StarRail = "HSR"
+
+
+class QingqueProfileV2Game(Struct):
+    kind: QingqueProfileV2GameKind
+    """:class:`QingqueProfileV2GameKind`: The game kind."""
+    uid: int
+    """:class:`int`: The user game UID."""
+
+    @cached_property
+    def server(self) -> HYVServer:
+        return HYVServer.from_uid(str(self.uid))
+
+    @cached_property
+    def region(self) -> HYVRegion:
+        return HYVRegion.from_server(self.server)
+
+
+class QingqueProfileV2(Struct):
+    id: str
+    """:class:`str`: Discord ID."""
+    games: list[QingqueProfileV2Game]
+    """:class:`list[QingqueProfileV2Game]`: The user games."""
+
+    hylab_id: int | None = None
+    """:class:`int | None`: The user HoyoLab ID."""
+    hylab_token: str | None = None
+    """:class:`str | None`: The user HoyoLab token."""
+    hylab_cookie: str | None = None
+    """:class:`str | None`: The user HoyoLab cookie."""
+
+    @classmethod
+    def from_legacy(cls: type[QingqueProfileV2], profile: QingqueProfile) -> QingqueProfileV2:
+        return cls(
+            id=profile.id,
+            games=[
+                QingqueProfileV2Game(
+                    kind=QingqueProfileV2GameKind.StarRail,
+                    uid=profile.uid,
+                )
+            ],
+            hylab_id=profile.hylab_id,
+            hylab_token=profile.hylab_token,
+        )

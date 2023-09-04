@@ -15,5 +15,8 @@
             "taiwan": "Taiwan/Hong Kong/Macau"
         }
     },
+    "game_kind": {
+        "starrail": "Honkai: Star Rail"
+    },
     "moc_floor": "Floor {0}"
 }

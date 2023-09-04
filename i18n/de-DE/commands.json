@@ -7,7 +7,31 @@
         "desc": "See your profile chronicle from HoyoLab."
     },
     "srbind": {
+        "ask_action": "What do you want to do with UID `{uid}`?",
         "desc": "Bind your UID to your Discord account.",
+        "timeout": "You didn't response in time, please try again.",
+        "binded": "Your UID has been binded to your Discord account.",
+        "removed": "Your UID has been removed from your Discord account.",
+        "cancelled": "Cancelled.",
+        "not_bind": "You haven't binded the provided UID yet.",
+        "already_bind": "You have already binded the provided UID.",
         "uid_desc": "The UID you want to bind."
+    },
+    "srhoyobind": {
+        "desc": "Bind your Hoyolab account to your Discord account.",
+        "desc_id": "The Hoyolab account ID you want to bind.",
+        "desc_token": "The Hoyolab account token you want to bind.",
+        "desc_cookie_token": "The Hoyolab account cookie token you want to bind.",
+        "invalid_token": "Invalid token provided, unable to bind.",
+        "already_bind": "You have already binded your Hoyolab account, do you want to replace it?",
+        "timeout": "You didn't response in time, please try again.",
+        "cancelled": "Aborted.",
+        "binded": "Your Hoyolab account has been binded to your Discord account.",
+        "bind_first": "You need to bind any UID first before binding your Hoyolab account.\nUse `/srbind` to bind your UID."
+    },
+    "srchoices": {
+        "ask_account": "Which account do you want to see?",
+        "value_format": "{game} — {uid} ({region})",
+        "timeout": "You didn't response in time, please try again."
     }
 }
