@@ -53,7 +53,6 @@ class QingqueLanguage(str, Enum):
     ES = "es-ES"
     FR = "fr-FR"
     ID = "id-ID"
-    IT = "it-IT"
     JP = "ja-JP"
     KR = "ko-KR"
     PT = "pt-PT"
@@ -128,8 +127,6 @@ class QingqueLanguage(str, Enum):
                 return cls.TH
             case Locale.vietnamese:
                 return cls.VI
-            case Locale.italian:
-                return cls.IT
             case Locale.spain_spanish:
                 return cls.ES
             case _:
