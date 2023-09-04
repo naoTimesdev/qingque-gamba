@@ -67,7 +67,7 @@ async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: in
     original_message = await inter.original_response()
     logger.info(f"Getting profile info for UID {uid}")
     try:
-        data_player, language = await mihomo.get_player(uid, language=lang.to_mihomo())
+        data_player, _ = await mihomo.get_player(uid)
     except Exception as e:
         logger.error(f"Error getting profile info for UID {uid}: {e}")
         error_message = str(e)
@@ -78,7 +78,7 @@ async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: in
     embeds: list[discord.Embed] = []
     files: list[discord.File] = []
     for idx, character in enumerate(data_player.characters, 1):
-        card_char = StarRailMihomoCard(character, data_player.player, language=language)
+        card_char = StarRailMihomoCard(character, data_player.player, language=lang)
         logger.info(f"Generating character {character.name} profile card for UID {uid}")
         card_data = await card_char.create()
 
@@ -97,9 +97,11 @@ async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: in
             description.append(f"**{t('rogue')}**: {rogue_world}")
         forgotten_hall = progression.forgotten_hall
         if forgotten_hall.finished_floor > 0:
-            description.append(f"**{t('abyss')}**: Floor {forgotten_hall.finished_floor}")
+            abyss_floor = t("moc_floor", [str(forgotten_hall.finished_floor)])
+            description.append(f"**{t('abyss')}**: {abyss_floor}")
         if forgotten_hall.moc_finished_floor > 0:
-            description.append(f"**{t('abyss_hard')}**: Floor {forgotten_hall.moc_finished_floor}")
+            abyss_moc_floor = t("moc_floor", [str(forgotten_hall.moc_finished_floor)])
+            description.append(f"**{t('abyss_hard')}**: {abyss_moc_floor}")
 
         embed.description = "\n".join(description)
         embed.set_image(url=f"attachment://{filename}")

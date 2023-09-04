@@ -28,7 +28,7 @@ import logging
 
 from PIL import Image
 
-from qingque.i18n import QingqueLanguage
+from qingque.i18n import QingqueLanguage, get_i18n
 from qingque.mihomo.models.base import MihomoBase
 from qingque.mihomo.models.characters import Character
 from qingque.mihomo.models.combats import ElementType, SkillTrace, SkillUsageType
@@ -87,6 +87,22 @@ _COLOR_DOMINANT: dict[str, RGB | list[RGB]] = {
     "8004": [(234, 149, 56), (49, 42, 42)],
 }
 logger = logging.getLogger("qingque.starrail.generator.mihomo")
+
+
+def _get_player_server(server: HYVServer, language: MihomoLanguage):
+    i18n = get_i18n()
+    lang = QingqueLanguage.from_mihomo(language)
+    match server:
+        case HYVServer.ChinaA | HYVServer.ChinaB | HYVServer.ChinaC:
+            return i18n.t("region.short.china", language=lang)
+        case HYVServer.NorthAmerica:
+            return i18n.t("region.short.na", language=lang)
+        case HYVServer.Europe:
+            return i18n.t("region.short.eur", language=lang)
+        case HYVServer.Asia:
+            return i18n.t("region.short.asia", language=lang)
+        case HYVServer.Taiwan:
+            return i18n.t("region.short.taiwan", language=lang)
 
 
 # Sizing:
@@ -161,11 +177,9 @@ class StarRailMihomoCard(StarRailDrawing):
         preview_image = await self._async_open(preview_path)
 
         # Write the character name.
-        chara_name = self._character.name
+        chara_name = self._index_data.characters[self._character.id].name
         if "{NICKNAME}" in chara_name:
-            chara_name = chara_name.replace("{NICKNAME}", f"Trailblazer ({self._player.name})")
-        if self.is_trailblazer() and "{NICKNAME}" not in chara_name:
-            chara_name = f"Trailblazer ({chara_name})"
+            chara_name = self._i18n.t("mihomo.tb_name", [self._player.name])
         await self._write_text(
             chara_name,
             (self.CHARACTER_RIGHT - 4, self.CHARACTER_TOP - 30),
@@ -246,8 +260,10 @@ class StarRailMihomoCard(StarRailDrawing):
         )
 
         # Write text at top-right of the rectangle for Element / Path
+        element_name = self._index_data.elements[self._character.element.id].name
+        path_name = self._index_data.paths[self._character.path.id].name
         elem_path_width = await self._write_text(
-            f"{self._character.element.name} / {self._character.path.name}",
+            f"{element_name} / {path_name}",
             (self.CHARACTER_RIGHT - 4, self.CHARACTER_TOP + 8),
             font_size=20,
             color=self._background,
@@ -262,7 +278,7 @@ class StarRailMihomoCard(StarRailDrawing):
             ),
         )
         await self._write_text(
-            f"{self._character.element.name} / {self._character.path.name}",
+            f"{element_name} / {path_name}",
             (self.CHARACTER_RIGHT - 4, self.CHARACTER_TOP + 8),
             font_size=20,
             color=self._background,
@@ -496,7 +512,7 @@ class StarRailMihomoCard(StarRailDrawing):
             )
 
         # Main stats
-        bbox_main_name = [left + box_size + 25 + 4, top_margin + 4 + 6]
+        bbox_main_name = [left + box_size + 25 + 4, top_margin + 4 + 21]
         box_length = 254 if main_stat.value is None else 156
         bbox_main_name.append(left + box_size + 28 + box_length - 4)
         bbox_main_name.append(top_margin + 4 + 26)
@@ -505,7 +521,7 @@ class StarRailMihomoCard(StarRailDrawing):
             tuple(bbox_main_name),
             color=self._background,
             no_elipsis=not main_stat.cut_off,
-            anchor="lt",
+            anchor="ls",
             align="left",
         )
 
@@ -551,8 +567,8 @@ class StarRailMihomoCard(StarRailDrawing):
                 # Write the field name
                 await self._write_text(
                     sub_stat.name,
-                    (left + box_size + 20 + 32 + 4, top_margin + 16 + (idx * 26)),
-                    anchor="lt",
+                    (left + box_size + 20 + 32 + 2, top_margin + 16 + (idx * 26) + 14),
+                    anchor="ls",
                     align="left",
                     font_size=16,
                 )
@@ -616,7 +632,13 @@ class StarRailMihomoCard(StarRailDrawing):
         margin_relic = 25
         for idx, relic in enumerate(main_relics, 1):
             if relic.id == "-1":
-                await self._create_placeholder_slot(idx, self.RELIC_LEFT, relic_size, margin_relic)
+                await self._create_placeholder_slot(
+                    idx,
+                    self.RELIC_LEFT,
+                    relic_size,
+                    margin_relic,
+                    text=self._i18n.t("mihomo.no_relic"),
+                )
             else:
                 await self._create_stats_box(
                     position=idx,
@@ -664,8 +686,9 @@ class StarRailMihomoCard(StarRailDrawing):
             properties_joined = []
             for prop in select_relic.properties:
                 prop_fmt = "{:.1%}" if prop.percent else "{:.0f}"
-                properties_joined.append(f"{prop.name} {prop_fmt.format(prop.value)}")
-            relic_set_name = select_relic.name
+                prop_name = self._stats_field_to_name.get(prop.field)
+                properties_joined.append(f"{prop_name} {prop_fmt.format(prop.value)}")
+            relic_set_name = self._index_data.relics_sets[select_relic.id].name
             if properties_joined:
                 relic_set_name += " (" + ", ".join(properties_joined) + ")"
             await self._write_text(
@@ -690,7 +713,7 @@ class StarRailMihomoCard(StarRailDrawing):
 
         RELIC_LEFT = self.RELIC_LEFT + 138 + 28 + 254 + 60
         if self._character.light_cone is None:
-            await self._create_placeholder_slot(1, RELIC_LEFT, text="No Light Cone")
+            await self._create_placeholder_slot(1, RELIC_LEFT, text=self._i18n.t("mihomo.no_weapon"))
         else:
             light_cone = self._character.light_cone
             cone_stats = [SRSCardStats.from_relic(stats) for stats in light_cone.attributes]
@@ -702,11 +725,12 @@ class StarRailMihomoCard(StarRailDrawing):
                     cut_off=True,
                 ),
             )
+            lc_name = self._index_data.light_cones[light_cone.id].name
             await self._create_stats_box(
                 position=1,
                 left=RELIC_LEFT,
                 main_stat=SRSCardStats(
-                    light_cone.name,
+                    name=lc_name,
                     cut_off=True,
                 ),
                 rarity=light_cone.rarity,
@@ -717,7 +741,7 @@ class StarRailMihomoCard(StarRailDrawing):
 
         for idx, relic in enumerate(planar_relics, 2):
             if relic.id == "-1":
-                await self._create_placeholder_slot(idx, RELIC_LEFT)
+                await self._create_placeholder_slot(idx, RELIC_LEFT, text=self._i18n.t("mihomo.no_relic"))
             else:
                 await self._create_stats_box(
                     position=idx,
@@ -772,8 +796,24 @@ class StarRailMihomoCard(StarRailDrawing):
                 color=self._background,
             )
 
+            match skill.type:
+                case SkillUsageType.Basic:
+                    skill_typet = self._index_data.descriptions["10091"].title
+                case SkillUsageType.Skill:
+                    skill_typet = self._i18n.t("mihomo.skill")
+                case SkillUsageType.Ultimate:
+                    skill_typet = self._index_data.descriptions["10093"].title
+                case SkillUsageType.Talent:
+                    skill_typet = self._i18n.t("mihomo.talent")
+                case SkillUsageType.Technique:
+                    skill_typet = self._index_data.descriptions["10096"].title
+                case SkillUsageType.TechniqueAttack:
+                    skill_typet = self._index_data.descriptions["10096"].title
+                case _:
+                    skill_typet = skill.type_description
+
             await self._write_text(
-                skill.type_description,
+                skill_typet,
                 (LEFT + (idx * margin) + 2 + (skill_icon.width // 2), TOP + skill_icon.height + 8),
                 font_size=14,
                 anchor="mm",
@@ -914,7 +954,8 @@ class StarRailMihomoCard(StarRailDrawing):
         height_mid = starting_foot + ((main_canvas.height - starting_foot) // 2) + 8
         player_uid = f"UID: {self._player.id}"
         if player_region is not None:
-            player_uid += f" | {t('mihomo.region')}: {player_region.short}"
+            player_reg_name = _get_player_server(player_region, self._language)
+            player_uid += f" | {t('mihomo.region')}: {player_reg_name}"
         player_uid += f" | {t('mihomo.level')}: {self._player.level:02d}"
         if hide_uid:
             player_uid = f"{t('mihomo.level')}: {self._player.level:02d}"
