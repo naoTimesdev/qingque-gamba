@@ -30,20 +30,20 @@
             "all_res": "All RES",
             "unknown": "Unknown"
         },
-        "credits": "Data from Mihomo | Created by @noaione | Idea from StarDB",
-        "region": "Region",
-        "level": "Level",
+        "credits": "来自 Mihomo | 由 @noaione 创建 | StarDB 的意见",
+        "region": "地区",
+        "level": "级",
         "moc": "MoC"
     },
     "chronicles": {
-        "days_active": "Days Active",
-        "characters": "Characters",
-        "achievements": "Achievements",
-        "moc": "Memory of Chaos",
-        "tb_power": "Trailblaze Power",
-        "reserve_tb_power": "Reserved Trailblaze Power",
-        "daily_quest": "Daily Training",
-        "echo_of_war": "Echo of War",
-        "credits": "Data from HoyoLab | Created by @noaione"
+        "days_active": "活跃天数",
+        "characters": "角色",
+        "achievements": "成就",
+        "moc": "混沌回忆",
+        "tb_power": "开拓力",
+        "reserve_tb_power": "后备开拓力",
+        "daily_quest": "每日实训",
+        "echo_of_war": "历战余响",
+        "credits": "来自米有舍 | 由 @noaione 创建"
     }
 }

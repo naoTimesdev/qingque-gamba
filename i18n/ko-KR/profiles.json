@@ -1,29 +1,29 @@
 {
-    "achivements": "Achivements",
-    "light_cones": "Light Cones",
-    "rogue": "Simulated Universe",
-    "rogue_world": "World {0}",
-    "abyss": "Forgotten Hall",
-    "abyss_hard": "Memory of Chaos",
-    "character_header": "{0} (Lv {1})",
-    "tb_power": "Trailblaze Power",
-    "tb_power_recover": "(Recover in {0})",
-    "tb_power_reserve": "Reserve Power",
-    "echo_of_war": "Echo of War",
-    "daily_quest": "Daily Training",
+    "achivements": "업적",
+    "light_cones": "광추",
+    "rogue": "시뮬레이션 우주",
+    "rogue_world": "제{0}세계",
+    "abyss": "망각의 정원",
+    "abyss_hard": "혼돈의 기억",
+    "character_header": "{0} (Lv. {1})",
+    "tb_power": "개척력",
+    "tb_power_recover": "({0} 만에 회복)",
+    "tb_power_reserve": "예비 력",
+    "echo_of_war": "전쟁의 여운",
+    "daily_quest": "일일 훈련",
     "assignment": {
-        "title": "Assignment {0}",
-        "name": "Name",
+        "title": "의뢰 {0}",
+        "name": "이름",
         "status": {
-            "title": "Status",
-            "ongoing": "Ongoing",
-            "completed": "Completed"
+            "title": "상태",
+            "ongoing": "진행 중",
+            "completed": "완료"
         },
-        "finish": "Finish at"
+        "finish": "에 끝났다"
     },
     "chronicle_titles": {
-        "overview": "Battle Chronicles",
-        "rogue": "Battle Chronicles — Simulated Universe",
-        "abyss": "Battle Chronicles — Memory of Chaos"
+        "overview": "전적",
+        "rogue": "전적 — 시뮬레이션 우주",
+        "abyss": "전적 — 혼돈의 기억"
     }
 }

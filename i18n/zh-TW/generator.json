@@ -30,20 +30,20 @@
             "all_res": "All RES",
             "unknown": "Unknown"
         },
-        "credits": "Data from Mihomo | Created by @noaione | Idea from StarDB",
-        "region": "Region",
-        "level": "Level",
+        "credits": "數據來自Mihomo | 創建者 @noaione | 來自 StarDB 的想法",
+        "region": "地域",
+        "level": "級",
         "moc": "MoC"
     },
     "chronicles": {
-        "days_active": "Days Active",
-        "characters": "Characters",
-        "achievements": "Achievements",
-        "moc": "Memory of Chaos",
-        "tb_power": "Trailblaze Power",
-        "reserve_tb_power": "Reserved Trailblaze Power",
-        "daily_quest": "Daily Training",
-        "echo_of_war": "Echo of War",
-        "credits": "Data from HoyoLab | Created by @noaione"
+        "days_active": "活躍天數",
+        "characters": "角色",
+        "achievements": "成就",
+        "moc": "第七世界",
+        "tb_power": "開拓力",
+        "reserve_tb_power": "後備開拓力",
+        "daily_quest": "每日實訓",
+        "echo_of_war": "歷戰餘響",
+        "credits": "數據來自米有捨 | 創建者 @noaione"
     }
 }

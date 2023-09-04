@@ -6,5 +6,5 @@
     "exception": "Terjadi kesalahan, mohon coba lagi nanti\n{0}",
     "srs_unloaded": "Anda harus memuat data terlebih dahulu.",
     "gen_mihomo_box": "Tanda box salah: {0}",
-    "api_not_enabled": "API is not enabled."
+    "api_not_enabled": "API tidak aktif."
 }

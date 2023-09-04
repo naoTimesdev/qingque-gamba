@@ -1,19 +1,19 @@
 {
     "region": {
         "short": {
-            "china": "China",
+            "china": "中国",
             "na": "NA",
             "eur": "EU",
-            "asia": "Asia",
+            "asia": "亚洲",
             "taiwan": "TW/HK/MO"
         },
         "long": {
-            "china": "Mainland China",
-            "na": "North America",
-            "eur": "Europe",
-            "asia": "Asia",
-            "taiwan": "Taiwan/Hong Kong/Macau"
+            "china": "中国大陆",
+            "na": "北美洲",
+            "eur": "欧洲",
+            "asia": "亚洲",
+            "taiwan": "台湾/香港/澳门"
         }
     },
-    "moc_floor": "Floor {0}"
+    "moc_floor": "{0}层"
 }

@@ -5,14 +5,14 @@
     "rogue_world": "Dunia {0}",
     "abyss": "Forgotten Hall",
     "abyss_hard": "Memory of Chaos",
-    "character_header": "{0} (Lv {1})",
+    "character_header": "{0} (Lv. {1})",
     "tb_power": "Trailblaze Power",
     "tb_power_recover": "(Pulih dalam {0})",
     "tb_power_reserve": "Power Cadangan",
     "echo_of_war": "Echo of War",
     "daily_quest": "Pelatihan Harian",
     "assignment": {
-        "title": "Assignment {0}",
+        "title": "Tugas {0}",
         "name": "Nama",
         "status": {
             "title": "Status",
@@ -22,8 +22,8 @@
         "finish": "Selesai pada"
     },
     "chronicle_titles": {
-        "overview": "Battle Chronicles",
-        "rogue": "Battle Chronicles — Simulated Universe",
-        "abyss": "Battle Chronicles — Memory of Chaos"
+        "overview": "Jurnal Petualangan",
+        "rogue": "Jurnal Petualangan — Simulated Universe",
+        "abyss": "Jurnal Petualangan — Memory of Chaos"
     }
 }
