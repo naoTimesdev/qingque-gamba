@@ -33,7 +33,12 @@
         "credits": "Data from Mihomo | Created by @noaione | Idea from StarDB",
         "region": "Region",
         "level": "Level",
-        "moc": "MoC"
+        "moc": "MoC",
+        "tb_name": "Trailblazer ({0})",
+        "no_relic": "No Relic",
+        "no_weapon": "No Light Cone",
+        "skill": "Skill",
+        "talent": "Talent"
     },
     "chronicles": {
         "days_active": "Days Active",

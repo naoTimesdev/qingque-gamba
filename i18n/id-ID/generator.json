@@ -33,7 +33,12 @@
         "credits": "Data dari Mihomo | Dibuat oleh @noaione | Ide dari StarDB",
         "region": "Peladen",
         "level": "Level",
-        "moc": "MoC"
+        "moc": "MoC",
+        "tb_name": "Trailblazer ({0})",
+        "no_relic": "No Relic",
+        "no_weapon": "No Light Cone",
+        "skill": "Skill",
+        "talent": "Talent"
     },
     "chronicles": {
         "days_active": "Hari aktif",

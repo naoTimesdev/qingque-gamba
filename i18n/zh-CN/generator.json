@@ -33,7 +33,12 @@
         "credits": "来自 Mihomo | 由 @noaione 创建 | StarDB 的意见",
         "region": "地区",
         "level": "级",
-        "moc": "MoC"
+        "moc": "MoC",
+        "tb_name": "Trailblazer ({0})",
+        "no_relic": "No Relic",
+        "no_weapon": "No Light Cone",
+        "skill": "Skill",
+        "talent": "Talent"
     },
     "chronicles": {
         "days_active": "活跃天数",
