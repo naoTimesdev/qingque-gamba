@@ -353,6 +353,8 @@ qingque/assets/srs/**/*.jpg
 qingque/assets/srs/**/*.png
 qingque/assets/srs/**/*.webp
 qingque/assets/srs/index/**/*.json
+qingque/assets/srs/hoyolab/**/*.json
+qingque/assets/srs/textmaps/**/*.json
 qingque/assets/commit.index
 qingque/assets/srs/StarRailRes.zip
 
