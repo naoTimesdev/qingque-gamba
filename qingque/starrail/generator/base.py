@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import asyncio
 import functools
+import math
 from io import BytesIO
 from typing import Any, TypeAlias
 
@@ -43,6 +44,18 @@ __all__ = (
     "RGB",
 )
 RGB: TypeAlias = tuple[int, int, int]
+
+
+def euclidean_distance(ax: float, ay: float, bx: float, by: float) -> float:
+    """Find the euclidean distance between 2d points."""
+    return math.sqrt((by - ay) ** 2 + (bx - ax) ** 2)
+
+
+def rotate_square_points(ax: float, ay: float, bx: float, by: float, angle: int | float) -> tuple[int, int]:
+    """Rotate a point around another point."""
+    radius = euclidean_distance(ax, ay, bx, by)
+    angle += math.atan2(ay - by, ax - bx)
+    return (round(bx + radius * math.cos(angle)), round(by + radius * math.sin(angle)))
 
 
 class StarRailDrawing:
@@ -189,20 +202,80 @@ class StarRailDrawing:
         box: tuple[tuple[float, float], tuple[float, float]],
         color: RGB | None = None,
         width: int = 0,
+        angle: int | float = 0,
+        antialias: int = 4,
         *,
+        resampling: Image.Resampling = Image.Resampling.LANCZOS,
         canvas: Image.Image | None = None,
     ):
+        """
+        Create a box on the canvas.
+
+        Parameters
+        ----------
+        box: :class:`tuple[tuple[float, float], tuple[float, float]]`
+            The box boundary to create. (top-left, bottom-right)
+        color: :class:`tuple[int, int, int]`
+            The color of the box.
+        width: :class:`int`
+            The width of the box, if applied will be created as a outlined rectangle instead
+            of a filled rectangle.
+        angle: :class:`int` | :class:`float`
+            The angle to rotate the box.
+        antialias: :class:`int`
+            The antialiasing level to use when drawing the box, will not be applied if angle is 0.0.
+        resampling: :class:`PIL.Image.Resampling`
+            The resampling method to use when resizing the mask.
+            Used with anti-aliasing. Defaults to :class:`PIL.Image.LANCZOS`.
+        canvas: :class:`PIL.Image.Image`
+            The canvas to draw on, defaults to the current canvas.
+        """
+
         if not self.has_canvas() and canvas is None:
             raise RuntimeError("Canvas is not initialized, and no canvas is provided.")
 
-        draw = await self._get_draw(canvas=canvas)
+        canvas = canvas or self._canvas
+
+        # Use a single channel image (mode='L') as mask.
+        # The size of the mask can be increased relative to the imput image
+        # to get smoother looking results.
+        canvas_size: tuple[int, int] = tuple([int(dim * antialias) for dim in canvas.size])
+        if angle == 0.0:
+            # Disable AA if angle is 0.0
+            canvas_size = canvas.size
+            antialias = 1
+        mask = Image.new(size=canvas_size, mode="L", color="black")
+        draw = await self._get_draw(canvas=mask)
+
         fill = color or self._foreground
-        outline = None
-        if width > 0:
-            outline = color or self._foreground
-            fill = None
-        draw_rect = functools.partial(draw.rectangle, fill=fill, width=width, outline=outline)
-        await self._loop.run_in_executor(None, draw_rect, box)
+
+        square_verticies: list[tuple[float, float]] = [
+            (box[0][0], box[0][1]),
+            (box[0][0], box[1][1]),
+            (box[1][0], box[1][1]),
+            (box[1][0], box[0][1]),
+        ]
+        # Multiply the verticies by antialias
+        square_verticies = [(x * antialias, y * antialias) for x, y in square_verticies]
+        if angle != 0.0:
+            square_center = (
+                (box[0][0] + box[1][0]) / 2,
+                (box[0][1] + box[1][1]) / 2,
+            )
+            square_verticies = [
+                rotate_square_points(x, y, square_center[0], square_center[1], math.radians(angle))
+                for x, y in square_verticies
+            ]
+        # Draw it with anti-aliasing, put it in mask where white will be where the square would be.
+        if width > 0.0:
+            draw_polygon = functools.partial(draw.polygon, fill=None, outline="white", width=width * antialias)
+        else:
+            draw_polygon = functools.partial(draw.polygon, fill="white", outline=None, width=width)
+        await self._loop.run_in_executor(None, draw_polygon, square_verticies)
+        # Downsample the mask if angle is not 0.0
+        if angle != 0.0:
+            mask = await self._loop.run_in_executor(None, mask.resize, canvas.size, resampling)
+        await self._paste_image(fill, mask=mask, canvas=canvas)
 
     async def _create_circle(
         self,
