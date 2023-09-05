@@ -266,10 +266,10 @@ class StarRailMihomoCard(StarRailDrawing):
         path_name = self._index_data.paths[self._character.path.id].name
         elem_path_width = await self._write_text(
             f"{element_name} / {path_name}",
-            (self.CHARACTER_RIGHT - 4, self.CHARACTER_TOP + 8),
+            (self.CHARACTER_RIGHT - 4, self.CHARACTER_TOP + 22),
             font_size=20,
             color=self._background,
-            anchor="rt",
+            anchor="rs",
             align="right",
         )
         # Create a box for the text
@@ -281,10 +281,10 @@ class StarRailMihomoCard(StarRailDrawing):
         )
         await self._write_text(
             f"{element_name} / {path_name}",
-            (self.CHARACTER_RIGHT - 4, self.CHARACTER_TOP + 8),
+            (self.CHARACTER_RIGHT - 4, self.CHARACTER_TOP + 22),
             font_size=20,
             color=self._background,
-            anchor="rt",
+            anchor="rs",
             align="right",
         )
 
