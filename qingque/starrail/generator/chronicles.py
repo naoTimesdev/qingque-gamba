@@ -85,9 +85,9 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         )
         await self._write_text(
             content=self._i18n.t("chronicles.days_active") or "Days Active",
-            box=(self.MARGIN_LR + self.MARGIN_IMGT + active_icon.width, days_top),
+            box=(self.MARGIN_LR + self.MARGIN_IMGT + active_icon.width, days_top + 20),
             font_size=30,
-            anchor="lt",
+            anchor="ls",
             align="left",
             alpha=round(0.75 * 255),
         )
@@ -113,9 +113,9 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         )
         await self._write_text(
             content=self._i18n.t("chronicles.characters") or "Characters",
-            box=(self.MARGIN_LR + self.MARGIN_IMGT + avatar_icon.width, avatar_top),
+            box=(self.MARGIN_LR + self.MARGIN_IMGT + avatar_icon.width, avatar_top + 20),
             font_size=30,
-            anchor="lt",
+            anchor="ls",
             align="left",
             alpha=round(0.75 * 255),
         )
@@ -141,9 +141,9 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         )
         await self._write_text(
             content=self._i18n.t("chronicles.achievements") or "Achievements",
-            box=(self.MARGIN_LR + self.MARGIN_IMGT + achivement_icon.width, achivement_top),
+            box=(self.MARGIN_LR + self.MARGIN_IMGT + achivement_icon.width, achivement_top + 20),
             font_size=30,
-            anchor="lt",
+            anchor="ls",
             align="left",
             alpha=round(0.75 * 255),
         )
@@ -170,9 +170,9 @@ class StarRailChronicleNotesCard(StarRailDrawing):
             )
             await self._write_text(
                 content=self._i18n.t("chronicles.moc") or "Memory of Chaos",
-                box=(self.MARGIN_LR + self.MARGIN_IMGT + abyss_icon.width, abyss_top),
+                box=(self.MARGIN_LR + self.MARGIN_IMGT + abyss_icon.width, abyss_top + 20),
                 font_size=30,
-                anchor="lt",
+                anchor="ls",
                 align="left",
                 alpha=round(0.75 * 255),
             )
@@ -207,9 +207,9 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         )
         await self._write_text(
             content=self._i18n.t("chronicles.tb_power") or "Trailblaze Power",
-            box=(self._canvas.width - tb_power_icon.width - self.MARGIN_LR - self.MARGIN_IMGT, tb_power_top + 25),
+            box=(self._canvas.width - tb_power_icon.width - self.MARGIN_LR - self.MARGIN_IMGT, tb_power_top + 25 + 20),
             font_size=30,
-            anchor="rt",
+            anchor="rs",
             align="right",
             alpha=round(0.75 * 255),
         )
@@ -237,10 +237,10 @@ class StarRailChronicleNotesCard(StarRailDrawing):
             content=self._i18n.t("chronicles.reserve_tb_power") or "Reserved Trailblaze Power",
             box=(
                 self._canvas.width - tb_power_icon.width - self.MARGIN_LR - self.MARGIN_IMGT,
-                reserve_tb_power_top + 25,
+                reserve_tb_power_top + 25 + 20,
             ),
             font_size=30,
-            anchor="rt",
+            anchor="rs",
             align="right",
             alpha=round(0.75 * 255),
         )
@@ -270,9 +270,9 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         )
         await self._write_text(
             content=self._i18n.t("chronicles.daily_quest") or "Daily Training",
-            box=(self._canvas.width - train_icon.width - self.MARGIN_LR - self.MARGIN_IMGT, train_top),
+            box=(self._canvas.width - train_icon.width - self.MARGIN_LR - self.MARGIN_IMGT, train_top + 20),
             font_size=30,
-            anchor="rt",
+            anchor="rs",
             align="right",
             alpha=round(0.75 * 255),
         )
@@ -299,9 +299,9 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         )
         await self._write_text(
             content=self._i18n.t("chronicles.echo_of_war") or "Echo of War",
-            box=(self._canvas.width - echo_icon.width - self.MARGIN_LR - self.MARGIN_IMGT, echo_top),
+            box=(self._canvas.width - echo_icon.width - self.MARGIN_LR - self.MARGIN_IMGT, echo_top + 20),
             font_size=30,
-            anchor="rt",
+            anchor="rs",
             align="right",
             alpha=round(0.75 * 255),
         )
