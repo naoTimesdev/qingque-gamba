@@ -35,6 +35,7 @@
         "level": "Level",
         "moc": "MoC",
         "tb_name": "Trailblazer ({0})",
+        "tb_name_female": "Trailblazer ({0})", 
         "no_relic": "No Relic",
         "no_weapon": "No Light Cone",
         "basic_atk": "Basic ATK",
