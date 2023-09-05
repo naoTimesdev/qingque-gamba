@@ -37,8 +37,11 @@
         "tb_name": "开拓者 ({0})",
         "no_relic": "不遗器",
         "no_weapon": "不光锥",
+        "basic_atk": "Basic ATK",
         "skill": "战技",
-        "talent": "天赋"
+        "talent": "天赋",
+        "ultimate": "Ultimate",
+        "technique": "Technique"
     },
     "chronicles": {
         "days_active": "活跃天数",

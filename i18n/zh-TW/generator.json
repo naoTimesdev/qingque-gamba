@@ -37,8 +37,11 @@
         "tb_name": "Trailblazer ({0})",
         "no_relic": "No Relic",
         "no_weapon": "No Light Cone",
+        "basic_atk": "Basic ATK",
         "skill": "Skill",
-        "talent": "Talent"
+        "talent": "Talent",
+        "ultimate": "Ultimate",
+        "technique": "Technique"
     },
     "chronicles": {
         "days_active": "活躍天數",
