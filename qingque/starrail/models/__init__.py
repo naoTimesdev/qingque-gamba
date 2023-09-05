@@ -13,5 +13,6 @@ from .characters import *
 from .items import *
 from .others import *
 from .relics import *
+from .rogues import *
 from .stats import *
 from .weapons import *

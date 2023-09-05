@@ -33,7 +33,7 @@ from aiopath import AsyncPath
 from msgspec import Struct
 
 from qingque.mihomo.models.constants import MihomoLanguage
-from qingque.mihomo.models.simuniverse import SRSSimUniverseBlessing, SRSSimUniverseCurio
+from qingque.starrail.models.rogues import SRSRogueBlessing, SRSRogueCurio, SRSRogueWorld
 
 from .models import (
     SRSAchievement,
@@ -90,8 +90,9 @@ class SRSDataLoader:
         self._relics_stats: KVModel[SRSRelicStats] | None = None
         self._relics_sub_stats: KVModel[SRSRelicSubStats] | None = None
         self._relics_sets: KVModel[SRSRelicSet] | None = None
-        self._rogue_curios: KVModel[SRSSimUniverseCurio] | None = None
-        self._rogue_blessings: KVModel[SRSSimUniverseBlessing] | None = None
+        self._rogues: KVModel[SRSRogueWorld] | None = None
+        self._rogue_curios: KVModel[SRSRogueCurio] | None = None
+        self._rogue_blessings: KVModel[SRSRogueBlessing] | None = None
 
         self.__loader_maps: dict[str, tuple[type[Struct], str]] = {
             "achievements": (SRSAchievement, "_achievements"),
@@ -114,8 +115,9 @@ class SRSDataLoader:
             "relic_main_affixes": (SRSRelicStats, "_relics_stats"),
             "relic_sub_affixes": (SRSRelicSubStats, "_relics_sub_stats"),
             "relic_sets": (SRSRelicSet, "_relics_sets"),
-            "rogue_curios": (SRSSimUniverseCurio, "_rogue_curios"),
-            "rogue_blessings": (SRSSimUniverseBlessing, "_rogue_blessings"),
+            "rogue": (SRSRogueWorld, "_rogues"),
+            "rogue_curios": (SRSRogueCurio, "_rogue_curios"),
+            "rogue_blessings": (SRSRogueBlessing, "_rogue_blessings"),
         }
 
     def __repr__(self) -> str:
@@ -289,13 +291,19 @@ class SRSDataLoader:
         return self._relics_sets
 
     @property
-    def simuniverse_curios(self) -> KVModel[SRSSimUniverseCurio]:
+    def simulated_universes(self) -> KVModel[SRSRogueWorld]:
+        if self._rogues is None:
+            raise RuntimeError("You must load the data first.")
+        return self._rogues
+
+    @property
+    def simuniverse_curios(self) -> KVModel[SRSRogueCurio]:
         if self._rogue_curios is None:
             raise RuntimeError("You must load the data first.")
         return self._rogue_curios
 
     @property
-    def simuniverse_blessings(self) -> KVModel[SRSSimUniverseBlessing]:
+    def simuniverse_blessings(self) -> KVModel[SRSRogueBlessing]:
         if self._rogue_blessings is None:
             raise RuntimeError("You must load the data first.")
         return self._rogue_blessings
