@@ -48,3 +48,6 @@ class MihomoLanguage(str, Enum):
     RU = "ru"
     TH = "th"
     VI = "vi"
+
+    def __str__(self) -> str:
+        return self.value

@@ -30,6 +30,7 @@ from pathlib import Path
 from typing import cast
 
 from qingque.mihomo import MihomoAPI
+from qingque.mihomo.models.constants import MihomoLanguage
 from qingque.starrail.generator import StarRailMihomoCard
 from qingque.tooling import setup_logger
 
@@ -39,13 +40,14 @@ class Argument(argparse.Namespace):
     hide_uid: bool
     hide_credits: bool
     index: int
+    lang: MihomoLanguage
 
 
 async def runner(args: Argument):
     log = setup_logger()
     client = MihomoAPI()
     log.info(f"Fetching player data for {args.uid}")
-    player, lang = await client.get_player(args.uid)
+    player, _ = await client.get_player(args.uid)
     await client.close()
 
     if not player.characters:
@@ -59,7 +61,7 @@ async def runner(args: Argument):
         character = player.characters[0]
 
     log.info(f"Creating card for {character.name} ({character.id})")
-    card = StarRailMihomoCard(character, player.player, language=lang)
+    card = StarRailMihomoCard(character, player.player, language=args.lang)
     return await card.create(hide_uid=args.hide_uid, hide_credits=args.hide_credits), character
 
 
@@ -69,6 +71,14 @@ def main():
     parser.add_argument("--hide-uid", action="store_true", help="Hide the UID on the card")
     parser.add_argument("--hide-credits", action="store_true", help="Hide the credits on the card")
     parser.add_argument("-i", "--index", type=int, default=0, help="Zero-based index of the character to use")
+    parser.add_argument(
+        "-l",
+        "--lang",
+        type=MihomoLanguage,
+        choices=list(MihomoLanguage),
+        default=MihomoLanguage.EN,
+        help="Language to use",
+    )
 
     args = parser.parse_args()
 
