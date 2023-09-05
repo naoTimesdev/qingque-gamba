@@ -28,7 +28,7 @@ import logging
 
 from PIL import Image
 
-from qingque.i18n import QingqueLanguage, get_i18n
+from qingque.i18n import QingqueI18n, QingqueLanguage, get_i18n
 from qingque.mihomo.models.base import MihomoBase
 from qingque.mihomo.models.characters import Character
 from qingque.mihomo.models.combats import ElementType, SkillTrace, SkillUsageType
@@ -127,9 +127,12 @@ class SRSCardStats(MihomoBase, frozen=True):
     cut_off: bool = False
 
     @classmethod
-    def from_relic(cls: type[SRSCardStats], relic: StatsProperties | StatsAtrributes, cut_off: bool = False):
+    def from_relic(
+        cls: type[SRSCardStats], relic: StatsProperties | StatsAtrributes, cut_off: bool = False, *, i18n: QingqueI18n
+    ):
+        relic_name = i18n.t(f"mihomo.stats_simple.{relic.field.value}")
         return cls(
-            name=relic.field.simple,
+            name=relic_name,
             icon_url=relic.icon_url,
             value=relic.value,
             percent=relic.percent,
@@ -645,8 +648,8 @@ class StarRailMihomoCard(StarRailDrawing):
                 await self._create_stats_box(
                     position=idx,
                     left=self.RELIC_LEFT,
-                    main_stat=SRSCardStats.from_relic(relic.main_stats),
-                    sub_stats=[SRSCardStats.from_relic(sub) for sub in relic.sub_stats],
+                    main_stat=SRSCardStats.from_relic(relic.main_stats, i18n=self._i18n),
+                    sub_stats=[SRSCardStats.from_relic(sub, i18n=self._i18n) for sub in relic.sub_stats],
                     rarity=relic.rarity,
                     box_icon=relic.icon_url,
                     box_size=relic_size,
@@ -688,7 +691,7 @@ class StarRailMihomoCard(StarRailDrawing):
             properties_joined = []
             for prop in select_relic.properties:
                 prop_fmt = "{:.1%}" if prop.percent else "{:.0f}"
-                prop_name = self._stats_field_to_name.get(prop.field)
+                prop_name = self._i18n.t(f"mihomo.stats_simple.{prop.field.value}")
                 properties_joined.append(f"{prop_name} {prop_fmt.format(prop.value)}")
             relic_set_name = self._index_data.relics_sets[select_relic.id].name
             if properties_joined:
@@ -718,7 +721,7 @@ class StarRailMihomoCard(StarRailDrawing):
             await self._create_placeholder_slot(1, RELIC_LEFT, text=self._i18n.t("mihomo.no_weapon"))
         else:
             light_cone = self._character.light_cone
-            cone_stats = [SRSCardStats.from_relic(stats) for stats in light_cone.attributes]
+            cone_stats = [SRSCardStats.from_relic(stats, i18n=self._i18n) for stats in light_cone.attributes]
             cone_stats.insert(
                 0,
                 SRSCardStats(
@@ -748,8 +751,8 @@ class StarRailMihomoCard(StarRailDrawing):
                 await self._create_stats_box(
                     position=idx,
                     left=RELIC_LEFT,
-                    main_stat=SRSCardStats.from_relic(relic.main_stats),
-                    sub_stats=[SRSCardStats.from_relic(sub) for sub in relic.sub_stats],
+                    main_stat=SRSCardStats.from_relic(relic.main_stats, i18n=self._i18n),
+                    sub_stats=[SRSCardStats.from_relic(sub, i18n=self._i18n) for sub in relic.sub_stats],
                     rarity=relic.rarity,
                     box_icon=relic.icon_url,
                     box_indicator=f"+{relic.level}",

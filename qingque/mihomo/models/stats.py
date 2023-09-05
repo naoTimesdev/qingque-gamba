@@ -71,60 +71,6 @@ class StatsField(str, Enum):
     ImaginaryResist = "imaginary_res"
     Unknown = ""
 
-    @property
-    def simple(self):
-        match self:
-            case StatsField.HP | StatsField.ATK | StatsField.DEF | StatsField.Speed:
-                return self.value.upper()
-            case StatsField.CritRate:
-                return "CRIT Rate"
-            case StatsField.CritDamage:
-                return "CRIT DMG"
-            case StatsField.BreakEffect:
-                return "BREAK"
-            case StatsField.HealingRate:
-                return "HEAL"
-            case StatsField.EnergyRegenRate:
-                return "ERR"
-            case StatsField.EffectHitRate:
-                return "EHR"
-            case StatsField.EffectResist:
-                return "ERS"
-            case StatsField.PhysicalBoost:
-                return "Phys DMG"
-            case StatsField.FireBoost:
-                return "Fire DMG"
-            case StatsField.IceBoost:
-                return "Ice DMG"
-            case StatsField.LightningBoost:
-                return "Lightning DMG"
-            case StatsField.WindBoost:
-                return "Wind DMG"
-            case StatsField.QuantumBoost:
-                return "Quantum DMG"
-            case StatsField.ImaginaryBoost:
-                return "Imaginary DMG"
-            case StatsField.DamageBoost:
-                return "All DMG"
-            case StatsField.PhysicalResist:
-                return "Phys RES"
-            case StatsField.FireResist:
-                return "Fire RES"
-            case StatsField.IceResist:
-                return "Ice RES"
-            case StatsField.LightningResist:
-                return "Lightning RES"
-            case StatsField.WindResist:
-                return "Wind RES"
-            case StatsField.QuantumResist:
-                return "Quantum RES"
-            case StatsField.ImaginaryResist:
-                return "Imaginary RES"
-            case StatsField.Unknown:
-                return "Unknown"
-            case _:
-                return self.value
-
 
 class StatsAtrributes(MihomoBase, frozen=True):
     field: StatsField
