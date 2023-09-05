@@ -33,7 +33,6 @@ from aiopath import AsyncPath
 from msgspec import Struct
 
 from qingque.mihomo.models.constants import MihomoLanguage
-from qingque.starrail.models.rogues import SRSRogueBlessing, SRSRogueCurio, SRSRogueWorld
 
 from .models import (
     SRSAchievement,
@@ -55,6 +54,9 @@ from .models import (
     SRSRelicSet,
     SRSRelicStats,
     SRSRelicSubStats,
+    SRSRogueBlessing,
+    SRSRogueCurio,
+    SRSRogueWorld,
 )
 
 __all__ = ("SRSDataLoader",)

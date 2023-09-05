@@ -55,6 +55,18 @@ class SRSRogueWorld(SRSBase, frozen=True):
     weakness: list[ElementType]
     """:class:`list[ElementType]`: The world boss weakness."""
 
+    @property
+    def stages(self) -> list[int]:
+        """:class:`list[int]`: The world stages/map/area."""
+        return sorted(list(map(int, self.score_map.keys())))
+
+    def get_stage(self, scores: int) -> int:
+        """:class:`int`: Get the stage number from the scores."""
+        for stage, score in self.score_map.items():
+            if score == scores:
+                return int(stage)
+        raise ValueError(f"Invalid score: {scores}")
+
 
 class SRSRogueCurio(SRSBase, frozen=True):
     id: int
