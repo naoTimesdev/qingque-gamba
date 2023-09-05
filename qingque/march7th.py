@@ -38,8 +38,9 @@ __all__ = (
 )
 CURRENT_PATH = Path(__file__).absolute().parent
 logger = logging.getLogger("qingque.march7th")
-REPO_URL = "https://github.com/Mar-7th/StarRailRes"
-API_FETCH_URL = "https://api.github.com/repos/Mar-7th/StarRailRes/commits/master"
+CHUNK_SIZE = 1 * 1024 * 1024  # 1MB
+REPO_URL = "https://s3.eu-central-1.wasabisys.com/nao-archive/SRS"
+API_FETCH_URL = "https://s3.eu-central-1.wasabisys.com/nao-archive/SRS/commit.index"
 
 
 async def delete_directory_contents(file_or_dir: AsyncPath):
@@ -54,16 +55,6 @@ async def delete_directory_contents(file_or_dir: AsyncPath):
             await child.unlink()
 
 
-def should_skip(name: str) -> bool:
-    if name.endswith("/"):
-        return True
-    allowed_dirs = ["index_min", "image", "icon"]
-    for allowed_dir in allowed_dirs:
-        if name.startswith(allowed_dir + "/"):
-            return False
-    return True
-
-
 async def download_commit_archive(commit_id: str, *, client: aiohttp.ClientSession | None = None):
     loop = asyncio.get_running_loop()
     ASSETS_FOLDER = AsyncPath(CURRENT_PATH / "assets" / "srs")  # type: ignore
@@ -72,17 +63,14 @@ async def download_commit_archive(commit_id: str, *, client: aiohttp.ClientSessi
     ZIP_PATH = ASSETS_FOLDER / "StarRailRes.zip"
 
     # https://github.com/Mar-7th/StarRailRes/archive/36f180c2ad54c454d8f4fe5c461a811bda89bf37.zip
-    archive_url = f"{REPO_URL}/archive/{commit_id}.zip"
+    archive_url = f"{REPO_URL}/{commit_id}.zip"
 
     logger.info(f"Downloading {archive_url}...")
-    total_chunk = 0
     timeout = aiohttp.ClientTimeout(sock_connect=10, sock_read=60, connect=10, total=60)
     async with client.get(archive_url, timeout=timeout) as resp:
         # Chunk downloading so it does not eat up memory
         async with ZIP_PATH.open("wb") as fp:
-            async for chunk in resp.content.iter_chunked(1024):
-                total_chunk += len(chunk)
-                logger.debug(f"Writing {total_chunk} bytes...")
+            async for chunk in resp.content.iter_chunked(CHUNK_SIZE):
                 await fp.write(chunk)
 
     logger.info("Extracting contents...")
@@ -92,16 +80,12 @@ async def download_commit_archive(commit_id: str, *, client: aiohttp.ClientSessi
 
     for content in zip_contents:
         filename = content.filename
-        if not filename.startswith("StarRailRes"):
+
+        has_suffix = Path(filename).suffix != ""
+        if not has_suffix:
             continue
 
-        _, path_name = filename.replace("\\", "/").split("/", 1)
-        if should_skip(path_name):
-            continue
-
-        path_name = path_name.replace("index_min/", "index/")
-
-        target_path = ASSETS_FOLDER / path_name
+        target_path = ASSETS_FOLDER / filename
         await target_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Read the file from the zip
@@ -127,13 +111,13 @@ async def get_march7th_latest_commit(*, client: aiohttp.ClientSession | None = N
 
     client = client or aiohttp.ClientSession()
     async with client.get(API_FETCH_URL) as resp:
-        data = await resp.json()
-
-        sha_commit = data["sha"]
+        resp.raise_for_status()
+        sha_commit = await resp.text()
 
     if sha_commit != index_file:
         logger.info("There is a new commit available, downloading...")
-        await delete_directory_contents(ASSETS_FOLDER)
+        for direct in ["icon", "image", "index"]:
+            await delete_directory_contents(ASSETS_FOLDER / direct)
         # Rewrite the index file
         await commit_index.write_text(index_file)
         await download_commit_archive(sha_commit, client=client)

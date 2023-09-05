@@ -51,8 +51,8 @@ You can also generate your card without the bot by just running: `poetry run srs
     - Margin adjustment
     - Use font that are used in-game
 - Mar-7th StarRailRes: https://github.com/Mar-7th/StarRailRes (I'm using assets from here and saved it locally.)
-- Hoyoverse/miHoYo/Honkai: Star Rail — As all the fonts/assets are taken from the game, all rights reserved.
+- miHoYo/Honkai: Star Rail — As all the fonts/assets are taken from the game, all rights reserved.
 
 # Copyright
 
-The code in this repository is owned by [naoTimesdev](https://github.com/naoTimesdev), the code is released under the [MIT License](LICENSE). Original assets and fonts used in this project are sourced from the game Honkai: Star Rail, developed by miHoYo/HOYOVERSE. All rights to these assets and fonts belong to miHoYo and/or HOYOVERSE, and they are used here for our profile generator purposes only. Additionally, this project has taken inspiration from other projects, which are credited in the [Credits](#credits) section. The license terms for any incorporated elements depend on the individual projects from which they were sourced.
+The code in this repository is owned by [naoTimesdev](https://github.com/naoTimesdev), the code is released under the [MIT License](LICENSE). Original assets and fonts used in this project are sourced from the game Honkai: Star Rail, developed by miHoYo. All rights to these assets and fonts belong to miHoYo and/or COGNOSPHERE PTE LTD, and they are used here for our profile generator purposes only. Additionally, this project has taken inspiration from other projects, which are credited in the [Credits](#credits) section. The license terms for any incorporated elements depend on the individual projects from which they were sourced.

@@ -355,8 +355,11 @@ qingque/assets/srs/**/*.webp
 qingque/assets/srs/index/**/*.json
 qingque/assets/srs/hoyolab/**/*.json
 qingque/assets/srs/textmaps/**/*.json
+qingque/assets/srs/exceloutput/**/*.json
 qingque/assets/commit.index
-qingque/assets/srs/StarRailRes.zip
+*.zip
+*.7z
+qingque/assets/extras/**/*
 
 # Unix socket
 *.sock
