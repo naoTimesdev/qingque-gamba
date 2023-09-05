@@ -800,17 +800,17 @@ class StarRailMihomoCard(StarRailDrawing):
 
             match skill.type:
                 case SkillUsageType.Basic:
-                    skill_typet = self._index_data.descriptions["10091"].title
+                    skill_typet = self._i18n.t("mihomo.basic_atk")
                 case SkillUsageType.Skill:
                     skill_typet = self._i18n.t("mihomo.skill")
                 case SkillUsageType.Ultimate:
-                    skill_typet = self._index_data.descriptions["10093"].title
+                    skill_typet = self._i18n.t("mihomo.ultimate")
                 case SkillUsageType.Talent:
                     skill_typet = self._i18n.t("mihomo.talent")
                 case SkillUsageType.Technique:
-                    skill_typet = self._index_data.descriptions["10096"].title
+                    skill_typet = self._i18n.t("mihomo.technique")
                 case SkillUsageType.TechniqueAttack:
-                    skill_typet = self._index_data.descriptions["10096"].title
+                    skill_typet = self._i18n.t("mihomo.technique")
                 case _:
                     skill_typet = skill.type_description
 
