@@ -118,6 +118,10 @@ class SRSDataLoader:
             "rogue_blessings": (SRSSimUniverseBlessing, "_rogue_blessings"),
         }
 
+    def __repr__(self) -> str:
+        loaded = self._achievements is not None
+        return f"<SRSDataLoader language={self.language.value!r} loaded={loaded!r}>"
+
     @overload
     def _load_models(self, data: bytes, model: type[SRSModelT]) -> dict[str, SRSModelT]:
         ...
