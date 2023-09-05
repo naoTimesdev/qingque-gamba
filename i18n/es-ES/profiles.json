@@ -1,29 +1,29 @@
 {
-    "achivements": "Achievements",
-    "light_cones": "Light Cones",
-    "rogue": "Simulated Universe",
-    "rogue_world": "World {0}",
-    "abyss": "Forgotten Hall",
-    "abyss_hard": "Memory of Chaos",
-    "character_header": "{0} (Lv. {1})",
-    "tb_power": "Trailblaze Power",
-    "tb_power_recover": "(Recover {0})",
-    "tb_power_reserve": "Reserve Power",
-    "echo_of_war": "Echo of War",
-    "daily_quest": "Daily Training",
+    "achivements": "Logros",
+    "light_cones": "Conos de luz",
+    "rogue": "Universo Simulado",
+    "rogue_world": "Mundo {0}",
+    "abyss": "Salón olvidado",
+    "abyss_hard": "Evocación caótica",
+    "character_header": "{0} (Niv. {1})",
+    "tb_power": "Poder trazacaminos",
+    "tb_power_recover": "(Recupérese {0})",
+    "tb_power_reserve": "Poder de reserva",
+    "echo_of_war": "Ecos de la guerra",
+    "daily_quest": "Entrenamiento diario",
     "assignment": {
-        "title": "Assignment {0}",
-        "name": "Name",
+        "title": "Encargos {0}",
+        "name": "Nombre",
         "status": {
-            "title": "Status",
-            "ongoing": "Ongoing",
-            "completed": "Completed"
+            "title": "Estado",
+            "ongoing": "En curso",
+            "completed": "Completado"
         },
-        "finish": "Finish at"
+        "finish": "Terminado en"
     },
     "chronicle_titles": {
-        "overview": "Battle Chronicles",
-        "rogue": "Battle Chronicles — Simulated Universe",
-        "abyss": "Battle Chronicles — Memory of Chaos"
+        "overview": "Registro de batalla",
+        "rogue": "Registro de batalla — Universo Simulado",
+        "abyss": "Registro de batalla — Evocación caótica"
     }
 }

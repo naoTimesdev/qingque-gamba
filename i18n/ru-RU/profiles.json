@@ -1,29 +1,29 @@
 {
-    "achivements": "Achievements",
-    "light_cones": "Light Cones",
-    "rogue": "Simulated Universe",
-    "rogue_world": "World {0}",
-    "abyss": "Forgotten Hall",
-    "abyss_hard": "Memory of Chaos",
-    "character_header": "{0} (Lv. {1})",
-    "tb_power": "Trailblaze Power",
-    "tb_power_recover": "(Recover {0})",
-    "tb_power_reserve": "Reserve Power",
-    "echo_of_war": "Echo of War",
-    "daily_quest": "Daily Training",
+    "achivements": "Достижения",
+    "light_cones": "Световые конусы",
+    "rogue": "Виртуальная вселенная",
+    "rogue_world": "Мир {0}",
+    "abyss": "Зал забвения",
+    "abyss_hard": "Воспоминания хаоса",
+    "character_header": "{0} (Ур. {1})",
+    "tb_power": "Энергия Освоения",
+    "tb_power_recover": "(Восстановление {0})",
+    "tb_power_reserve": "Резервная энергия",
+    "echo_of_war": "Эхо войны",
+    "daily_quest": "Ежедневная тренировка",
     "assignment": {
-        "title": "Assignment {0}",
-        "name": "Name",
+        "title": "Поручения {0}",
+        "name": "имя",
         "status": {
-            "title": "Status",
-            "ongoing": "Ongoing",
-            "completed": "Completed"
+            "title": "Статус",
+            "ongoing": "Текущая",
+            "completed": "Завершено"
         },
-        "finish": "Finish at"
+        "finish": "Завершено на"
     },
     "chronicle_titles": {
-        "overview": "Battle Chronicles",
-        "rogue": "Battle Chronicles — Simulated Universe",
-        "abyss": "Battle Chronicles — Memory of Chaos"
+        "overview": "Боевые заслуги",
+        "rogue": "Боевые заслуги — Виртуальная вселенная",
+        "abyss": "Боевые заслуги — Воспоминания хаоса"
     }
 }

@@ -1,22 +1,22 @@
 {
     "region": {
         "short": {
-            "china": "China",
+            "china": "Китай",
             "na": "NA",
-            "eur": "EU",
-            "asia": "Asia",
+            "eur": "ЕС",
+            "asia": "Азия",
             "taiwan": "TW/HK/MO"
         },
         "long": {
-            "china": "Mainland China",
-            "na": "North America",
-            "eur": "Europe",
-            "asia": "Asia",
-            "taiwan": "Taiwan/Hong Kong/Macau"
+            "china": "Материковый Китай",
+            "na": "Северная Америка",
+            "eur": "Европа",
+            "asia": "Азия",
+            "taiwan": "Тайвань/Гонконг/Макао"
         }
     },
     "game_kind": {
         "starrail": "Honkai: Star Rail"
     },
-    "moc_floor": "Floor {0}"
+    "moc_floor": "Этаж {0}"
 }

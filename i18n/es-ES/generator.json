@@ -28,30 +28,31 @@
             "quantum_res": "Quantum RES",
             "imaginary_res": "Imaginary RES",
             "all_res": "All RES",
-            "unknown": "Unknown"
+            "unknown": "Desconocido"
         },
-        "credits": "Data from Mihomo | Created by @noaione | Idea from StarDB",
-        "region": "Region",
-        "level": "Level",
+        "credits": "Datos de Mihomo | Creado por @noaione | Idea de StarDB",
+        "region": "Región",
+        "level": "Nivel",
         "moc": "MoC",
-        "tb_name": "Trailblazer ({0})",
-        "no_relic": "No Relic",
-        "no_weapon": "No Light Cone",
-        "basic_atk": "Basic ATK",
-        "skill": "Skill",
-        "talent": "Talent",
-        "ultimate": "Ultimate",
-        "technique": "Technique"
+        "tb_name": "Trazacaminos ({0})",
+        "tb_name_female": "Trazacaminos ({0})",
+        "no_relic": "Sin Artefactos",
+        "no_weapon": "Sin Conos de luz",
+        "basic_atk": "ATQ básico",
+        "skill": "Habilidad",
+        "talent": "Talento",
+        "ultimate": "Última",
+        "technique": "Técnica"
     },
     "chronicles": {
-        "days_active": "Days Active",
-        "characters": "Characters",
-        "achievements": "Achievements",
-        "moc": "Memory of Chaos",
-        "tb_power": "Trailblaze Power",
-        "reserve_tb_power": "Reserved Trailblaze Power",
-        "daily_quest": "Daily Training",
-        "echo_of_war": "Echo of War",
-        "credits": "Data from HoyoLab | Created by @noaione"
+        "days_active": "Días de actividad",
+        "characters": "Personajes",
+        "achievements": "Logros",
+        "moc": "Evocación caótica",
+        "tb_power": "Poder trazacaminos",
+        "reserve_tb_power": "Poder trazacaminos de reserva",
+        "daily_quest": "Entrenamiento diario",
+        "echo_of_war": "Ecos de la guerra",
+        "credits": "Datos de HoyoLab | Creado por @noaione"
     }
 }

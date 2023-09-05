@@ -28,30 +28,31 @@
             "quantum_res": "Quantum RES",
             "imaginary_res": "Imaginary RES",
             "all_res": "All RES",
-            "unknown": "Unknown"
+            "unknown": "Desconhecido"
         },
-        "credits": "Data from Mihomo | Created by @noaione | Idea from StarDB",
-        "region": "Region",
-        "level": "Level",
+        "credits": "Dados do Mihomo | Criado por @noaione | Ideia a partir de StarDB",
+        "region": "Região",
+        "level": "Nível",
         "moc": "MoC",
-        "tb_name": "Trailblazer ({0})",
-        "no_relic": "No Relic",
-        "no_weapon": "No Light Cone",
-        "basic_atk": "Basic ATK",
-        "skill": "Skill",
-        "talent": "Talent",
-        "ultimate": "Ultimate",
-        "technique": "Technique"
+        "tb_name": "Desbravador ({0})",
+        "tb_name_female": "Desbravadora ({0})",
+        "no_relic": "Sem Relíquias",
+        "no_weapon": "Sem Cones de Luz",
+        "basic_atk": "ATQ Básico",
+        "skill": "Perícia",
+        "talent": "Talento",
+        "ultimate": "Supremo",
+        "technique": "Técnica"
     },
     "chronicles": {
-        "days_active": "Days Active",
-        "characters": "Characters",
-        "achievements": "Achievements",
-        "moc": "Memory of Chaos",
-        "tb_power": "Trailblaze Power",
-        "reserve_tb_power": "Reserved Trailblaze Power",
-        "daily_quest": "Daily Training",
-        "echo_of_war": "Echo of War",
-        "credits": "Data from HoyoLab | Created by @noaione"
+        "days_active": "Dias de Atividade",
+        "characters": "Personagens",
+        "achievements": "Conquistas",
+        "moc": "Memória do Caos",
+        "tb_power": "Poder de Desbravamento",
+        "reserve_tb_power": "Poder de Desbravamento Reserva",
+        "daily_quest": "Treinamento Diário",
+        "echo_of_war": "Eco da Guerra",
+        "credits": "Dados do HoyoLab | Criado por @noaione"
     }
 }

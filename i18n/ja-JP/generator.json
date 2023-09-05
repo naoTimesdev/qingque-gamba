@@ -28,20 +28,21 @@
             "quantum_res": "Quantum RES",
             "imaginary_res": "Imaginary RES",
             "all_res": "All RES",
-            "unknown": "Unknown"
+            "unknown": "不明"
         },
-        "credits": "Mihomo からのデータ | 作成者 @noaione | アイデアをStarDB",
+        "credits": "Mihomo からのデータ | @noaione 作成 | アイデアをStarDB",
         "region": "地域",
         "level": "レベル",
         "moc": "MoC",
         "tb_name": "開拓者 ({0})",
+        "tb_name_female": "開拓者 ({0})",
         "no_relic": "遺物なし",
         "no_weapon": "光円錐なし",
-        "basic_atk": "Basic ATK",
+        "basic_atk": "通常攻撃",
         "skill": "戦闘スキル",
         "talent": "天賦",
-        "ultimate": "Ultimate",
-        "technique": "Technique"
+        "ultimate": "必殺技",
+        "technique": "秘技"
     },
     "chronicles": {
         "days_active": "活動日数",

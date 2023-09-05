@@ -1,22 +1,22 @@
 {
     "region": {
         "short": {
-            "china": "China",
-            "na": "NA",
-            "eur": "EU",
-            "asia": "Asia",
-            "taiwan": "TW/HK/MO"
+            "china": "중국",
+            "na": "북미",
+            "eur": "유럽",
+            "asia": "아시아",
+            "taiwan": "대만/홍콩/마카오"
         },
         "long": {
-            "china": "Mainland China",
-            "na": "North America",
-            "eur": "Europe",
-            "asia": "Asia",
-            "taiwan": "Taiwan/Hong Kong/Macau"
+            "china": "중국 본토",
+            "na": "북미",
+            "eur": "유럽",
+            "asia": "아시아",
+            "taiwan": "대만/홍콩/마카오"
         }
     },
     "game_kind": {
-        "starrail": "Honkai: Star Rail"
+        "starrail": "붕괴: 스타레일"
     },
-    "moc_floor": "Floor {0}"
+    "moc_floor": "{0}층"
 }

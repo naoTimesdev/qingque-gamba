@@ -28,30 +28,31 @@
             "quantum_res": "Quantum RES",
             "imaginary_res": "Imaginary RES",
             "all_res": "All RES",
-            "unknown": "Unknown"
+            "unknown": "неведомое"
         },
-        "credits": "Data from Mihomo | Created by @noaione | Idea from StarDB",
-        "region": "Region",
-        "level": "Level",
+        "credits": "Данные из лаборатории Mihomo | Создано @noaione | Идея из StarDB",
+        "region": "Регион",
+        "level": "Уровень",
         "moc": "MoC",
-        "tb_name": "Trailblazer ({0})",
-        "no_relic": "No Relic",
-        "no_weapon": "No Light Cone",
-        "basic_atk": "Basic ATK",
-        "skill": "Skill",
-        "talent": "Talent",
-        "ultimate": "Ultimate",
-        "technique": "Technique"
+        "tb_name": "Первопроходец ({0})",
+        "tb_name_female": "Первопроходец ({0})",
+        "no_relic": "Нет Реликвии",
+        "no_weapon": "Нет Световые конусы",
+        "basic_atk": "Атака",
+        "skill": "Навык",
+        "talent": "Талант",
+        "ultimate": "конечный",
+        "technique": "Техника"
     },
     "chronicles": {
-        "days_active": "Days Active",
-        "characters": "Characters",
-        "achievements": "Achievements",
-        "moc": "Memory of Chaos",
-        "tb_power": "Trailblaze Power",
-        "reserve_tb_power": "Reserved Trailblaze Power",
-        "daily_quest": "Daily Training",
-        "echo_of_war": "Echo of War",
-        "credits": "Data from HoyoLab | Created by @noaione"
+        "days_active": "Дни активности",
+        "characters": "Персонажи",
+        "achievements": "Достижения",
+        "moc": "Воспоминания хаоса",
+        "tb_power": "Энергия Освоения",
+        "reserve_tb_power": "Резервная энергия Освоения",
+        "daily_quest": "Ежедневная тренировка",
+        "echo_of_war": "Эхо войны",
+        "credits": "Данные из лаборатории HoyoLab | Создано @noaione"
     }
 }

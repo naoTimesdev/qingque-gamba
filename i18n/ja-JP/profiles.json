@@ -17,9 +17,9 @@
         "status": {
             "title": "状態",
             "ongoing": "継続中",
-            "completed": "完了"
+            "completed": "完成"
         },
-        "finish": "終了日時"
+        "finish": "で終えた"
     },
     "chronicle_titles": {
         "overview": "戦績",

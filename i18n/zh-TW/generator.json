@@ -28,20 +28,21 @@
             "quantum_res": "Quantum RES",
             "imaginary_res": "Imaginary RES",
             "all_res": "All RES",
-            "unknown": "Unknown"
+            "unknown": "未知"
         },
         "credits": "數據來自Mihomo | 創建者 @noaione | 來自 StarDB 的想法",
         "region": "地域",
         "level": "級",
         "moc": "MoC",
-        "tb_name": "Trailblazer ({0})",
-        "no_relic": "No Relic",
-        "no_weapon": "No Light Cone",
-        "basic_atk": "Basic ATK",
-        "skill": "Skill",
-        "talent": "Talent",
-        "ultimate": "Ultimate",
-        "technique": "Technique"
+        "tb_name": "開拓者 ({0})",
+        "tb_name_female": "開拓者 ({0})",
+        "no_relic": "沒有遺器",
+        "no_weapon": "沒有光錐",
+        "basic_atk": "普通攻擊",
+        "skill": "戰技",
+        "talent": "天賦",
+        "ultimate": "終結技",
+        "technique": "秘技"
     },
     "chronicles": {
         "days_active": "活躍天數",

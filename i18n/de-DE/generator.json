@@ -28,30 +28,31 @@
             "quantum_res": "Quantum RES",
             "imaginary_res": "Imaginary RES",
             "all_res": "All RES",
-            "unknown": "Unknown"
+            "unknown": "Unbekannt"
         },
-        "credits": "Data from Mihomo | Created by @noaione | Idea from StarDB",
+        "credits": "Daten aus Mihomo | Erstellt von @noaione | Idee von StarDB",
         "region": "Region",
         "level": "Level",
         "moc": "MoC",
         "tb_name": "Trailblazer ({0})",
-        "no_relic": "No Relic",
-        "no_weapon": "No Light Cone",
-        "basic_atk": "Basic ATK",
-        "skill": "Skill",
+        "tb_name_female": "Trailblazer ({0})",
+        "no_relic": "Kein Relikte",
+        "no_weapon": "Kein Lichtkegel",
+        "basic_atk": "Angriff",
+        "skill": "Fertigkeit",
         "talent": "Talent",
         "ultimate": "Ultimate",
-        "technique": "Technique"
+        "technique": "Technik"
     },
     "chronicles": {
-        "days_active": "Days Active",
-        "characters": "Characters",
-        "achievements": "Achievements",
-        "moc": "Memory of Chaos",
-        "tb_power": "Trailblaze Power",
-        "reserve_tb_power": "Reserved Trailblaze Power",
-        "daily_quest": "Daily Training",
-        "echo_of_war": "Echo of War",
-        "credits": "Data from HoyoLab | Created by @noaione"
+        "days_active": "Aktivität",
+        "characters": "Figuren",
+        "achievements": "Erfolge",
+        "moc": "Chaos-Erinnerung",
+        "tb_power": "Trailblaze-Kraft",
+        "reserve_tb_power": "Trailblaze-Kraftreserve",
+        "daily_quest": "Tägliches Training",
+        "echo_of_war": "Echo des Krieges",
+        "credits": "Daten aus HoyoLab | Erstellt von @noaione"
     }
 }

@@ -1,29 +1,29 @@
 {
-    "achivements": "Achievements",
-    "light_cones": "Light Cones",
-    "rogue": "Simulated Universe",
-    "rogue_world": "World {0}",
-    "abyss": "Forgotten Hall",
-    "abyss_hard": "Memory of Chaos",
-    "character_header": "{0} (Lv. {1})",
-    "tb_power": "Trailblaze Power",
-    "tb_power_recover": "(Recover {0})",
-    "tb_power_reserve": "Reserve Power",
-    "echo_of_war": "Echo of War",
-    "daily_quest": "Daily Training",
+    "achivements": "Thành Tựu",
+    "light_cones": "Nón Ánh Sáng",
+    "rogue": "Vũ Trụ Mô Phỏng",
+    "rogue_world": "Thế Giới {0}",
+    "abyss": "Sảnh Đường Lãng Quên",
+    "abyss_hard": "Dư Âm Chiến Đấu",
+    "character_header": "{0} (Cấp {1})",
+    "tb_power": "Sức Mạnh Khai Phá",
+    "tb_power_recover": "(Sự hồi phục {0})",
+    "tb_power_reserve": "Sức Mạnh Dự Bị",
+    "echo_of_war": "Dư Âm Chiến Đấu",
+    "daily_quest": "Huấn Luyện Mỗi Ngày",
     "assignment": {
-        "title": "Assignment {0}",
-        "name": "Name",
+        "title": "Ủy Thác {0}",
+        "name": "Tên",
         "status": {
-            "title": "Status",
-            "ongoing": "Ongoing",
-            "completed": "Completed"
+            "title": "Trạng Thái",
+            "ongoing": "Đang thực hiện",
+            "completed": "Hoàn thành"
         },
-        "finish": "Finish at"
+        "finish": "Kết thúc lúc"
     },
     "chronicle_titles": {
-        "overview": "Battle Chronicles",
-        "rogue": "Battle Chronicles — Simulated Universe",
-        "abyss": "Battle Chronicles — Memory of Chaos"
+        "overview": "Chiến Tích",
+        "rogue": "Chiến Tích — Vũ Trụ Mô Phỏng",
+        "abyss": "Chiến Tích — Dư Âm Chiến Đấu"
     }
 }

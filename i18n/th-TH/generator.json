@@ -28,30 +28,31 @@
             "quantum_res": "Quantum RES",
             "imaginary_res": "Imaginary RES",
             "all_res": "All RES",
-            "unknown": "Unknown"
+            "unknown": "ไม่ทราบ"
         },
-        "credits": "Data from Mihomo | Created by @noaione | Idea from StarDB",
-        "region": "Region",
+        "credits": "ข้อมูลจาก Mihomo | สร้างโดย @noaione | ไอเดียจาก StarDB",
+        "region": "ภูมิภาค",
         "level": "Level",
         "moc": "MoC",
-        "tb_name": "Trailblazer ({0})",
-        "no_relic": "No Relic",
-        "no_weapon": "No Light Cone",
-        "basic_atk": "Basic ATK",
-        "skill": "Skill",
-        "talent": "Talent",
-        "ultimate": "Ultimate",
-        "technique": "Technique"
+        "tb_name": "ผู้บุกเบิก ({0})",
+        "tb_name_female": "ผู้บุกเบิก ({0})",
+        "no_relic": "ไม่มีรีลิกส์",
+        "no_weapon": "ไม่มี Light Cone",
+        "basic_atk": "โจมตีปกติ",
+        "skill": "สกิลต่อสู้",
+        "talent": "พรสวรรค์",
+        "ultimate": "ท่าไม้ตาย",
+        "technique": "เทคนิค"
     },
     "chronicles": {
-        "days_active": "Days Active",
-        "characters": "Characters",
-        "achievements": "Achievements",
+        "days_active": "จำนวนวันที่ใช้งาน",
+        "characters": "ตัวละคร",
+        "achievements": "ความสำเร็จ",
         "moc": "Memory of Chaos",
-        "tb_power": "Trailblaze Power",
-        "reserve_tb_power": "Reserved Trailblaze Power",
-        "daily_quest": "Daily Training",
+        "tb_power": "พลังบุกเบิก",
+        "reserve_tb_power": "พลังบุกเบิกสำรอง",
+        "daily_quest": "การฝึกประจำวัน",
         "echo_of_war": "Echo of War",
-        "credits": "Data from HoyoLab | Created by @noaione"
+        "credits": "ข้อมูลจาก HoyoLab | สร้างโดย @noaione"
     }
 }

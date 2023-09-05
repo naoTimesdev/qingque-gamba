@@ -28,30 +28,31 @@
             "quantum_res": "Quantum RES",
             "imaginary_res": "Imaginary RES",
             "all_res": "All RES",
-            "unknown": "Unknown"
+            "unknown": "미상"
         },
-        "credits": "Data from Mihomo | Created by @noaione | Idea from StarDB",
-        "region": "Region",
-        "level": "Level",
+        "credits": "Mihomo의 데이터 | 생성자 @noaione | StarDB의 아이디어",
+        "region": "지역",
+        "level": "레벨",
         "moc": "MoC",
-        "tb_name": "Trailblazer ({0})",
-        "no_relic": "No Relic",
-        "no_weapon": "No Light Cone",
-        "basic_atk": "Basic ATK",
-        "skill": "Skill",
-        "talent": "Talent",
-        "ultimate": "Ultimate",
-        "technique": "Technique"
+        "tb_name": "개척자 ({0})",
+        "tb_name_female": "개척자 ({0})",
+        "no_relic": "유물 없음",
+        "no_weapon": "광추 없음",
+        "basic_atk": "일반 공격",
+        "skill": "전투 스킬",
+        "talent": "특성",
+        "ultimate": "필살기",
+        "technique": "비술"
     },
     "chronicles": {
-        "days_active": "Days Active",
-        "characters": "Characters",
-        "achievements": "Achievements",
-        "moc": "Memory of Chaos",
-        "tb_power": "Trailblaze Power",
-        "reserve_tb_power": "Reserved Trailblaze Power",
-        "daily_quest": "Daily Training",
-        "echo_of_war": "Echo of War",
-        "credits": "Data from HoyoLab | Created by @noaione"
+        "days_active": "활동 일수",
+        "characters": "캐릭터",
+        "achievements": "업적",
+        "moc": "혼돈의 기억",
+        "tb_power": "개척력",
+        "reserve_tb_power": "예비 개척력",
+        "daily_quest": "일일 훈련",
+        "echo_of_war": "전쟁의 여운",
+        "credits": "HoyoLab의 데이터 | 생성자 @noaione"
     }
 }

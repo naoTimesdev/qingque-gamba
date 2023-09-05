@@ -28,30 +28,31 @@
             "quantum_res": "Quantum RES",
             "imaginary_res": "Imaginary RES",
             "all_res": "All RES",
-            "unknown": "Unknown"
+            "unknown": "Không rõ"
         },
-        "credits": "Data from Mihomo | Created by @noaione | Idea from StarDB",
-        "region": "Region",
-        "level": "Level",
+        "credits": "Dữ liệu từ Mihomo | Tạo bởi @noaione | Ý tưởng từ StarDB",
+        "region": "Quốc gia",
+        "level": "Cấp",
         "moc": "MoC",
-        "tb_name": "Trailblazer ({0})",
-        "no_relic": "No Relic",
-        "no_weapon": "No Light Cone",
-        "basic_atk": "Basic ATK",
-        "skill": "Skill",
-        "talent": "Talent",
-        "ultimate": "Ultimate",
-        "technique": "Technique"
+        "tb_name": "Nhà Khai Phá ({0})",
+        "tb_name_female": "Nhà Khai Phá ({0})",
+        "no_relic": "Không có di Vật",
+        "no_weapon": "Không có Nón Ánh Sáng",
+        "basic_atk": "Tấn công",
+        "skill": "Chiến Kỹ",
+        "talent": "Thiên Phú",
+        "ultimate": "Tuyệt Kỹ",
+        "technique": "Bí Kỹ"
     },
     "chronicles": {
-        "days_active": "Days Active",
-        "characters": "Characters",
-        "achievements": "Achievements",
-        "moc": "Memory of Chaos",
-        "tb_power": "Trailblaze Power",
-        "reserve_tb_power": "Reserved Trailblaze Power",
-        "daily_quest": "Daily Training",
-        "echo_of_war": "Echo of War",
-        "credits": "Data from HoyoLab | Created by @noaione"
+        "days_active": "Số Ngày Năng Động",
+        "characters": "Nhân Vật",
+        "achievements": "Thành Tựu",
+        "moc": "Dư Âm Chiến Đấu",
+        "tb_power": "Sức Mạnh Khai Phá",
+        "reserve_tb_power": "Sức Mạnh Khai Phá Dự Bị",
+        "daily_quest": "Huấn Luyện Mỗi Ngày",
+        "echo_of_war": "Dư Âm Chiến Đấu",
+        "credits": "Dữ liệu từ HoyoLab | Tạo bởi @noaione"
     }
 }
