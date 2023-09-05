@@ -177,9 +177,11 @@ class StarRailMihomoCard(StarRailDrawing):
         preview_image = await self._async_open(preview_path)
 
         # Write the character name.
-        chara_name = self._index_data.characters[self._character.id].name
+        chara_data = self._index_data.characters[self._character.id]
+        chara_name = chara_data.name
         if "{NICKNAME}" in chara_name:
-            chara_name = self._i18n.t("mihomo.tb_name", [self._player.name])
+            tb_name_tl = "mihomo.tb_name" if chara_data.tag.startswith("playerboy") else "mihomo.tb_name_female"
+            chara_name = self._i18n.t(tb_name_tl, [self._player.name])
         await self._write_text(
             chara_name,
             (self.CHARACTER_RIGHT - 4, self.CHARACTER_TOP - 30),
