@@ -44,7 +44,7 @@ class Argument(argparse.Namespace):
 
 
 async def runner(args: Argument):
-    log = setup_logger()
+    log = setup_logger(Path.cwd() / "logs" / "cli.log")
     client = MihomoAPI()
     log.info(f"Fetching player data for {args.uid}")
     player, _ = await client.get_player(args.uid)

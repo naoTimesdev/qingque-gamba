@@ -864,7 +864,7 @@ class StarRailMihomoCard(StarRailDrawing):
             # Close image
             await self._async_close(trace_icon)
 
-    async def create(self, *, hide_uid: bool = False, hide_credits: bool = False):
+    async def create(self, *, hide_uid: bool = False, hide_credits: bool = False) -> bytes:
         self._assets_folder = await self._assets_folder.absolute()
         if not await self._assets_folder.exists():
             raise FileNotFoundError("The assets folder does not exist.")
