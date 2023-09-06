@@ -41,7 +41,7 @@ from .models.characters import ChronicleCharacters
 from .models.forgotten_hall import ChronicleForgottenHall
 from .models.notes import ChronicleNotes
 from .models.overview import ChronicleOverview, ChronicleUserInfo, ChronicleUserOverview
-from .models.simuniverse import ChronicleSimulatedUniverse
+from .models.simuniverse import ChronicleSimulatedUniverse, ChronicleSimulatedUniverseSwarmDLC
 
 __all__ = ("HYLabClient",)
 HYModelT = TypeVar("HYModelT", bound=msgspec.Struct)
@@ -429,6 +429,64 @@ class HYLabClient:
             get_ds_headers(HYVRegion.from_server(server), lang=lang),
             cookies=self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, lang=lang),
             type=ChronicleSimulatedUniverse,
+        )
+
+        return resp.data
+
+    async def get_battle_chronicles_simulated_universe_swarm_dlc(
+        self,
+        uid: int,
+        *,
+        hylab_id: int | None = None,
+        hylab_token: str | None = None,
+        hylab_cookie: str | None = None,
+        lang: HYLanguage = HYLanguage.EN,
+    ) -> ChronicleSimulatedUniverseSwarmDLC | None:
+        """
+        Get the battle chronicles simulated universe swarm DLC for the given UID.
+
+        Parameters
+        ----------
+        uid: :class:`int`
+            The UID to get the battle chronicles for.
+        hylab_id: :class:`int | None`
+            Override HoyoLab ID. (ltuid)
+        hylab_token: :class:`str | None`
+            Override HoyoLab token. (ltoken)
+        hylab_cookie: :class:`str | None`
+            Override HoyoLab cookie token. (cookie_token)
+        lang: :class:`HYLanguage`
+            The language to use.
+
+        Returns
+        -------
+        :class:`ChronicleSimulatedUniverseSwarmDLC`
+            The battle chronicles simulated universe swarm DLC for the given UID.
+
+        Raises
+        ------
+        :exc:`.HYLabException`
+            An error occurred while getting the battle chronicles.
+        :exc:`aiohttp.ClientResponseError`
+            An error occurred while requesting the battle chronicles.
+        """
+
+        server = HYVServer.from_uid(str(uid))
+        region = HYVRegion.from_server(server)
+
+        params = {
+            "server": STARRAIL_SERVER[server],
+            "role_id": str(uid),
+            "need_detail": "true",
+        }
+
+        resp = await self._request(
+            "GET",
+            CHRONICLES_ROUTE.get_route(region) / "rogue_locust",
+            params,
+            get_ds_headers(HYVRegion.from_server(server), lang=lang),
+            cookies=self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, lang=lang),
+            type=ChronicleSimulatedUniverseSwarmDLC,
         )
 
         return resp.data

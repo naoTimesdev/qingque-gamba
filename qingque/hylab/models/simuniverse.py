@@ -44,6 +44,10 @@ __all__ = (
     "ChronicleRoguePeriodRun",
     "ChronicleRoguePeriod",
     "ChronicleSimulatedUniverse",
+    "ChronicleRogueLocustOverviewCount",
+    "ChronicleRogueLocustOverviewDestiny",
+    "ChronicleRogueLocustOverview",
+    "ChronicleSimulatedUniverseSwarmDLC",
 )
 
 
@@ -217,3 +221,82 @@ class ChronicleSimulatedUniverse(Struct):
     """:class:`ChronicleRoguePeriod`: The current period."""
     previous: ChronicleRoguePeriod = field(name="last_record")
     """:class:`ChronicleRoguePeriod`: The previous period."""
+
+
+"""
+Simulated Universe: The Swarm Disaster (DLC)
+"""
+
+
+class RogueLocustDestinyType(int, Enum):
+    Preservation = 1
+    """Preservation/Knight"""
+    Remembrance = 2
+    """Remembrance/Memory"""
+    Nihility = 3
+    """Nihility/Warlock"""
+    Abundance = 4
+    """Abundance/Priest"""
+    Hunt = 5
+    """Hunt/Rogue"""
+    Destruction = 6
+    """Destruction/Warrior"""
+    Elation = 7
+    """Elation/Joy"""
+    # Propgation = 8 (Might be unlocked later?)
+    # """Propagation"""
+
+    @property
+    def icon_url(self):
+        match self:
+            case RogueBlessingType.Remembrance:
+                return "icon/path/Memory.png"
+            case RogueBlessingType.Elation:
+                return "icon/path/Joy.png"
+            case RogueBlessingType.Propagation:
+                return "icon/path/None.png"
+            case _:
+                return f"icon/path/{self.name}.png"
+
+
+class ChronicleRogueLocustOverviewCount(Struct):
+    pathstrider: int = field(name="narrow")
+    """:class:`int`: The number of unlocked Trail of Pathstrider."""
+    curios: int = field(name="miracle")
+    """:class:`int`: The number of unlocked Curios."""
+    events: int = field(name="event")
+    """:class:`int`: The number of unlocked Events."""
+
+
+class ChronicleRogueLocustOverviewDestiny(Struct):
+    id: int
+    """:class:`int`: The ID of the destiny path."""
+    name: str = field(name="desc")
+    """:class:`str`: The name of the destiny path."""
+    level: int
+    """:class:`int`: The level of the destiny path."""
+
+    @property
+    def type(self) -> RogueLocustDestinyType:
+        return RogueLocustDestinyType(self.id)
+
+
+class ChronicleRogueLocustOverview(Struct):
+    destiny: list[ChronicleRogueLocustOverviewDestiny]
+    """:class:`list[ChronicleRogueLocustOverviewDestiny]`: The list of destiny paths."""
+    stats: ChronicleRogueLocustOverviewCount = field(name="cnt")
+    """:class:`ChronicleRogueLocustOverviewCount`: The stats of the user."""
+
+
+class ChronicleRogueLocustDetail(Struct):
+    records: list
+    """:class:`list`: The list of records. (TODO: Figure out the structure after I play the DLC)"""
+
+
+class ChronicleSimulatedUniverseSwarmDLC(Struct):
+    user: ChronicleRogueUserInfo = field(name="role")
+    """:class:`ChronicleRogueUserInfo`: The user info."""
+    overview: ChronicleRogueLocustOverview = field(name="basic")
+    """:class:`ChronicleRogueLocustOverview`: The overview of the user."""
+    details: ChronicleRogueLocustDetail = field(name="detail")
+    """:class:`ChronicleRogueLocustDetail`: The details of the user."""

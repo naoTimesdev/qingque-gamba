@@ -3,6 +3,7 @@
     "light_cones": "Cônes de lumière",
     "rogue": "Univers simulé",
     "rogue_world": "Monde {0}",
+    "rogue_locust": "Swarm Disaster",
     "abyss": "Salle oubliée",
     "abyss_hard": "Mémoire du Chaos",
     "character_header": "{0} (Niv. {1})",
@@ -24,6 +25,7 @@
     "chronicle_titles": {
         "overview": "Registre des combats",
         "rogue": "Registre des combats — Univers simulé",
-        "abyss": "Registre des combats — Mémoire du Chaos"
+        "abyss": "Registre des combats — Mémoire du Chaos",
+        "rogue_locust": "Battle Chronicles — Simulated Universe: Swarm Disaster"
     }
 }

@@ -53,6 +53,27 @@
         "reserve_tb_power": "예비 개척력",
         "daily_quest": "일일 훈련",
         "echo_of_war": "전쟁의 여운",
+        "rogue": {
+            "title": "Simulated Universe",
+            "title_locust": "Swarm Disaster",
+            "curios": "Curios",
+            "blessings": "Blessings",
+            "events": "Events",
+            "ability_tree": "Ability Tree",
+            "unlock_curio": "Unlocked Curios",
+            "unlock_blessing": "Unlocked Blessings",
+            "unlock_event": "Unlocked Events",
+            "unlock_ability": "Ability Tree Buffs Activated",
+            "period": "Period",
+            "period_now": "Current Period",
+            "preiod_before": "Previous Period",
+            "point": "Point Rewards",
+            "score": "Score",
+            "score_high": "Highest Score",
+            "num_clears": "Number of Clears",
+            "locust_narrow": "Trail of Pathstrider"
+        },
+        "challenged_on": "Challenged on {0}",
         "credits": "HoyoLab의 데이터 | 생성자 @noaione"
     }
 }
