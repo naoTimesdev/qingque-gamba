@@ -40,6 +40,7 @@ from discord.app_commands.translator import (
 from discord.enums import Locale
 from discord.flags import Intents
 
+from qingque.emojis import CustomEmoji
 from qingque.hylab.client import HYLabClient
 from qingque.i18n import QingqueLanguage, get_i18n, load_i18n_languages
 from qingque.mihomo.client import MihomoAPI
@@ -67,6 +68,8 @@ class QingqueClientI18n(Translator):
 
 
 class QingqueClient(discord.Client):
+    EMOTE_GUILD = 899109600509448232
+
     def __init__(self, config: QingqueConfig, *, intents: Intents, **options: Any) -> None:
         super().__init__(intents=intents, **options)
         load_i18n_languages()
@@ -78,6 +81,8 @@ class QingqueClient(discord.Client):
         self._mihomo: MihomoAPI | None = None
         self._hoyoapi: HYLabClient | None = None
         self._redis: RedisDatabase | None = None
+
+        self._emojis = CustomEmoji()
 
     @property
     def mihomo(self) -> MihomoAPI:
@@ -187,3 +192,12 @@ class QingqueClient(discord.Client):
     async def on_ready(self):
         self.logger.info("Bot is ready, changing status...")
         await self.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name="Celestial Jade"))
+        self.logger.info("Fetching emote guild...")
+
+        try:
+            await self.fetch_guild(self.EMOTE_GUILD, with_counts=False)
+            self.logger.info("Emote guild found, using custom emojis...")
+            self._emojis.has_guilds = True
+        except discord.Forbidden:
+            self.logger.warning("Failed to fetch emote guild, using default emojis...")
+            self._emojis.has_guilds = False

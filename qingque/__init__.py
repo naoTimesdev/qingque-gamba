@@ -9,6 +9,7 @@ The bestest and cutest character in Honkai: Star Rail.
 
 from . import cli, hylab, mihomo, models, starrail
 from .bot import *
+from .emojis import *
 from .i18n import *
 from .march7th import *
 from .redisdb import *
