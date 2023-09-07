@@ -47,6 +47,10 @@ __all__ = (
     "ChronicleRogueLocustOverviewCount",
     "ChronicleRogueLocustOverviewDestiny",
     "ChronicleRogueLocustOverview",
+    "ChronicleRogueLocustBlock",
+    "ChronicleRogueLocustFury",
+    "ChronicleRogueLocustDetailRecord",
+    "ChronicleRogueLocustDetail",
     "ChronicleSimulatedUniverseSwarmDLC",
 )
 
@@ -162,15 +166,11 @@ class ChronicleRogueCharacter(Struct):
     """:class:`HYElementType`: The element of the character."""
 
 
-class ChronicleRoguePeriodRun(Struct):
-    id: int = field(name="progress")
-    """:class:`int`: The ID of the world."""
+class ChronicleRogueRecordBase(Struct):
     name: str
     """:class:`str`: The name of the world."""
     end_time: ChronicleDate = field(name="finish_time")
     """:class:`ChronicleDate`: The end time of the run."""
-    score: int
-    """:class:`int`: The final score of the run."""
     difficulty: int
     """:class:`int`: The difficulty of the run."""
     blessings: list[ChronicleRogueBlessing] = field(name="buffs")
@@ -181,10 +181,19 @@ class ChronicleRoguePeriodRun(Struct):
     """:class:`list[ChronicleRogueCurio]`: The list of curios."""
     final_lineups: list[ChronicleRogueCharacter] = field(name="final_lineup")
     """:class:`list[ChronicleRogueCharacter]`: The list of final lineups."""
+    downloaded_characters: list[ChronicleRogueCharacter] = field(name="cached_avatars")
+    """:class:`list[ChronicleRogueCharacter]`: The list of downloaded characters that are unused at final battle."""
+
+
+class ChronicleRoguePeriodRun(ChronicleRogueRecordBase):
+    progress: int
+    """:class:`int`: The world number."""
+    score: int
+    """:class:`int`: The final score of the run."""
 
     @property
     def icon_url(self):
-        return f"icon/rogue/worlds/PlanetM{self.id}.png"
+        return f"icon/rogue/worlds/PlanetM{self.progress}.png"
 
 
 class ChronicleRoguePeriod(Struct):
@@ -288,9 +297,38 @@ class ChronicleRogueLocustOverview(Struct):
     """:class:`ChronicleRogueLocustOverviewCount`: The stats of the user."""
 
 
+class ChronicleRogueLocustBlock(Struct):
+    id: int = field(name="block_id")
+    """:class:`int`: The ID of the block."""
+    name: str
+    """:class:`str`: The name of the block."""
+    count: int = field(name="num")
+    """:class:`int`: How many times the block has been visited."""
+
+
+class ChronicleRogueLocustFury(Struct):
+    type: int
+    """:class:`int`: The type of the fury."""
+    point: str
+    """:class:`str`: The fury point accumulated."""
+
+
+class ChronicleRogueLocustDetailRecord(ChronicleRogueRecordBase):
+    blocks: list[ChronicleRogueLocustBlock]
+    """:class:`list[ChronicleRogueLocustBlock]`: The list of visited blocks on the run."""
+    swarm_weakness: list[str] = field(name="worm_weak")
+    """:class:`list[str]`: The list of applied weaknesses for the final boss True Stings."""
+    fury: ChronicleRogueLocustFury
+    """:class:`ChronicleRogueLocustFury`: The fury of the run."""
+
+    @property
+    def icon_url(self):
+        return "icon/rogue/worlds/PlanetDLC.png"
+
+
 class ChronicleRogueLocustDetail(Struct):
-    records: list
-    """:class:`list`: The list of records. (TODO: Figure out the structure after I play the DLC)"""
+    records: list[ChronicleRogueLocustDetailRecord]
+    """:class:`list`: The list of records."""
 
 
 class ChronicleSimulatedUniverseSwarmDLC(Struct):

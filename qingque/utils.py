@@ -24,10 +24,17 @@ SOFTWARE.
 
 from __future__ import annotations
 
+import re
+
 __all__ = (
     "get_indexed",
     "complex_walk",
+    "strip_unity_rich_text",
 )
+
+_UNITY_RT_SIZE = re.compile(r"<size=(?:\d+)>(.+?)</size>")
+_UNITY_RT_COLOR = re.compile(r"<color=(?:[#]?[\w\d]+)>(.+?)</color>")
+_UNITY_RT_MAT = re.compile(r"<material=(?:[\d+])>(.+?)</material>")
 
 
 def get_indexed(data: list, n: int):
@@ -70,3 +77,14 @@ def complex_walk(dictionary: dict | list, paths: str):
         except (TypeError, ValueError, IndexError, KeyError, AttributeError):
             return None
     return dictionary
+
+
+def strip_unity_rich_text(text: str):
+    basic_format = ["b", "i", "unbreak", "s", "u", "lowercase", "uppercase", "smallcaps", "nobr", "sup"]
+    for tag in basic_format:
+        text = text.replace(f"<{tag}>", "").replace(f"</{tag}>", "")
+
+    complex_formats = [_UNITY_RT_SIZE, _UNITY_RT_COLOR, _UNITY_RT_MAT]
+    for tag in complex_formats:
+        text = tag.sub(r"\1", text)
+    return text
