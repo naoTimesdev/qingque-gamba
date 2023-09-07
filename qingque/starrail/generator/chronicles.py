@@ -387,6 +387,22 @@ class StarRailChronicleNotesCard(StarRailDrawing):
             raise FileNotFoundError("The assets folder does not exist.")
         await self._index_data.async_loads()
 
+        # Use custom backdrop
+        backdrop_img = await self._async_open(self._assets_folder / "image" / "backdrops" / "BackdropLoadingV2.png")
+        # Crop bottom part (16px)
+        # Also keep the width centered to 16:9
+        bg_h_crop = 27
+        bg_w_left_c = 0 + (backdrop_img.width - ((backdrop_img.height - bg_h_crop) * (16 / 9))) // 2
+        bg_w_right_c = backdrop_img.width - bg_w_left_c
+        backdrop_img = await self._crop_image(
+            backdrop_img, (bg_w_left_c, 0, bg_w_right_c, backdrop_img.height - bg_h_crop)
+        )
+        # Resize to 1600x900
+        backdrop_img = await self._resize_image(backdrop_img, (1600, 900))
+        # Paste it
+        await self._paste_image(backdrop_img, (0, 0), backdrop_img)
+        await self._async_close(backdrop_img)
+
         # Create the decoration.
         logger.info("Creating decoration...")
         await self._create_decoration()
