@@ -349,13 +349,7 @@ logs/**/*.log
 !qingque/scripts/**/*.py
 
 # Downloaded assets
-qingque/assets/srs/**/*.jpg
-qingque/assets/srs/**/*.png
-qingque/assets/srs/**/*.webp
-qingque/assets/srs/index/**/*.json
-qingque/assets/srs/hoyolab/**/*.json
-qingque/assets/srs/textmaps/**/*.json
-qingque/assets/srs/exceloutput/**/*.json
+qingque/assets/srs/**/*
 qingque/assets/commit.index
 *.zip
 *.7z
