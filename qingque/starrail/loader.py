@@ -56,6 +56,7 @@ from .models import (
     SRSRelicSubStats,
     SRSRogueBlessing,
     SRSRogueCurio,
+    SRSRogueDLCBlock,
     SRSRogueWorld,
 )
 
@@ -95,6 +96,7 @@ class SRSDataLoader:
         self._rogues: KVModel[SRSRogueWorld] | None = None
         self._rogue_curios: KVModel[SRSRogueCurio] | None = None
         self._rogue_blessings: KVModel[SRSRogueBlessing] | None = None
+        self._rogue_dlc_blocks: KVModel[SRSRogueDLCBlock] | None = None
 
         self.__loader_maps: dict[str, tuple[type[Struct], str]] = {
             "achievements": (SRSAchievement, "_achievements"),
@@ -120,6 +122,7 @@ class SRSDataLoader:
             "rogue": (SRSRogueWorld, "_rogues"),
             "rogue_curios": (SRSRogueCurio, "_rogue_curios"),
             "rogue_blessings": (SRSRogueBlessing, "_rogue_blessings"),
+            "rogue_dlc_blocks": (SRSRogueDLCBlock, "_rogue_dlc_blocks"),
         }
 
     def __repr__(self) -> str:
@@ -309,3 +312,9 @@ class SRSDataLoader:
         if self._rogue_blessings is None:
             raise RuntimeError("You must load the data first.")
         return self._rogue_blessings
+
+    @property
+    def swarmdlc_blocks(self) -> KVModel[SRSRogueDLCBlock]:
+        if self._rogue_dlc_blocks is None:
+            raise RuntimeError("You must load the data first.")
+        return self._rogue_dlc_blocks

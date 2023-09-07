@@ -34,6 +34,7 @@ __all__ = (
     "SRSRogueBlessing",
     "SRSRogueCurio",
     "SRSRogueWorld",
+    "SRSRogueDLCBlock",
 )
 
 
@@ -100,3 +101,12 @@ class SRSRogueBlessing(SRSBase, frozen=True):
     """:class:`str`: The blessing usage description"""
     max_level: int
     """:class:`int`: The blessing max level"""
+
+
+class SRSRogueDLCBlock(SRSBase, frozen=True):
+    id: int
+    """:class:`int`: The block ID"""
+    name: str
+    """:class:`str`: The block name"""
+    icon_url: str = field(name="icon")
+    """:class:`str`: The block icon URL (local)"""
