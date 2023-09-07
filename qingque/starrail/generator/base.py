@@ -239,7 +239,7 @@ class StarRailDrawing:
         # Use a single channel image (mode='L') as mask.
         # The size of the mask can be increased relative to the imput image
         # to get smoother looking results.
-        canvas_size: tuple[int, int] = tuple([int(dim * antialias) for dim in canvas.size])
+        canvas_size: tuple[int, int] = (int(canvas.width * antialias), int(canvas.height * antialias))
         if angle == 0.0:
             # Disable AA if angle is 0.0
             canvas_size = canvas.size

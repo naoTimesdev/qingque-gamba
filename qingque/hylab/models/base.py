@@ -99,7 +99,7 @@ class HYResponse(
             raise HYLabException(self)
 
     @classmethod
-    def make_response(cls: type[HYResponse[RespT]], data: bytes, *, type: type[RespT]) -> "HYResponse"[RespT]:
+    def make_response(cls: type[HYResponse[RespT]], data: bytes, *, type: type[RespT]) -> HYResponse[RespT]:
         try:
             resp = msgspec.json.decode(data, type=HYResponse[HYGeeTestResponse])
             if resp.data is not None:

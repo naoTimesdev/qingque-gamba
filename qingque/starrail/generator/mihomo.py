@@ -25,6 +25,7 @@ SOFTWARE.
 from __future__ import annotations
 
 import logging
+from typing import cast
 
 from PIL import Image
 
@@ -523,7 +524,7 @@ class StarRailMihomoCard(StarRailDrawing):
         bbox_main_name.append(top_margin + 4 + 26)
         await self._write_text(
             main_stat.name,
-            tuple(bbox_main_name),
+            cast(tuple[int, int, int, int], tuple(bbox_main_name)),
             color=self._background,
             no_elipsis=not main_stat.cut_off,
             anchor="ls",
@@ -886,7 +887,7 @@ class StarRailMihomoCard(StarRailDrawing):
             self._background = dominant_and_inversion[0]
         else:
             await self._paste_image(dominant_and_inversion, (0, 0, self._canvas.width, self._canvas.height))
-            self._foreground = tuple(255 - c for c in dominant_and_inversion)
+            self._foreground = cast(RGB, tuple(255 - c for c in dominant_and_inversion))
             self._background = dominant_and_inversion
 
         logger.info("Adding player name...")
