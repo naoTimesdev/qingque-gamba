@@ -44,6 +44,7 @@ __all__ = (
     "load_i18n_languages",
     "PartialTranslate",
     "get_i18n_discord",
+    "get_roman_numeral",
 )
 
 logger = logging.getLogger("qingque.i18n")
@@ -252,3 +253,96 @@ class PartialTranslate(Protocol):
 def get_i18n_discord(locale: discord.Locale) -> PartialTranslate:
     lang = QingqueLanguage.from_discord(locale)
     return functools.partial(get_i18n().t, language=lang)
+
+
+_LATIN_NUMERALS = {
+    1: "I",
+    2: "II",
+    3: "III",
+    4: "IV",
+    5: "V",
+    6: "VI",
+    7: "VII",
+    8: "VIII",
+    9: "IX",
+    10: "X",
+}
+_CHINESE_NUMERALS = {
+    1: "一",
+    2: "二",
+    3: "三",
+    4: "四",
+    5: "五",
+    6: "六",
+    7: "七",
+    8: "八",
+    9: "九",
+    10: "十",
+}
+_CHINESE_TAIWAN_NUMERALS = {
+    1: "壹",
+    2: "貳",
+    3: "參",
+    4: "肆",
+    5: "伍",
+    6: "陸",
+    7: "柒",
+    8: "捌",
+    9: "玖",
+    10: "拾",
+}
+_KOREAN_NUMERALS = {
+    1: "일",
+    2: "이",
+    3: "삼",
+    4: "사",
+    5: "오",
+    6: "육",
+    7: "칠",
+    8: "팔",
+    9: "구",
+    10: "십",
+}
+_CYRILLIC_NUMERALS = {
+    1: "А",  # noqa: RUF001
+    2: "Б",
+    3: "Г",
+    4: "Д",
+    5: "Е",  # noqa: RUF001
+    6: "Ѕ",  # noqa: RUF001
+    7: "З",  # noqa: RUF001
+    8: "И",
+    9: "І",  # noqa: RUF001
+    10: "І",  # noqa: RUF001
+}
+_THAI_NUMERALS = {
+    1: "๑",
+    2: "๒",
+    3: "๓",
+    4: "๔",
+    5: "๕",
+    6: "๖",
+    7: "๗",
+    8: "๘",
+    9: "๙",
+    10: "๑๐",
+}
+
+
+def get_roman_numeral(n: int, /, *, lang: QingqueLanguage | MihomoLanguage = QingqueLanguage.EN):
+    if isinstance(lang, MihomoLanguage):
+        lang = QingqueLanguage.from_mihomo(lang)
+    fallback = _LATIN_NUMERALS.get(n, str(n))
+    match lang:
+        case QingqueLanguage.JP | QingqueLanguage.CHS:
+            return _CHINESE_NUMERALS.get(n, fallback)
+        case QingqueLanguage.CHT:
+            return _CHINESE_TAIWAN_NUMERALS.get(n, fallback)
+        case QingqueLanguage.KR:
+            return _KOREAN_NUMERALS.get(n, fallback)
+        case QingqueLanguage.RU:
+            return _CYRILLIC_NUMERALS.get(n, fallback)
+        case QingqueLanguage.TH:
+            return _THAI_NUMERALS.get(n, fallback)
+        case _:
+            return fallback
