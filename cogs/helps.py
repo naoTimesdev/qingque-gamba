@@ -52,7 +52,7 @@ def _help_bind(t: PartialTranslate):
 def _help_profiles(t: PartialTranslate):
     embed = discord.Embed(title=t("help.profiles.title"), description=t("help.profiles.desc"), color=_EMBED_COLOR)
     embed.add_field(name="/srprofile", value=t("help.profiles.srprofile"), inline=False)
-    embed.add_field(name="/srchronicles", value=t("help.profiles.srchronicles"), inline=False)
+    embed.add_field(name="/srchronicles", value=t("help.profiles.srchronicle"), inline=False)
     embed.set_author(name="Qingque", icon_url=_EMBED_ICON, url=_EMBED_URL)
     embed.set_footer(text=t("help.footer"))
     return embed
