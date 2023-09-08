@@ -191,7 +191,9 @@ class QingqueClient(discord.Client):
 
     async def on_ready(self):
         self.logger.info("Bot is ready, changing status...")
-        await self.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name="Celestial Jade"))
+        await self.change_presence(
+            activity=discord.Activity(type=discord.ActivityType.playing, name="Celestial Jade | /srhelp")
+        )
         self.logger.info("Fetching emote guild...")
 
         try:

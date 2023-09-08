@@ -7,5 +7,6 @@ A collection of cogs for qingque.
 :license: MIT, see LICENSE for more details.
 """
 
+from .helps import *
 from .persistent import *
 from .profiles import *
