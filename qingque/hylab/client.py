@@ -26,16 +26,18 @@ SOFTWARE.
 from __future__ import annotations
 
 import asyncio
-from typing import Any, Mapping, TypeVar
+from typing import Any, Mapping, TypeVar, overload
+from uuid import uuid4
 
 import aiohttp
 import msgspec
 import yarl
 
+from qingque.hylab.interceptor import log_request
 from qingque.models.region import HYVRegion, HYVServer
 
-from .constants import CHRONICLES_ROUTE, STARRAIL_SERVER, USER_AGENT
-from .ds import get_ds_headers
+from .constants import CHRONICLES_ROUTE, DAILY_ROUTE, DS_SALT, STARRAIL_SERVER, USER_AGENT
+from .ds import generate_dynamic_salt, get_ds_headers
 from .models.base import HYLanguage, HYResponse
 from .models.characters import ChronicleCharacters
 from .models.forgotten_hall import ChronicleForgottenHall
@@ -53,26 +55,60 @@ class HYLabClient:
     def __init__(self, ltuid: int, ltoken: str) -> None:
         self._ltuid = ltuid
         self._ltoken = ltoken
+        trace_conf = aiohttp.TraceConfig()
+        trace_conf.on_request_start.append(log_request)
         self._client = aiohttp.ClientSession(
+            trace_configs=[trace_conf],
             headers={
                 "User-Agent": USER_AGENT,
-            }
+            },
         )
 
     async def close(self) -> None:
         await self._client.close()
 
+    @overload
     async def _request(
         self,
         method: str,
         url: yarl.URL,
-        body: Mapping[str, Any] | None = None,
-        headers: dict[str, Any] | None = None,
-        cookies: dict[str, str] | None = None,
+        params: Mapping[str, Any] | None = ...,
+        body: Mapping[str, Any] | None = ...,
+        headers: dict[str, Any] | None = ...,
+        cookies: dict[str, str] | None = ...,
         *,
         type: type[HYModelT],
         **kwargs: Any,
     ) -> HYResponse[HYModelT]:
+        ...
+
+    @overload
+    async def _request(
+        self,
+        method: str,
+        url: yarl.URL,
+        params: Mapping[str, Any] | None = ...,
+        body: Mapping[str, Any] | None = ...,
+        headers: dict[str, Any] | None = ...,
+        cookies: dict[str, str] | None = ...,
+        *,
+        type: None,
+        **kwargs: Any,
+    ) -> None:
+        ...
+
+    async def _request(
+        self,
+        method: str,
+        url: yarl.URL,
+        params: Mapping[str, Any] | None = None,
+        body: Mapping[str, Any] | None = None,
+        headers: dict[str, Any] | None = None,
+        cookies: dict[str, str] | None = None,
+        *,
+        type: type[HYModelT] | None = None,
+        **kwargs: Any,
+    ) -> HYResponse[HYModelT] | None:
         # Assume that the body is JSON for POST, and query for GET
         headers = headers or {}
         method = method.upper()
@@ -100,6 +136,8 @@ class HYLabClient:
             kwargs_body["json"] = body
         elif body is not None and method == "GET":
             kwargs_body["params"] = body
+        if params is not None:
+            kwargs_body["params"] = params
         kwargs.pop("headers", None)
         kwargs.pop("json", None)
         kwargs.pop("params", None)
@@ -113,7 +151,13 @@ class HYLabClient:
         if "application/json" not in req.content_type:
             raise ValueError(f"Expected JSON response, got {req.content_type}")
 
+        # Check if success code is HTTP Status COde Empty
+        if req.status in (204, 205):
+            return HYResponse.default()
+
         data_bytes = await req.read()
+        if type is None:
+            return None
         decoded = HYResponse[type].make_response(data_bytes, type=type)
         req.close()
         decoded.raise_for_status()
@@ -490,3 +534,47 @@ class HYLabClient:
         )
 
         return resp.data
+
+    async def claim_daily_reward(
+        self,
+        uid: int,
+        hylab_id: int,
+        *,
+        hylab_token: str | None = None,
+        hylab_cookie: str | None = None,
+        lang: HYLanguage = HYLanguage.EN,
+    ):
+        server = HYVServer.from_uid(str(uid))
+        region = HYVRegion.from_server(server)
+
+        headers = {}
+        params = {}
+        if region == HYVRegion.Overseas:
+            params["lang"] = lang.value
+            headers["referer"] = "https://act.hoyolab.com/"
+        elif region == HYVRegion.China:
+            params["uid"] = str(uid)
+            params["region"] = STARRAIL_SERVER[server]
+
+            headers["x-rpc-app_version"] = "2.34.1"
+            headers["x-rpc-client_type"] = "5"
+            headers["x-rpc-device_id"] = str(uuid4())
+            headers["x-rpc-sys_version"] = "12"
+            headers["x-rpc-platform"] = "android"
+            headers["x-rpc-channel"] = "miyousheluodi"
+            headers["x-rpc-device_model"] = hylab_id or ""
+            headers["referer"] = (
+                "https://webstatic.mihoyo.com/bbs/event/signin-ys/index.html?"
+                "bbs_auth_required=true&act_id=e202009291139501&utm_source=bbs&utm_medium=mys&utm_campaign=icon"
+            )
+
+            headers["ds"] = generate_dynamic_salt(DS_SALT["cn_signin"])
+        else:
+            raise ValueError(f"Unknown region {region}")
+
+        route = DAILY_ROUTE.get_route(region)
+        sign_route = (route / "sign").update_query(**route.query)
+
+        cookies = self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, lang=lang)
+
+        await self._request("POST", sign_route, params=params, headers=headers, cookies=cookies, type=None)

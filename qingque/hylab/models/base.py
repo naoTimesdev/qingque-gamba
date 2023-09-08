@@ -111,6 +111,10 @@ class HYResponse(
         resp = msgspec.json.decode(data, type=HYResponse[type])
         return resp
 
+    @classmethod
+    def default(cls: type[HYResponse[RespT]]) -> HYResponse[RespT]:
+        return cls(code=0, message="OK", data=None)
+
 
 class HYLanguage(str, Enum):
     CHS = "zh-cn"
