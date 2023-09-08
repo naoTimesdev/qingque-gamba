@@ -173,7 +173,7 @@ async def qqprofile_srchronicle(inter: discord.Interaction[QingqueClient]):
 
     if profile.hylab_id is None:
         logger.warning(f"Discord ID {inter.user.id} haven't binded their HoyoLab account yet.")
-        return original_message.edit(content=t("bind_hoyolab"))
+        return await original_message.edit(content=t("bind_hoyolab"))
 
     if len(profile.games) > 1:
         select_account = AccountSelectView(profile.games, inter.locale, timeout=30)
