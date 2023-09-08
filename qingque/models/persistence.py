@@ -28,6 +28,7 @@ from enum import Enum
 
 from msgspec import Struct
 
+from qingque.i18n import QingqueLanguage
 from qingque.models.region import HYVRegion, HYVServer
 
 __all__ = ("QingqueProfile",)
@@ -76,6 +77,8 @@ class QingqueProfileV2(Struct):
     """:class:`str | None`: The user HoyoLab token."""
     hylab_cookie: str | None = None
     """:class:`str | None`: The user HoyoLab cookie."""
+    lang: QingqueLanguage | None = None
+    """:class:`QingqueLanguage | None`: The user selected language."""
 
     @classmethod
     def from_legacy(cls: type[QingqueProfileV2], profile: QingqueProfile) -> QingqueProfileV2:

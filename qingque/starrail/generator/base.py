@@ -84,23 +84,23 @@ class StarRailDrawing:
         self._extend_down_by: int = 0
         self._extend_right_by: int = 0
 
-    def _make_canvas(self, *, width: int, height: int, color: RGB = (255, 255, 255)):
+    def _make_canvas(self, *, width: int, height: int, color: RGB = (255, 255, 255)) -> None:
         self._canvas = Image.new("RGBA", (width, height), color)
 
-    def has_canvas(self):
+    def has_canvas(self) -> bool:
         return hasattr(self, "_canvas")
 
-    async def _create_font(self, font_path: AsyncPath, size: int = 20):
+    async def _create_font(self, font_path: AsyncPath, size: int = 20) -> ImageFont.FreeTypeFont:
         font = await self._loop.run_in_executor(None, ImageFont.truetype, str(font_path), size)
         return font
 
-    async def _get_draw(self, *, canvas: Image.Image | None = None):
+    async def _get_draw(self, *, canvas: Image.Image | None = None) -> ImageDraw.ImageDraw:
         if not self.has_canvas() and canvas is None:
             raise RuntimeError("Canvas is not initialized, and no canvas is provided.")
         canvas = canvas or self._canvas
         return await self._loop.run_in_executor(None, ImageDraw.Draw, canvas)
 
-    async def _extend_canvas_down(self, height: int):
+    async def _extend_canvas_down(self, height: int) -> None:
         if not self.has_canvas():
             raise RuntimeError("Canvas is not initialized.")
 
@@ -116,7 +116,7 @@ class StarRailDrawing:
         self._canvas = new_canvas
         self._extend_down_by += height
 
-    async def _extend_canvas_right(self, width: int):
+    async def _extend_canvas_right(self, width: int) -> None:
         if not self.has_canvas():
             raise RuntimeError("Canvas is not initialized.")
 
@@ -144,7 +144,7 @@ class StarRailDrawing:
         *,
         canvas: Image.Image | None = None,
         **kwargs: Any,
-    ):
+    ) -> float:
         if not self.has_canvas() and canvas is None:
             raise RuntimeError("Canvas is not initialized, and no canvas is provided.")
         kwargs.pop("fill", None)
@@ -207,7 +207,7 @@ class StarRailDrawing:
         *,
         resampling: Image.Resampling = Image.Resampling.LANCZOS,
         canvas: Image.Image | None = None,
-    ):
+    ) -> None:
         """
         Create a box on the canvas.
 
@@ -285,7 +285,7 @@ class StarRailDrawing:
         antialias: int = 4,
         *,
         canvas: Image.Image | None = None,
-    ):
+    ) -> None:
         """Improved ellipse drawing function, based on PIL.ImageDraw.
 
         Source: https://stackoverflow.com/a/34926008
@@ -314,7 +314,7 @@ class StarRailDrawing:
         # paste outline color to input image through the mask
         await self._paste_image(outline, mask=mask, canvas=canvas)
 
-    async def _tint_image(self, im: Image.Image, color: RGB):
+    async def _tint_image(self, im: Image.Image, color: RGB) -> Image.Image:
         alpha = im.split()[3]
         gray = await self._loop.run_in_executor(None, ImageOps.grayscale, im)
         result = await self._loop.run_in_executor(None, ImageOps.colorize, gray, color, color)
@@ -328,7 +328,7 @@ class StarRailDrawing:
         mask: Image.Image | None = None,
         *,
         canvas: Image.Image | None = None,
-    ):
+    ) -> None:
         if not self.has_canvas() and canvas is None:
             raise RuntimeError("Canvas is not initialized, and no canvas is provided.")
         canvas = canvas or self._canvas
@@ -355,10 +355,10 @@ class StarRailDrawing:
         io.seek(0)
         return io
 
-    async def _async_close(self, canvas: Image.Image):
+    async def _async_close(self, canvas: Image.Image) -> None:
         await self._loop.run_in_executor(None, canvas.close)
 
-    async def create(self, **kwargs: Any):
+    async def create(self, **kwargs: Any) -> bytes:
         """
         Create the card.
         """

@@ -25,12 +25,16 @@ SOFTWARE.
 from __future__ import annotations
 
 from enum import Enum
+from typing import TYPE_CHECKING
 
 from msgspec import Struct, field
 
 from qingque.hylab.constants import SERVER_TO_STARRAIL_REGION
 
 from .common import ChronicleDate, HYElementType
+
+if TYPE_CHECKING:
+    from qingque.models.region import HYVServer
 
 __all__ = (
     "RogueBlessingType",
@@ -75,7 +79,7 @@ class RogueBlessingType(int, Enum):
     # Explore/Trailblazer/Akivili: ???
 
     @property
-    def icon_url(self):
+    def icon_url(self) -> str:
         match self:
             case RogueBlessingType.Remembrance:
                 return "icon/path/Memory.png"
@@ -192,7 +196,7 @@ class ChronicleRoguePeriodRun(ChronicleRogueRecordBase):
     """:class:`int`: The final score of the run."""
 
     @property
-    def icon_url(self):
+    def icon_url(self) -> str:
         return f"icon/rogue/worlds/PlanetM{self.progress}.png"
 
 
@@ -216,7 +220,7 @@ class ChronicleRogueUserInfo(Struct):
     """:class:`int`: The level of the user."""
 
     @property
-    def region(self):
+    def region(self) -> HYVServer:
         """:class:`str`: The region of the user."""
         return SERVER_TO_STARRAIL_REGION[self.server]
 
@@ -256,7 +260,7 @@ class RogueLocustDestinyType(int, Enum):
     # """Propagation"""
 
     @property
-    def icon_url(self):
+    def icon_url(self) -> str:
         match self:
             case RogueBlessingType.Remembrance:
                 return "icon/path/Memory.png"
@@ -322,7 +326,7 @@ class ChronicleRogueLocustDetailRecord(ChronicleRogueRecordBase):
     """:class:`ChronicleRogueLocustFury`: The fury of the run."""
 
     @property
-    def icon_url(self):
+    def icon_url(self) -> str:
         return "icon/rogue/worlds/PlanetDLC.png"
 
 

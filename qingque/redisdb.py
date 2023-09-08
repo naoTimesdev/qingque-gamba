@@ -28,7 +28,7 @@ import asyncio
 import logging
 import uuid
 from contextlib import asynccontextmanager
-from typing import Any, Dict, List, Optional, Type, TypeVar, Union, overload
+from typing import Any, AsyncGenerator, TypeVar, overload
 
 import msgspec
 import orjson
@@ -75,8 +75,8 @@ class RedisDatabase:
     """
 
     def __init__(
-        self, host: str, port: int, password: Optional[str] = None, *, loop: Optional[asyncio.AbstractEventLoop] = None
-    ):
+        self, host: str, port: int, password: str | None = None, *, loop: asyncio.AbstractEventLoop | None = None
+    ) -> None:
         self._loop = loop or asyncio.get_event_loop()
         self._host = host
         self._port = port
@@ -94,11 +94,11 @@ class RedisDatabase:
         self._need_execution = []
         self._is_stopping = False
 
-    def lock(self, key: str):
+    def lock(self, key: str) -> None:
         """Lock/add a process to execution task"""
         self._need_execution.append(key)
 
-    def unlock(self, key: str):
+    def unlock(self, key: str) -> None:
         """Remove a process from execution task"""
         try:
             self._need_execution.remove(key)
@@ -106,12 +106,12 @@ class RedisDatabase:
             pass
 
     @property
-    def is_connected(self):
+    def is_connected(self) -> bool:
         return self._is_connected
 
     # Context manager for lock/unlock
     @asynccontextmanager
-    async def lock_env(self, method: str):
+    async def lock_env(self, method: str) -> AsyncGenerator[None, Any]:
         uniq_id = str(uuid.uuid4())
         key = f"{method}_{uniq_id}"
         self.lock(key)
@@ -123,12 +123,12 @@ class RedisDatabase:
             self.unlock(key)
 
     @property
-    def client(self):
+    def client(self) -> aioredis.Redis:
         """:class:`aioredis.Redis`: The internal redis client."""
         return self._conn
 
     @property
-    def connection(self):
+    def connection(self) -> aioredis.ConnectionPool:
         """:class:`aioredis.ConnectionPool`: Returns the connection pool."""
         return self._pool
 
@@ -153,7 +153,7 @@ class RedisDatabase:
         return data
 
     @staticmethod
-    def _try_float(data: str) -> Union[str, float]:
+    def _try_float(data: str) -> str | float:
         """Try to convert the data to float
 
         :param data: data to convert
@@ -166,7 +166,7 @@ class RedisDatabase:
         except ValueError:
             return data
 
-    def to_original(self, data: Optional[bytes], *, type: Type[StructT] | None = None) -> Optional[Any]:
+    def to_original(self, data: bytes | None, *, type: type[StructT] | None = None) -> Any | None:
         """Convert back data to the possible original data types
 
         For bytes, you need to prepend with `b2dntcode_`
@@ -205,7 +205,7 @@ class RedisDatabase:
         """Is the connection is being stopped or not?"""
         return self._is_stopping
 
-    async def connect(self):
+    async def connect(self) -> None:
         """Initialize the connection to the RedisDB
 
         Please execute this function after creating the `class`
@@ -213,7 +213,7 @@ class RedisDatabase:
         self._conn = await self._conn.initialize()
         self._is_connected = True
 
-    async def close(self):
+    async def close(self) -> None:
         """Close the underlying connection
 
         This function will wait until all of remaining process has been executed
@@ -246,15 +246,15 @@ class RedisDatabase:
         ...
 
     @overload
-    async def get(self, key: str, *, type: Type[StructT]) -> StructT | None:
+    async def get(self, key: str, *, type: type[StructT]) -> StructT | None:
         ...
 
     @overload
-    async def get(self, key: str, fallback: FT, *, type: Type[StructT]) -> StructT | FT:
+    async def get(self, key: str, fallback: FT, *, type: type[StructT]) -> StructT | FT:
         ...
 
     async def get(
-        self, key: str, fallback: FT | None = None, *, type: Type[StructT] | None = None
+        self, key: str, fallback: FT | None = None, *, type: type[StructT] | None = None
     ) -> Any | FT | StructT | None:
         """Get a key from the database
 
@@ -276,7 +276,7 @@ class RedisDatabase:
                 res = fallback
             return res
 
-    async def keys(self, pattern: str) -> List[str]:
+    async def keys(self, pattern: str) -> list[str]:
         """Get a list of keys from the database
 
         :param pattern: The pattern of the key to find, using the glob-style patterns
@@ -298,14 +298,14 @@ class RedisDatabase:
         return all_keys
 
     @overload
-    async def getall(self, pattern: str) -> List[Any]:
+    async def getall(self, pattern: str) -> list[Any]:
         ...
 
     @overload
-    async def getall(self, pattern: str, *, type: Type[StructT]) -> List[StructT]:
+    async def getall(self, pattern: str, *, type: type[StructT]) -> list[StructT]:
         ...
 
-    async def getall(self, pattern: str, *, type: Type[StructT] | None = None) -> List[Any]:
+    async def getall(self, pattern: str, *, type: type[StructT] | None = None) -> list[Any]:
         """Get all values that match the key pattern
 
         Example return format: `["value_of_it", "another_value"]`
@@ -328,7 +328,7 @@ class RedisDatabase:
                 all_values.append(r_val)
         return all_values
 
-    async def getalldict(self, pattern: str) -> Dict[str, Any]:
+    async def getalldict(self, pattern: str) -> dict[str, Any]:
         """Get all values (with the key of it) that match the key pattern
 
         This is the same as `getall()` but with dict format.

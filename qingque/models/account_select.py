@@ -40,7 +40,7 @@ from qingque.models.region import HYVServer
 __all__ = ("AccountSelectView",)
 
 
-def _get_player_server(server: HYVServer, t: PartialTranslate):
+def _get_player_server(server: HYVServer, t: PartialTranslate) -> str:
     match server:
         case HYVServer.ChinaA | HYVServer.ChinaB | HYVServer.ChinaC:
             return t("region.short.china")
@@ -54,13 +54,13 @@ def _get_player_server(server: HYVServer, t: PartialTranslate):
             return t("region.short.taiwan")
 
 
-def _get_player_game_kind(kind: QingqueProfileV2GameKind, t: PartialTranslate):
+def _get_player_game_kind(kind: QingqueProfileV2GameKind, t: PartialTranslate) -> str:
     match kind:
         case QingqueProfileV2GameKind.StarRail:
             return t("game_kind.starrail")
 
 
-def _get_player_server_emoji(server: HYVServer):
+def _get_player_server_emoji(server: HYVServer) -> str:
     match server:
         case HYVServer.ChinaA | HYVServer.ChinaB | HYVServer.ChinaC:
             return "🇨🇳"
@@ -69,7 +69,6 @@ def _get_player_server_emoji(server: HYVServer):
         case HYVServer.Europe:
             return "🇪🇺"
         case HYVServer.Asia:
-            # Use SG as a placeholder
             return "🇸🇬"
         case HYVServer.Taiwan:
             return "🇹🇼"
@@ -85,7 +84,7 @@ class AccountSelect(discord.ui.Select):
         custom_id: str = MISSING,
         placeholder: str | None = None,
         disabled: bool = False,
-    ):
+    ) -> None:
         self._parent_view = parent
         t = get_i18n_discord(locale)
 
@@ -122,7 +121,9 @@ class AccountSelect(discord.ui.Select):
 
 
 class AccountSelectView(discord.ui.View):
-    def __init__(self, accounts: list[QingqueProfileV2Game], locale: discord.Locale, *, timeout: float | None = 180):
+    def __init__(
+        self, accounts: list[QingqueProfileV2Game], locale: discord.Locale, *, timeout: float | None = 180
+    ) -> None:
         super().__init__(timeout=timeout)
 
         self.add_item(
@@ -144,7 +145,7 @@ class AccountSelectView(discord.ui.View):
     def error(self) -> Exception | None:
         return self._error
 
-    def set_response(self, account: QingqueProfileV2Game | None):
+    def set_response(self, account: QingqueProfileV2Game | None) -> None:
         self._response = account
 
     async def on_timeout(self) -> None:

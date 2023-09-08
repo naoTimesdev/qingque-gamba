@@ -37,7 +37,7 @@ current_dir = Path(__file__).parent.absolute()
 logger = setup_logger(current_dir / "logs" / "main.log")
 
 
-async def main(config: QingqueConfig):
+async def main(config: QingqueConfig) -> None:
     intents = discord.Intents.default()
 
     logger.info("Starting Qingque...")

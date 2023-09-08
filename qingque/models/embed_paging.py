@@ -69,7 +69,7 @@ class EmbedPaginatedView(discord.ui.View):
     async def interaction_check(self, interaction: Interaction[QingqueClient]) -> bool:
         return interaction.user.id == self._user_id
 
-    def update_buttons(self, current_page: int):
+    def update_buttons(self, current_page: int) -> None:
         total_page = len(self._embeds)
         self._page = current_page
         self.count.label = f"Page {current_page}/{total_page}"
@@ -88,7 +88,7 @@ class EmbedPaginatedView(discord.ui.View):
             self.previous.disabled = False
             self.next.disabled = False
 
-    async def _edit(self, interaction: discord.Interaction):
+    async def _edit(self, interaction: discord.Interaction) -> None:
         send_thing = {
             "embed": self._embeds[self.index],
             "view": self,
@@ -98,16 +98,16 @@ class EmbedPaginatedView(discord.ui.View):
         await interaction.response.edit_message(**send_thing)
 
     @discord.ui.button(label="Previous", style=discord.ButtonStyle.blurple, disabled=True)
-    async def previous(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def previous(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         self.update_buttons(self._page - 1)
         await self._edit(interaction)
 
     @discord.ui.button(label="Page 1/1", style=discord.ButtonStyle.secondary, disabled=True)
-    async def count(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def count(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         pass
 
     @discord.ui.button(label="Next", style=discord.ButtonStyle.blurple, disabled=True)
-    async def next(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def next(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         self.update_buttons(self._page + 1)
         await self._edit(interaction)
 
@@ -116,7 +116,7 @@ class EmbedPaginatedView(discord.ui.View):
         interaction: discord.Interaction[QingqueClient],
         *,
         message: discord.InteractionMessage | None = None,
-    ):
+    ) -> None:
         self._interaction = interaction
         send_thing = {
             "embed": self._embeds[self.index],

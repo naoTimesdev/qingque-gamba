@@ -49,17 +49,17 @@ class ChronicleFHCharacter(Struct):
     """:class:`HYElementType`: The element of the character."""
 
     @property
-    def icon_path(self):
+    def icon_path(self) -> str:
         """:class:`str`: The path of the character's icon (local/SRS)."""
         return f"icon/avatar/{self.id}.png"
 
     @property
-    def preview_url(self):
+    def preview_url(self) -> str:
         """:class:`str`: The URL of the character's preview image."""
         return f"image/character_preview/{self.id}.png"
 
     @property
-    def portrait_url(self):
+    def portrait_url(self) -> str:
         """:class:`str`: The URL of the character's portrait image."""
         return f"image/character_portrait/{self.id}.png"
 

@@ -45,11 +45,11 @@ __all__ = (
 )
 
 
-def randrange(low: int, high: int):
+def randrange(low: int, high: int) -> int:
     return secrets.randbelow(high - low) + low
 
 
-def generate_dynamic_salt(salt: str = DS_SALT[HYVRegion.Overseas]):
+def generate_dynamic_salt(salt: str = DS_SALT[HYVRegion.Overseas]) -> str:
     t = int(time.time())
     r = "".join(secrets.choice(string.ascii_letters) for _ in range(6))
     h = md5(f"salt={salt}&t={t}&r={r}".encode()).hexdigest()  # noqa: S324
@@ -58,7 +58,7 @@ def generate_dynamic_salt(salt: str = DS_SALT[HYVRegion.Overseas]):
 
 def generate_cn_dynamic_salt(
     body: Any = None, query: Mapping[str, Any] | None = None, *, salt: str = DS_SALT[HYVRegion.China]
-):
+) -> str:
     t = int(time.time())
     r = randrange(100001, 200000)
     b = orjson.dumps(body).decode("utf-8") if body else ""

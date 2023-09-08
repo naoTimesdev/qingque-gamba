@@ -35,7 +35,7 @@ from qingque.models.config import QingqueConfig, load_config
 from qingque.tooling import setup_logger
 
 
-async def runner(config: QingqueConfig, logger: Logger):
+async def runner(config: QingqueConfig, logger: Logger) -> None:
     intents = discord.Intents.default()
 
     logger.info("Starting Qingque...")

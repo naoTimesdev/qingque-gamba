@@ -79,7 +79,7 @@ class RollingFileHandler(RotatingFileHandler):
         self.gunzip = gunzip
         self._determine_start_count()
 
-    def _determine_start_count(self):
+    def _determine_start_count(self) -> None:
         all_files = glob.glob(self.baseFilename + "*")  # noqa: PTH207
         if all_files:
             all_files.sort()
@@ -99,7 +99,7 @@ class RollingFileHandler(RotatingFileHandler):
         if not self.delay:
             self.stream = self._open()
 
-    def _safe_gunzip(self, source: str, dest: str):
+    def _safe_gunzip(self, source: str, dest: str) -> bool:
         try:
             with Path(source).open("rb") as sf:
                 with gzip.open(dest + ".gz", "wb") as df:
@@ -110,7 +110,7 @@ class RollingFileHandler(RotatingFileHandler):
             logger.error("Failed to gzip %s: %s", source, str(exc), exc_info=exc)
             return False
 
-    def _safe_rename(self, source: str, dest: str):
+    def _safe_rename(self, source: str, dest: str) -> bool:
         try:
             Path(source).rename(dest)
             return True
@@ -118,7 +118,7 @@ class RollingFileHandler(RotatingFileHandler):
             logger.error("Failed to rename %s to %s: %s", source, dest, str(exc), exc_info=exc)
             return False
 
-    def _safe_remove(self, source: str):
+    def _safe_remove(self, source: str) -> bool:
         try:
             Path(source).unlink(missing_ok=True)
             return True
@@ -144,7 +144,7 @@ class RollingFileHandler(RotatingFileHandler):
             self._safe_rename(source, dest)
 
 
-def setup_logger(log_path: Path | None = None):
+def setup_logger(log_path: Path | None = None) -> logging.Logger:
     if log_path is not None:
         log_path.parent.mkdir(exist_ok=True)
 

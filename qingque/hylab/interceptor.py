@@ -34,6 +34,6 @@ from qingque.tooling import get_logger
 logger = get_logger("qingque.interceptor")
 
 
-async def log_request(session: aiohttp.ClientSession, context: Any, params: aiohttp.TraceRequestStartParams):
+async def log_request(session: aiohttp.ClientSession, context: Any, params: aiohttp.TraceRequestStartParams) -> None:
     logger.debug(f"Request: {params.method} {params.url} {params.headers!r}")
     logger.debug(f"Context: {context!r}")

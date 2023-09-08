@@ -25,8 +25,9 @@ SOFTWARE.
 from __future__ import annotations
 
 import logging
-from typing import cast
+from typing import TypeAlias, cast
 
+from aiopath import AsyncPath
 from PIL import Image
 
 from qingque.i18n import QingqueI18n, QingqueLanguage, get_i18n
@@ -87,10 +88,11 @@ _COLOR_DOMINANT: dict[str, RGB | list[RGB]] = {
     "8003": [(234, 149, 56), (49, 42, 42)],
     "8004": [(234, 149, 56), (49, 42, 42)],
 }
+_MetaStats: TypeAlias = dict[StatsField, int | float]
 logger = logging.getLogger("qingque.starrail.generator.mihomo")
 
 
-def _get_player_server(server: HYVServer, language: MihomoLanguage):
+def _get_player_server(server: HYVServer, language: MihomoLanguage) -> str:
     i18n = get_i18n()
     lang = QingqueLanguage.from_mihomo(language)
     match server:
@@ -130,7 +132,7 @@ class SRSCardStats(MihomoBase, frozen=True):
     @classmethod
     def from_relic(
         cls: type[SRSCardStats], relic: StatsProperties | StatsAtrributes, cut_off: bool = False, *, i18n: QingqueI18n
-    ):
+    ) -> "SRSCardStats":
         relic_name = i18n.t(f"mihomo.stats_simple.{relic.field.value}")
         return cls(
             name=relic_name,
@@ -168,14 +170,14 @@ class StarRailMihomoCard(StarRailDrawing):
     def is_trailblazer(self):
         return int(self._character.id) >= 8001
 
-    def _get_element(self, element: ElementType):
+    def _get_element(self, element: ElementType) -> AsyncPath:
         elem_txt = element.name
         if elem_txt == "Thunder":
             elem_txt = "Lightning"
         element_path = self._assets_folder / "icon" / "element" / f"{elem_txt}White.png"
         return element_path
 
-    async def _create_character_card_header(self):
+    async def _create_character_card_header(self) -> None:
         # Load the character preview image.
         preview_path = self._assets_folder / self._character.preview_url
         preview_image = await self._async_open(preview_path)
@@ -312,7 +314,7 @@ class StarRailMihomoCard(StarRailDrawing):
         await self._async_close(path_img)
         await self._async_close(stars_icon)
 
-    async def _combine_character_stats(self):
+    async def _combine_character_stats(self) -> tuple[_MetaStats, _MetaStats, dict[StatsField, Image.Image]]:
         stats_meta: dict[StatsField, int | float] = {
             StatsField.HP: 1,
             StatsField.ATK: 1,
@@ -358,7 +360,7 @@ class StarRailMihomoCard(StarRailDrawing):
                 icon_sets[stats.field] = await self._async_open(self._assets_folder / stats.icon_url)
         return stats_meta, percentage_stats, icon_sets
 
-    async def _create_character_stats(self):
+    async def _create_character_stats(self) -> None:
         size = 32
         starting_top = self.CHARACTER_BOTTOM - 22
         left_start = 1006
@@ -416,7 +418,7 @@ class StarRailMihomoCard(StarRailDrawing):
         for _, img_icon in icon_sets.items():
             await self._async_close(img_icon)
 
-    async def _set_index_properties_name(self):
+    async def _set_index_properties_name(self) -> None:
         for _, fields in self._index_data.properties.items():
             self._stats_field_to_name[fields.kind] = fields.name
 
@@ -427,7 +429,7 @@ class StarRailMihomoCard(StarRailDrawing):
         box_size: int = 138,
         margin: int = 25,
         text: str = "No Relic",
-    ):
+    ) -> None:
         top_margin = position * (box_size + margin)
         await self._create_box(
             ((left, top_margin), (left + box_size, top_margin + box_size)),
@@ -474,7 +476,7 @@ class StarRailMihomoCard(StarRailDrawing):
         box_indicator: str | None = None,
         box_size: int = 138,
         margin: int = 25,
-    ):
+    ) -> None:
         top_margin = position * (box_size + margin)
         await self._create_box(
             ((left, top_margin), (left + box_size, top_margin + box_size)),
@@ -605,7 +607,7 @@ class StarRailMihomoCard(StarRailDrawing):
         await self._async_close(relic_img)
         await self._async_close(stars_icon)
 
-    async def _create_main_relics(self):
+    async def _create_main_relics(self) -> None:
         sorted_relics = sorted(
             self._character.relics,
             key=lambda r: self._index_data.relics[r.id].type.order,
@@ -658,7 +660,7 @@ class StarRailMihomoCard(StarRailDrawing):
                     margin=margin_relic,
                 )
 
-    async def _create_relic_sets_bonus(self):
+    async def _create_relic_sets_bonus(self) -> None:
         # Put after all the above relics
         TOP = 4 * (138 + 25) + 132
 
@@ -705,7 +707,7 @@ class StarRailMihomoCard(StarRailDrawing):
                 align="left",
             )
 
-    async def _create_planar_and_light_cone(self):
+    async def _create_planar_and_light_cone(self) -> None:
         sorted_relics = sorted(
             self._character.relics,
             key=lambda r: self._index_data.relics[r.id].type.order,
@@ -759,7 +761,7 @@ class StarRailMihomoCard(StarRailDrawing):
                     box_indicator=f"+{relic.level}",
                 )
 
-    async def _create_skills_and_traces(self):
+    async def _create_skills_and_traces(self) -> None:
         sorted_skills = sorted(
             self._character.skills,
             key=lambda r: r.type.order,

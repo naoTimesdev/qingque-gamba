@@ -30,6 +30,7 @@ from pathlib import Path
 from typing import cast
 
 from qingque.mihomo import MihomoAPI
+from qingque.mihomo.models.characters import Character
 from qingque.mihomo.models.constants import MihomoLanguage
 from qingque.starrail.generator import StarRailMihomoCard
 from qingque.tooling import setup_logger
@@ -43,7 +44,7 @@ class Argument(argparse.Namespace):
     lang: MihomoLanguage
 
 
-async def runner(args: Argument):
+async def runner(args: Argument) -> tuple[bytes | None, Character | None]:
     log = setup_logger(Path.cwd() / "logs" / "cli.log")
     client = MihomoAPI()
     log.info(f"Fetching player data for {args.uid}")

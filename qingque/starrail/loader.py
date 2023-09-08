@@ -68,7 +68,7 @@ KVModel = dict[str, SRSModelT]
 
 
 class SRSDataLoader:
-    def __init__(self, language: MihomoLanguage, *, base_path: Path | None = None):
+    def __init__(self, language: MihomoLanguage, *, base_path: Path | None = None) -> None:
         self.language = language
         self.base_path = base_path or INDEX_ROOT_DIR
 

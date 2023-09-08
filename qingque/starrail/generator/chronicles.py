@@ -69,7 +69,7 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         self._background = (18, 18, 18)
         self._foreground = (219, 194, 145)
 
-    async def _create_overview_info(self):
+    async def _create_overview_info(self) -> None:
         # Create the days active
         ## Icon first
         days_icon_top = 200
@@ -192,7 +192,7 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         await self._async_close(avatar_icon)
         await self._async_close(achivement_icon)
 
-    async def _create_chronicle_notes(self):
+    async def _create_chronicle_notes(self) -> None:
         # All notes are right aligned.
         # TB Power
         tb_power_top = 200
@@ -319,7 +319,7 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         await self._async_close(train_icon)
         await self._async_close(echo_icon)
 
-    async def _create_decoration(self, hide_credits: bool = False):
+    async def _create_decoration(self, hide_credits: bool = False) -> None:
         # DialogFrameDeco1.png (orig 395x495)
 
         deco_top_right = await self._async_open(

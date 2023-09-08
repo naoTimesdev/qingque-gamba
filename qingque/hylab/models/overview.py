@@ -24,11 +24,16 @@ SOFTWARE.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from msgspec import Struct, field
 
 from qingque.hylab.constants import SERVER_TO_STARRAIL_REGION
 
 from .common import HYElementType
+
+if TYPE_CHECKING:
+    from qingque.models.region import HYVServer
 
 __all__ = (
     "ChronicleOverviewStats",
@@ -53,7 +58,7 @@ class ChronicleOverviewStats(Struct):
 
     # There is also field_ext_map, but I'll ignore it.
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         # Cleanup the moc_floor
         if self.moc_floor is None:
             return
@@ -81,17 +86,17 @@ class ChronicleOverviewCharacter(Struct):
     """:class:`bool`: Whether the character is currently are being deployed in-game."""
 
     @property
-    def icon_path(self):
+    def icon_path(self) -> str:
         """:class:`str`: The path of the character's icon (local/SRS)."""
         return f"icon/avatar/{self.id}.png"
 
     @property
-    def preview_url(self):
+    def preview_url(self) -> str:
         """:class:`str`: The URL of the character's preview image."""
         return f"image/character_preview/{self.id}.png"
 
     @property
-    def portrait_url(self):
+    def portrait_url(self) -> str:
         """:class:`str`: The URL of the character's portrait image."""
         return f"image/character_portrait/{self.id}.png"
 
@@ -118,7 +123,7 @@ class ChronicleUserInfo(Struct):
     """:class:`str`: The URL of the user's avatar."""
 
     @property
-    def region(self):
+    def region(self) -> HYVServer:
         """:class:`str`: The region of the user."""
         return SERVER_TO_STARRAIL_REGION[self.server]
 

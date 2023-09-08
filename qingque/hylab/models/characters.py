@@ -64,17 +64,17 @@ class ChronicleCharacterLightCone(Struct):
     """:class:`int`: The superimpose level of the light cone."""
 
     @property
-    def icon_path(self):
+    def icon_path(self) -> str:
         """:class:`str`: The path of the light cone icon (local/SRS)."""
         return f"icon/light_cone/{self.id}.png"
 
     @property
-    def preview_url(self):
+    def preview_url(self) -> str:
         """:class:`str`: The URL of the light cone's preview image."""
         return f"image/light_cone_preview/{self.id}.png"
 
     @property
-    def portrait_url(self):
+    def portrait_url(self) -> str:
         """:class:`str`: The URL of the light cone portrait image."""
         return f"image/light_cone_portrait/{self.id}.png"
 

@@ -93,6 +93,6 @@ class ChronicleNotes(Struct):
     """:class:`float`: Used internally to determine when the notes is requested."""
 
     @property
-    def stamina_reset_at(self):
+    def stamina_reset_at(self) -> float:
         """:class:`float`: The UNIX time when the stamina is fully recovered."""
         return self.requested_at + self.stamina_recover_in

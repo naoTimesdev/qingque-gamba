@@ -30,7 +30,7 @@ __all__ = ("ConfirmView",)
 
 
 class ConfirmView(discord.ui.View):
-    def __init__(self, ephermal: bool = True):
+    def __init__(self, ephermal: bool = True) -> None:
         super().__init__()
         self.value = None
         self.ephermal = ephermal
@@ -39,12 +39,12 @@ class ConfirmView(discord.ui.View):
     # stop the View from listening to more input.
     # We also send the user an ephemeral message that we're confirming their choice.
     @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green)
-    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         self.value = True
         self.stop()
 
     # This one is similar to the confirmation button except sets the inner value to `False`
     @discord.ui.button(label="Cancel", style=discord.ButtonStyle.grey)
-    async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         self.value = False
         self.stop()

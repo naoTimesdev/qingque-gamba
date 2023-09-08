@@ -44,7 +44,7 @@ class MihomoAPI:
         )
         self._outside_client: bool = client is not None
 
-    async def close(self):
+    async def close(self) -> None:
         """Close the underlying HTTP session.
 
         Only works if the client is created by the library.

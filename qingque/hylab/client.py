@@ -543,7 +543,36 @@ class HYLabClient:
         hylab_token: str | None = None,
         hylab_cookie: str | None = None,
         lang: HYLanguage = HYLanguage.EN,
-    ):
+    ) -> None:
+        """
+        Claim HoyoLab daily reward for the given UID/HoyoLab ID.
+
+        Parameters
+        ----------
+        uid: :class:`int`
+            The UID to get the battle chronicles for.
+        hylab_id: :class:`int`
+            HoyoLab ID. (ltuid)
+        hylab_token: :class:`str | None`
+            Override HoyoLab token. (ltoken)
+        hylab_cookie: :class:`str | None`
+            Override HoyoLab cookie token. (cookie_token)
+        lang: :class:`HYLanguage`
+            The language to use.
+
+        Returns
+        -------
+        :class:`None`
+            Successfully claimed the daily reward.
+
+        Raises
+        ------
+        :exc:`.HYLabException`
+            An error occurred while claiming the daily reward.
+        :exc:`aiohttp.ClientResponseError`
+            An error occurred while requesting the daily reward claim.
+        """
+
         server = HYVServer.from_uid(str(uid))
         region = HYVRegion.from_server(server)
 

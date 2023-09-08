@@ -74,7 +74,7 @@ class QingqueLanguage(str, Enum):
         return MihomoLanguage(name)
 
     @classmethod
-    def from_mihomo(cls: type[QingqueLanguage], lang: MihomoLanguage):
+    def from_mihomo(cls: type[QingqueLanguage], lang: MihomoLanguage) -> QingqueLanguage:
         match lang:
             case MihomoLanguage.CHT:
                 return cls.CHT
@@ -106,7 +106,7 @@ class QingqueLanguage(str, Enum):
                 raise ValueError(f"Unknown language {lang!r}.")
 
     @classmethod
-    def from_discord(cls: type[QingqueLanguage], lang: Locale):
+    def from_discord(cls: type[QingqueLanguage], lang: Locale) -> QingqueLanguage:
         match lang:
             case Locale.american_english | Locale.british_english:
                 return cls.EN
@@ -153,7 +153,7 @@ class OptionalFormatter:
         self.data = _OptinalDict(data)
 
     @classmethod
-    def format(cls, text: str, *args: Any, **kwargs: Any):
+    def format(cls, text: str, *args: Any, **kwargs: Any) -> str:
         formatter = cls(kwargs)
         return formatter.fmt.vformat(text, args, formatter.data)
 
@@ -199,7 +199,7 @@ class QingqueI18n:
 
         return self._fmt_tl(translation, params)
 
-    def load(self, language: QingqueLanguage, data: KVI18nDict):
+    def load(self, language: QingqueLanguage, data: KVI18nDict) -> None:
         # Merge the data
         self._LOCALES_DATA.setdefault(language, {}).update(data)
 
@@ -223,7 +223,7 @@ def get_i18n() -> QingqueI18n:
     return _QINGQUE_I18N
 
 
-def load_i18n_languages():
+def load_i18n_languages() -> None:
     global _LANGUAGE_LOADED, _QINGQUE_I18N
 
     from pathlib import Path
@@ -329,7 +329,7 @@ _THAI_NUMERALS = {
 }
 
 
-def get_roman_numeral(n: int, /, *, lang: QingqueLanguage | MihomoLanguage = QingqueLanguage.EN):
+def get_roman_numeral(n: int, /, *, lang: QingqueLanguage | MihomoLanguage = QingqueLanguage.EN) -> str:
     if isinstance(lang, MihomoLanguage):
         lang = QingqueLanguage.from_mihomo(lang)
     fallback = _LATIN_NUMERALS.get(n, str(n))

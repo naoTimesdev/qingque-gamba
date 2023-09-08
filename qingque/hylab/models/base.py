@@ -149,7 +149,7 @@ class HYLanguage(str, Enum):
     """Vietnamese"""
 
     @cached_property
-    def mihomo(self):
+    def mihomo(self) -> MihomoLanguage:
         name = self.name.lower()
         if name == "chs":
             name = "cn"

@@ -245,7 +245,7 @@ _errors: dict[int, _FAIL | str | tuple[_FAIL, str]] = {
     -3202: HYAccountHasLocked,
 }
 
-ERRORS = {
+ERRORS: dict[int, tuple[_FAIL, str | None]] = {
     retcode: ((exc, None) if isinstance(exc, type) else (HYLabException, exc) if isinstance(exc, str) else exc)
     for retcode, exc in _errors.items()
 }

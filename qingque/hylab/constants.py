@@ -25,6 +25,8 @@ SOFTWARE.
 
 from __future__ import annotations
 
+from typing import Literal
+
 import yarl
 from msgspec import Struct
 
@@ -76,7 +78,7 @@ DAILY_ROUTE = Route(
     overseas="https://sg-public-api.hoyolab.com/event/luna/os?act_id=e202303301540311",
     china="https://api-takumi.mihoyo.com/event/luna/?act_id=e202304121516551",
 )
-STARRAIL_SERVER = {
+STARRAIL_SERVER: dict[HYVServer, str] = {
     HYVServer.ChinaA: "prod_gf_cn",
     HYVServer.ChinaB: "prod_gf_cn",
     HYVServer.ChinaC: "prod_qd_cn",
@@ -85,7 +87,7 @@ STARRAIL_SERVER = {
     HYVServer.Asia: "prod_official_asia",
     HYVServer.Taiwan: "prod_official_cht",
 }
-SERVER_TO_STARRAIL_REGION = {
+SERVER_TO_STARRAIL_REGION: dict[str, HYVServer] = {
     "prod_gf_cn": HYVServer.ChinaA,
     "prod_gf01_cn": HYVServer.ChinaA,
     "prod_gf02_cn": HYVServer.ChinaB,
@@ -95,11 +97,11 @@ SERVER_TO_STARRAIL_REGION = {
     "prod_official_asia": HYVServer.Asia,
     "prod_official_cht": HYVServer.Taiwan,
 }
-STARRAIL_GAME_BIZ = {
+STARRAIL_GAME_BIZ: dict[HYVRegion, str] = {
     HYVRegion.China: "hkrpg_cn",
     HYVRegion.Overseas: "hkrpg_global",
 }
-DS_SALT = {
+DS_SALT: dict[HYVRegion | Literal["cn_signin"], str] = {
     HYVRegion.Overseas: "6s25p5ox5y14umn1p61aqyyvbvvl3lrt",
     HYVRegion.China: "xV8v4Qu54lUKrEYFZkJhB8cuOh9Asafs",
     "cn_signin": "9nQiU3AV0rJSIBWgdynfoGMGKaklfbM7",

@@ -133,7 +133,7 @@ class QingqueClient(discord.Client):
         await self.tree.sync()
         self.logger.info("Bot is ready to go")
 
-    async def available_extensions(self):
+    async def available_extensions(self) -> list[app_commands.Command]:
         COGS_FOLDER = AsyncPath(ROOT_DIR / "cogs")
         IGNORED_FILES = ["__init__", "__main__"]
 
@@ -189,7 +189,7 @@ class QingqueClient(discord.Client):
 
         return await super().close()
 
-    async def on_ready(self):
+    async def on_ready(self) -> None:
         self.logger.info("Bot is ready, changing status...")
         await self.change_presence(
             activity=discord.Activity(type=discord.ActivityType.playing, name="Celestial Jade | /srhelp")

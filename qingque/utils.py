@@ -25,7 +25,7 @@ SOFTWARE.
 from __future__ import annotations
 
 import re
-from typing import Callable
+from typing import Any, Callable
 
 __all__ = (
     "get_indexed",
@@ -39,7 +39,7 @@ _UNITY_RT_COLOR = re.compile(r"<color=(?:[#]?[\w\d]+)>(.+?)</color>")
 _UNITY_RT_MAT = re.compile(r"<material=(?:[\d+])>(.+?)</material>")
 
 
-def get_indexed(data: list, n: int):
+def get_indexed(data: list, n: int) -> Any | None:
     if not data:
         return None
     try:
@@ -48,7 +48,7 @@ def get_indexed(data: list, n: int):
         return None
 
 
-def complex_walk(dictionary: dict | list, paths: str):
+def complex_walk(dictionary: dict | list, paths: str) -> list[Any] | dict[Any, Any] | Any | None:
     if not dictionary:
         return None
     expanded_paths = paths.split(".")
@@ -81,11 +81,11 @@ def complex_walk(dictionary: dict | list, paths: str):
     return dictionary
 
 
-def urich_re(format: str):
+def urich_re(format: str) -> re.Pattern[str]:
     return re.compile(rf"<{format}>(.+?)</{format}>", re.I)
 
 
-def strip_unity_rich_text(text: str):
+def strip_unity_rich_text(text: str) -> str:
     basic_format = ["b", "i", "unbreak", "s", "u", "lowercase", "uppercase", "smallcaps", "nobr", "sup"]
     for tag in basic_format:
         text = text.replace(f"<{tag}>", "").replace(f"</{tag}>", "")

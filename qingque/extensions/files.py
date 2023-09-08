@@ -48,7 +48,7 @@ class FileBytes(File):
         *,
         spoiler: bool = MISSING,
         description: str | None = None,
-    ):
+    ) -> None:
         if filename is None:
             filename = "untitled"
         if isinstance(fp, bytes):
