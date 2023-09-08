@@ -1,0 +1,20 @@
+{
+    "help": {
+        "bind": {
+            "title": "Account Binding",
+            "desc": "Bind your Hoyo account to your discord account\nThis will allow the bot to access your game data or HoyoLab data",
+            "short_desc": "Bind your Hoyo account to your discord account",
+            "srbind": "Bind your in-game UID with your discord account, this bot support multiple UID binding.",
+            "srhoyobind": "Bind your HoyoLab account with your discord account, only support one account.\nPlease see [here](https://github.com/naoTimesdev/qingque-gamba/wiki/HoyoLab) for more info."
+        },
+        "profiles": {
+            "title": "Profiles",
+            "desc": "See your profiles card",
+            "short_desc": "See your profiles card",
+            "srprofile": "See your profile card, you can also see other people by providing their UID.\nThis will show the same four characters you set on your Trailblaze Profile",
+            "srchronicle": "See your battle chronicle overview data. Make sure you bind both your UID and HoyoLab account for this."
+        },
+        "footer": "Supported by Interastral Peace Corporation",
+        "placeholder": "Please select one of the help menu..."
+    }
+}
