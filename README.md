@@ -28,6 +28,10 @@ A simple Discord Interaction bot to see your Honkai: Star Rail profile
 
 You can also generate your card without the bot by just running: `poetry run srscard [UID]` (See `poetry run srscard --help` for more info)
 
+### Rate Limited?
+
+See here: [`naoTimesdev/qingque-data` Rate Limited](https://github.com/naoTimesdev/qingque-data#rate-limited)
+
 ## To be Implemented
 - [x] Deploy it for public use
 - [ ] Profile card
