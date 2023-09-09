@@ -264,12 +264,10 @@ class RogueLocustDestinyType(int, Enum):
     @property
     def icon_url(self) -> str:
         match self:
-            case RogueBlessingType.Remembrance:
+            case RogueLocustDestinyType.Remembrance:
                 return "icon/path/Memory.png"
-            case RogueBlessingType.Elation:
+            case RogueLocustDestinyType.Elation:
                 return "icon/path/Joy.png"
-            case RogueBlessingType.Propagation:
-                return "icon/path/None.png"
             case _:
                 return f"icon/path/{self.name}.png"
 
@@ -312,8 +310,19 @@ class ChronicleRogueLocustBlock(Struct):
     """:class:`int`: How many times the block has been visited."""
 
 
+class ChronicleRogueLocustFuryType(int, Enum):
+    Countdown = 0
+    """Planar disarray has not been triggered yet, and currently counting down."""
+    Disrupt1 = 1
+    """Disruption 1: Level 1-5"""
+    Disrupt2 = 2
+    """Disruption 2: Level 6-10"""
+    Disrupt3 = 3
+    """Disruption 3: Level 11+"""
+
+
 class ChronicleRogueLocustFury(Struct):
-    type: int
+    type: ChronicleRogueLocustFuryType
     """:class:`int`: The type of the fury."""
     point: str
     """:class:`str`: The fury point accumulated."""

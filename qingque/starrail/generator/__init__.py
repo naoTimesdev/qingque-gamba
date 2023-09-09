@@ -10,3 +10,4 @@ All the image generator for StarRail.
 from .base import *
 from .chronicles import *
 from .mihomo import *
+from .simuniverse import *

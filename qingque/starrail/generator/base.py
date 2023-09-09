@@ -30,7 +30,7 @@ import math
 from collections.abc import MutableMapping
 from io import BytesIO
 from logging import Logger, LoggerAdapter
-from typing import Any, TypeAlias, cast
+from typing import Any, Literal, TypeAlias, cast
 
 from aiopath import AsyncPath
 from PIL import Image, ImageDraw, ImageFont, ImageOps
@@ -47,6 +47,7 @@ __all__ = (
     "RGB",
 )
 RGB: TypeAlias = tuple[int, int, int]
+Number: TypeAlias = int | float
 
 
 def euclidean_distance(ax: float, ay: float, bx: float, by: float) -> float:
@@ -213,6 +214,31 @@ class StarRailDrawing:
             await self._loop.run_in_executor(None, canvas.alpha_composite, composite)
         return length_width
 
+    async def _calc_text(
+        self,
+        content: str,
+        font_size: int = 20,
+        font_path: AsyncPath | None = None,
+        *,
+        canvas: Image.Image | None = None,
+        direction: Literal["ltr", "rtl"] = "ltr",
+    ) -> float:
+        if not self.has_canvas() and canvas is None:
+            raise RuntimeError("Canvas is not initialized, and no canvas is provided.")
+        canvas = canvas or self._canvas
+
+        font_path = font_path or self._font_path
+        font = await self._create_font(font_path, font_size)
+
+        draw = await self._get_draw(canvas=canvas)
+        return await self._loop.run_in_executor(
+            None,
+            draw.textlength,
+            content,
+            font,
+            direction,
+        )
+
     async def _create_box(
         self,
         box: tuple[tuple[float, float], tuple[float, float]],
@@ -292,6 +318,41 @@ class StarRailDrawing:
         if angle != 0.0:
             mask = await self._loop.run_in_executor(None, mask.resize, canvas.size, resampling)
         await self._paste_image(fill, mask=mask, canvas=canvas)
+
+    async def _create_box_2_gradient(
+        self,
+        bounds: tuple[Number, Number, Number, Number],
+        colors: tuple[RGB, RGB],
+        movement: Literal["hor", "vert"] = "vert",
+        *,
+        canvas: Image.Image | None = None,
+    ) -> None:
+        canvas = canvas or self._canvas
+        width = int(round(bounds[2] - bounds[0]))
+        height = int(round(bounds[3] - bounds[1]))
+        base = Image.new("RGB", (width, height), colors[0])
+        top = Image.new("RGB", (width, height), colors[1])
+        mask = Image.new("L", (width, height))
+        mask_data = []
+        for y in range(height):
+            mask_data.extend([int(255 * (y / height))] * width)  # type: ignore
+        if movement == "hor":
+            # Transpose the mask data
+            mask_data = [mask_data[y::height] for y in range(height)]
+            # Flatten the mask data
+            mask_data = [item for sublist in mask_data for item in sublist]
+        await self._loop.run_in_executor(
+            None,
+            mask.putdata,
+            mask_data,
+        )
+        await self._paste_image(
+            top,
+            (0, 0),
+            mask,
+            canvas=base,
+        )
+        await self._paste_image(base, (bounds[0], bounds[1]), canvas=canvas)
 
     async def _create_circle(
         self,
