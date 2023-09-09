@@ -169,6 +169,10 @@ class ChronicleRogueCharacter(Struct):
     element: HYElementType
     """:class:`HYElementType`: The element of the character."""
 
+    @property
+    def icon_path(self):
+        return f"icon/character/{self.id}.png"
+
 
 class ChronicleRogueRecordBase(Struct):
     name: str
