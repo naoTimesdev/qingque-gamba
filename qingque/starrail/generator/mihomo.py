@@ -41,7 +41,7 @@ from qingque.models.region import HYVServer
 from qingque.starrail.models.relics import SRSRelicType
 from qingque.tooling import get_logger
 
-from .base import RGB, StarRailDrawing
+from .base import RGB, StarRailDrawing, StarRailDrawingLogger
 
 __all__ = (
     "SRSCardStats",
@@ -158,7 +158,10 @@ class StarRailMihomoCard(StarRailDrawing):
         language: MihomoLanguage | QingqueLanguage = MihomoLanguage.EN,
     ) -> None:
         super().__init__(language=language)
-        self.logger = get_logger("qingque.starrail.generator.mihomo", extra=f"{player.id}#{character.id}")
+        self.logger = get_logger(
+            "qingque.starrail.generator.mihomo",
+            adapter=StarRailDrawingLogger.create(f"UID-{player.id}/C-{character.id}"),
+        )
         self._player: PlayerInfo = player
         self._character: Character = character
 

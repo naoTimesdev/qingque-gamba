@@ -33,7 +33,7 @@ from qingque.i18n import QingqueLanguage
 from qingque.mihomo.models.constants import MihomoLanguage
 from qingque.tooling import get_logger
 
-from .base import StarRailDrawing
+from .base import StarRailDrawing, StarRailDrawingLogger
 
 __all__ = ("StarRailChronicleNotesCard",)
 
@@ -60,7 +60,10 @@ class StarRailChronicleNotesCard(StarRailDrawing):
             raise RuntimeError("User info is not provided.")
         self._overview: ChronicleOverview = overall
         self._user_info: ChronicleUserInfo = user_info
-        self.logger = get_logger("qingque.starrail.generator.chronicles", extra=self._user_info.name)
+        self.logger = get_logger(
+            "qingque.starrail.generator.chronicles",
+            adapter=StarRailDrawingLogger.create(self._user_info.name),
+        )
 
         self._make_canvas(width=1600, height=900, color=(18, 18, 18))
 

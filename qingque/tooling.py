@@ -30,10 +30,9 @@ import inspect
 import logging
 import os
 import sys
-from copy import deepcopy
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional, overload
+from typing import TYPE_CHECKING, Optional, TypeVar, overload
 
 import coloredlogs
 
@@ -156,34 +155,14 @@ def setup_logger(log_path: Path | None = None) -> logging.Logger:
             format="[%(asctime)s] - (%(name)s)[%(levelname)s](%(funcName)s): %(message)s",
             datefmt="%Y-%m-%d %H:%M:%S",
         )
-        file_handler.setFormatter(
-            coloredlogs.BasicFormatter(
-                style="{",
-                fmt="[{asctime!s}] - ({name!s})[{levelname!s}]({funcName!s})[{extra}]: {message}",
-                defaults={"extra": "main"},
-            )
-        )
         # Remove the rolling file handler from the root logger, will be added back with proper formatting
-        for handler in logging.root.handlers:
-            if isinstance(handler, RollingFileHandler):
-                logging.root.removeHandler(handler)
-        logging.root.addHandler(file_handler)
     logger = logging.getLogger()
-    cli_log_fmt = (
-        "[%(asctime)s %(hostname)s][%(levelname)s] (%(name)s[%(process)d]): %(funcName)s[%(extra)s]: %(message)s"
-    )
     coloredlogs.install(
-        fmt=cli_log_fmt,
+        fmt="[%(asctime)s %(hostname)s][%(levelname)s] (%(name)s[%(process)d]): %(funcName)s: %(message)s",
         level=logging.INFO,
         logger=logger,
         stream=sys.stdout,
     )
-    for handler in logger.handlers:
-        if isinstance(handler, logging.StreamHandler):
-            if handler.formatter:
-                if isinstance(handler.formatter, coloredlogs.ColoredFormatter):
-                    cli_log_fmt = handler.formatter.colorize_format(cli_log_fmt)
-                handler.formatter._style = logging.PercentStyle(fmt=cli_log_fmt, defaults={"extra": "main"})
 
     # Set default logging for some modules
     logging.getLogger("discord").setLevel(logging.WARNING)
@@ -233,43 +212,27 @@ def _create_log_name() -> str | None:
     return mod_name
 
 
-class ILoggerAdapter(logging.LoggerAdapter):
-    def __init__(self, logger, extra):
-        super(ILoggerAdapter, self).__init__(logger, extra)
-        self.env = extra
-
-    def process(self, msg, kwargs):
-        msg, kwargs = super(ILoggerAdapter, self).process(msg, kwargs)
-
-        result = deepcopy(kwargs)
-
-        default_kwargs_key = ["exc_info", "stack_info", "extra"]
-        custome_key = [k for k in result.keys() if k not in default_kwargs_key]
-        result["extra"].update({k: result.pop(k) for k in custome_key})
-
-        return msg, result
+LogAdapT = TypeVar("LogAdapT", bound=logging.LoggerAdapter)
 
 
 @overload
-def get_logger() -> ILoggerAdapter:
+def get_logger() -> logging.Logger:
     ...
 
 
 @overload
-def get_logger(name: str) -> ILoggerAdapter:
+def get_logger(name: str) -> logging.Logger:
     ...
 
 
 @overload
-def get_logger(name: str, *, extra: str) -> ILoggerAdapter:
+def get_logger(name: str, *, adapter: type[LogAdapT]) -> LogAdapT:
     ...
 
 
-def get_logger(name: str | None = None, *, extra: str | None = None) -> ILoggerAdapter:
+def get_logger(name: str | None = None, *, adapter: type[LogAdapT] | None = None) -> logging.Logger | LogAdapT:
     inspect_name = _create_log_name()
-    if name is not None:
-        log = logging.getLogger(name)
-    else:
-        log = logging.getLogger(inspect_name)
-    extra = extra or "main"
-    return ILoggerAdapter(log, {"extra": extra})
+    logger = logging.getLogger(name or inspect_name)
+    if adapter is not None:
+        return adapter(logger)
+    return logger

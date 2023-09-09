@@ -27,8 +27,10 @@ from __future__ import annotations
 import asyncio
 import functools
 import math
+from collections.abc import MutableMapping
 from io import BytesIO
-from typing import Any, TypeAlias
+from logging import Logger, LoggerAdapter
+from typing import Any, TypeAlias, cast
 
 from aiopath import AsyncPath
 from PIL import Image, ImageDraw, ImageFont, ImageOps
@@ -41,6 +43,7 @@ from ..loader import SRSDataLoader
 
 __all__ = (
     "StarRailDrawing",
+    "StarRailDrawingLogger",
     "RGB",
 )
 RGB: TypeAlias = tuple[int, int, int]
@@ -56,6 +59,19 @@ def rotate_square_points(ax: float, ay: float, bx: float, by: float, angle: int 
     radius = euclidean_distance(ax, ay, bx, by)
     angle += math.atan2(ay - by, ax - bx)
     return (round(bx + radius * math.cos(angle)), round(by + radius * math.sin(angle)))
+
+
+class StarRailDrawingLogger(LoggerAdapter):
+    def __init__(self, logger: Logger, *, metadata: str) -> None:
+        super().__init__(logger, {})
+        self.metadata = metadata
+
+    def process(self, msg: Any, kwargs: MutableMapping[str, Any]) -> tuple[Any, MutableMapping[str, Any]]:
+        return "[%s] %s" % (self.metadata, msg), kwargs
+
+    @classmethod
+    def create(cls: type[StarRailDrawingLogger], metadata: str) -> type[StarRailDrawingLogger]:
+        return cast(type[StarRailDrawingLogger], functools.partial(cls, metadata=metadata))
 
 
 class StarRailDrawing:
