@@ -24,8 +24,10 @@ SOFTWARE.
 
 from __future__ import annotations
 
+import asyncio
 import functools
 from io import BytesIO
+from typing import Any, Coroutine
 
 import discord
 from discord import app_commands
@@ -35,7 +37,9 @@ from qingque.bot import QingqueClient
 from qingque.extensions.files import FileBytes
 from qingque.hylab.models.base import HYLanguage
 from qingque.hylab.models.errors import HYDataNotPublic
-from qingque.i18n import QingqueLanguage, get_i18n
+from qingque.i18n import PartialTranslate, QingqueLanguage, get_i18n
+from qingque.mihomo.models.characters import Character
+from qingque.mihomo.models.player import PlayerInfo
 from qingque.models.account_select import AccountSelectView
 from qingque.models.embed_paging import EmbedPaginatedView
 from qingque.models.persistence import QingqueProfile, QingqueProfileV2
@@ -62,6 +66,43 @@ async def get_profile_from_persistent(discord_id: int, redis: RedisDatabase) -> 
         await redis.set(f"qqgamba:profilev2:{discord_id}", profile)
         await redis.rm(f"qqgamba:profile:{discord_id}")
     return profile
+
+
+async def _batch_gen_player_card(
+    idx: int, player: PlayerInfo, character: Character, t: PartialTranslate
+) -> tuple[FileBytes, discord.Embed, int]:
+    logger.info(f"Generating character {character.name} profile card for UID {player.id}")
+    card_char = StarRailMihomoCard(character, player)
+    card_data = await card_char.create()
+
+    logger.info(f"Adding character {character.name} profile card for UID {player.id}")
+    filename = f"{player.id}_{idx:02d}_{character.id}.png"
+    file = FileBytes(card_data, filename=filename)
+    embed = discord.Embed(title=t("character_header", [character.name, f"{character.level:02d}"]))
+    description = []
+    progression = player.progression
+    if progression.achivements > 0:
+        description.append(f"**{t('achivements')}**: {progression.achivements}")
+    if progression.light_cones > 0:
+        description.append(f"**{t('light_cones')}**: {progression.light_cones}")
+    if progression.simulated_universe.value > 0:
+        rogue_world = t("rogue_world", [str(progression.simulated_universe.value)])
+        description.append(f"**{t('rogue')}**: {rogue_world}")
+    forgotten_hall = progression.forgotten_hall
+    if forgotten_hall.finished_floor > 0:
+        abyss_floor = t("moc_floor", [str(forgotten_hall.finished_floor)])
+        description.append(f"**{t('abyss')}**: {abyss_floor}")
+    if forgotten_hall.moc_finished_floor > 0:
+        abyss_moc_floor = t("moc_floor", [str(forgotten_hall.moc_finished_floor)])
+        description.append(f"**{t('abyss_hard')}**: {abyss_moc_floor}")
+
+    embed.description = "\n".join(description)
+    embed.set_image(url=f"attachment://{filename}")
+    embed.set_author(
+        name=player.name,
+        icon_url=f"{SRS_BASE}{player.avatar.icon_url}",
+    )
+    return file, embed, idx
 
 
 @app_commands.command(name="srprofile", description=locale_str("srprofile.desc"))
@@ -110,38 +151,15 @@ async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: in
 
     embeds: list[discord.Embed] = []
     files: list[discord.File] = []
-    for idx, character in enumerate(data_player.characters, 1):
-        card_char = StarRailMihomoCard(character, data_player.player, language=lang)
-        logger.info(f"Generating character {character.name} profile card for UID {uid}")
-        card_data = await card_char.create()
+    task_creation: list[Coroutine[Any, Any, tuple[FileBytes, discord.Embed, int]]] = [
+        _batch_gen_player_card(idx, data_player.player, character, t)
+        for idx, character in enumerate(data_player.characters)
+    ]
+    task_executor: list[tuple[FileBytes, discord.Embed, int]] = await asyncio.gather(*task_creation)
+    # Sort by idx
+    task_executor.sort(key=lambda x: x[2])
 
-        logger.info(f"Adding character {character.name} profile card for UID {uid}")
-        filename = f"{data_player.player.id}_{idx:02d}_{character.id}.png"
-        file = FileBytes(card_data, filename=filename)
-        embed = discord.Embed(title=t("character_header", [character.name, f"{character.level:02d}"]))
-        description = []
-        progression = data_player.player.progression
-        if progression.achivements > 0:
-            description.append(f"**{t('achivements')}**: {progression.achivements}")
-        if progression.light_cones > 0:
-            description.append(f"**{t('light_cones')}**: {progression.light_cones}")
-        if progression.simulated_universe.value > 0:
-            rogue_world = t("rogue_world", [str(progression.simulated_universe.value)])
-            description.append(f"**{t('rogue')}**: {rogue_world}")
-        forgotten_hall = progression.forgotten_hall
-        if forgotten_hall.finished_floor > 0:
-            abyss_floor = t("moc_floor", [str(forgotten_hall.finished_floor)])
-            description.append(f"**{t('abyss')}**: {abyss_floor}")
-        if forgotten_hall.moc_finished_floor > 0:
-            abyss_moc_floor = t("moc_floor", [str(forgotten_hall.moc_finished_floor)])
-            description.append(f"**{t('abyss_hard')}**: {abyss_moc_floor}")
-
-        embed.description = "\n".join(description)
-        embed.set_image(url=f"attachment://{filename}")
-        embed.set_author(
-            name=data_player.player.name,
-            icon_url=f"{SRS_BASE}{data_player.player.avatar.icon_url}",
-        )
+    for file, embed, _ in task_executor:
         embeds.append(embed)
         files.append(file)
 
