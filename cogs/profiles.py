@@ -279,7 +279,7 @@ async def qqprofile_srchronicle(inter: discord.Interaction[QingqueClient]):
         if assignment.status.is_ongoing():
             assign_stat += t("assignment.status.ongoing")
         else:
-            assign_stat += t("assignment.status.finished")
+            assign_stat += t("assignment.status.completed")
         assign_values.append(assign_stat)
         relative_done = int(round(hoyo_realtime.requested_at + assignment.time_left))
         assign_values.append(f"**{t('assignment.finish')}**: <t:{relative_done}:f>")
