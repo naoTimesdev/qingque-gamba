@@ -32,6 +32,7 @@ from .base import SRSBase
 
 __all__ = (
     "SRSRogueBlessing",
+    "SRSRogueBlessingType",
     "SRSRogueCurio",
     "SRSRogueWorld",
     "SRSRogueDLCBlock",
@@ -101,6 +102,17 @@ class SRSRogueBlessing(SRSBase, frozen=True):
     """:class:`str`: The blessing usage description"""
     max_level: int
     """:class:`int`: The blessing max level"""
+
+
+class SRSRogueBlessingType(SRSBase, frozen=True):
+    id: int
+    """:class:`int`: The blessing type ID"""
+    name: str
+    """:class:`str`: The blessing type name"""
+    icon_url: str = field(name="icon")
+    """:class:`str`: The blessing type icon URL (local)"""
+    hint: str
+    """:class:`str`: The blessing type hint"""
 
 
 class SRSRogueDLCBlock(SRSBase, frozen=True):
