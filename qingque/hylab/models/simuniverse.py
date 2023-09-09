@@ -85,8 +85,6 @@ class RogueBlessingType(int, Enum):
                 return "icon/path/Memory.png"
             case RogueBlessingType.Elation:
                 return "icon/path/Joy.png"
-            case RogueBlessingType.Propagation:
-                return "icon/path/None.png"
             case _:
                 return f"icon/path/{self.name}.png"
 

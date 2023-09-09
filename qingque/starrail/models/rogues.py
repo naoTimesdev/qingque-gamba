@@ -24,6 +24,8 @@ SOFTWARE.
 
 from __future__ import annotations
 
+from enum import Enum
+
 from msgspec import field
 
 from qingque.mihomo.models.combats import ElementType
@@ -85,6 +87,36 @@ class SRSRogueCurio(SRSBase, frozen=True):
     """:class:`str`: The curio story description"""
 
 
+class SRSRogueBlessingKind(int, Enum):
+    Preservation = 120
+    """Preservation/Knight"""
+    Remembrance = 121
+    """Remembrance/Memory"""
+    Nihility = 122
+    """Nihility/Warlock"""
+    Abundance = 123
+    """Abundance/Priest"""
+    Hunt = 124
+    """Hunt/Rogue"""
+    Destruction = 125
+    """Destruction/Warrior"""
+    Elation = 126
+    """Elation/Joy"""
+    Propagation = 127
+    """Propagation"""
+    # Explore/Trailblazer/Akivili: ???
+
+    @property
+    def icon_url(self) -> str:
+        match self:
+            case SRSRogueBlessingKind.Remembrance:
+                return "icon/path/Memory.png"
+            case SRSRogueBlessingKind.Elation:
+                return "icon/path/Joy.png"
+            case _:
+                return f"icon/path/{self.name}.png"
+
+
 class SRSRogueBlessing(SRSBase, frozen=True):
     id: int
     """:class:`int`: The blessing ID"""
@@ -94,6 +126,10 @@ class SRSRogueBlessing(SRSBase, frozen=True):
     """:class:`str`: The blessing icon URL (local)"""
     description: str = field(name="desc")
     """:class:`str`: The blessing description"""
+    type: SRSRogueBlessingKind = field(name="kind")
+    """:class:`SRSRogueBlessingKind`: The blessing type"""
+    rarity: int
+    """:class:`int`: The blessing rarity"""
     params: list[int | float]
     """:class:`list[int | float]`: The blessing description parameters"""
     summary: str = field(name="simple_desc")

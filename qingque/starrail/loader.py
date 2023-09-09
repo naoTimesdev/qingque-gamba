@@ -165,6 +165,8 @@ class SRSDataLoader:
 
     async def async_loads(self) -> None:
         for key, (model, attr) in self.__loader_maps.items():
+            if getattr(self, attr) is not None:
+                continue
             index_json = AsyncPath(self.base_path / self.language.value / f"{key}.json")
             index_data = await index_json.read_bytes()
             loaded_models = self._load_models(index_data, model)
