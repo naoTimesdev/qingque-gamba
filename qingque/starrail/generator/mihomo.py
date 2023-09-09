@@ -24,7 +24,6 @@ SOFTWARE.
 
 from __future__ import annotations
 
-import logging
 from typing import TypeAlias, cast
 
 from aiopath import AsyncPath
@@ -40,6 +39,7 @@ from qingque.mihomo.models.relics import Relic, RelicSet
 from qingque.mihomo.models.stats import StatsAtrributes, StatsField, StatsProperties
 from qingque.models.region import HYVServer
 from qingque.starrail.models.relics import SRSRelicType
+from qingque.tooling import get_logger
 
 from .base import RGB, StarRailDrawing
 
@@ -89,7 +89,6 @@ _COLOR_DOMINANT: dict[str, RGB | list[RGB]] = {
     "8004": [(234, 149, 56), (49, 42, 42)],
 }
 _MetaStats: TypeAlias = dict[StatsField, int | float]
-logger = logging.getLogger("qingque.starrail.generator.mihomo")
 
 
 def _get_player_server(server: HYVServer, language: MihomoLanguage) -> str:
@@ -159,6 +158,7 @@ class StarRailMihomoCard(StarRailDrawing):
         language: MihomoLanguage | QingqueLanguage = MihomoLanguage.EN,
     ) -> None:
         super().__init__(language=language)
+        self.logger = get_logger("qingque.starrail.generator.mihomo", extra=f"{player.id}#{character.id}")
         self._player: PlayerInfo = player
         self._character: Character = character
 
@@ -877,7 +877,7 @@ class StarRailMihomoCard(StarRailDrawing):
         t = self._i18n.t
 
         # Calculate average color of the preview image.
-        logger.info("Initializing the canvas card information...")
+        self.logger.info("Initializing the canvas card information...")
         dominant_and_inversion = _COLOR_DOMINANT.get(self._character.id)
         if dominant_and_inversion is None:
             raise ValueError("The dominant color of the character is missing.")
@@ -892,7 +892,7 @@ class StarRailMihomoCard(StarRailDrawing):
             self._foreground = cast(RGB, tuple(255 - c for c in dominant_and_inversion))
             self._background = dominant_and_inversion
 
-        logger.info("Adding player name...")
+        self.logger.info("Adding player name...")
         middle_bbox_name = self.CHARACTER_TOP // 2
         await self._write_text(
             self._player.name,
@@ -917,25 +917,25 @@ class StarRailMihomoCard(StarRailDrawing):
         await self._async_close(avatar_icon)
 
         # Create the character card header.
-        logger.info("Creating the character card header...")
+        self.logger.info("Creating the character card header...")
         await self._create_character_card_header()
-        logger.info("Creating the character card stats...")
+        self.logger.info("Creating the character card stats...")
         await self._create_character_stats()
 
         # Create relics sets
-        logger.info("Creating the character relics...")
+        self.logger.info("Creating the character relics...")
         await self._create_main_relics()
-        logger.info("Creating the character planar and light cone...")
+        self.logger.info("Creating the character planar and light cone...")
         await self._create_planar_and_light_cone()
-        logger.info("Creating relic set bonus...")
+        self.logger.info("Creating relic set bonus...")
         await self._create_relic_sets_bonus()
 
         # Create skills
-        logger.info("Creating the character skills...")
+        self.logger.info("Creating the character skills...")
         await self._create_skills_and_traces()
 
         # Create footer
-        logger.info("Creating the character footer...")
+        self.logger.info("Creating the character footer...")
         await self._write_text(
             "Supported by Interastral Peace Corporation",
             (20, self._canvas.height - 20),
@@ -991,10 +991,10 @@ class StarRailMihomoCard(StarRailDrawing):
         )
 
         # Save the image.
-        logger.info("Saving the image...")
+        self.logger.info("Saving the image...")
         bytes_io = await self._async_save_bytes(main_canvas)
 
-        logger.info("Cleaning up...")
+        self.logger.info("Cleaning up...")
         await self._async_close(main_canvas)
         await self._async_close(self._canvas)
 

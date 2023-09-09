@@ -24,7 +24,6 @@ SOFTWARE.
 
 from __future__ import annotations
 
-import logging
 from datetime import datetime, timedelta, timezone
 
 from qingque.hylab.models.base import HYLanguage
@@ -32,11 +31,11 @@ from qingque.hylab.models.notes import ChronicleNotes
 from qingque.hylab.models.overview import ChronicleOverview, ChronicleUserInfo, ChronicleUserOverview
 from qingque.i18n import QingqueLanguage
 from qingque.mihomo.models.constants import MihomoLanguage
+from qingque.tooling import get_logger
 
 from .base import StarRailDrawing
 
 __all__ = ("StarRailChronicleNotesCard",)
-logger = logging.getLogger("qingque.starrail.generator.chronicles")
 
 
 class StarRailChronicleNotesCard(StarRailDrawing):
@@ -61,6 +60,7 @@ class StarRailChronicleNotesCard(StarRailDrawing):
             raise RuntimeError("User info is not provided.")
         self._overview: ChronicleOverview = overall
         self._user_info: ChronicleUserInfo = user_info
+        self.logger = get_logger("qingque.starrail.generator.chronicles", extra=self._user_info.name)
 
         self._make_canvas(width=1600, height=900, color=(18, 18, 18))
 
@@ -404,11 +404,11 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         await self._async_close(backdrop_img)
 
         # Create the decoration.
-        logger.info("Creating decoration...")
+        self.logger.info("Creating decoration...")
         await self._create_decoration()
 
         # Write the username.
-        logger.info("Writing username...")
+        self.logger.info("Writing username...")
         await self._write_text(
             content=self._user_info.name,
             box=(self.MARGIN_LR, 75),
@@ -417,14 +417,14 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         )
 
         # Do the overview info.
-        logger.info("Creating overview info...")
+        self.logger.info("Creating overview info...")
         await self._create_overview_info()
         # Do the chronicle notes.
-        logger.info("Creating chronicle notes...")
+        self.logger.info("Creating chronicle notes...")
         await self._create_chronicle_notes()
 
         # Create footer
-        logger.info("Creating footer...")
+        self.logger.info("Creating footer...")
         await self._write_text(
             "Supported by Interastral Peace Corporation",
             (20, self._canvas.height - 20),
@@ -461,10 +461,10 @@ class StarRailChronicleNotesCard(StarRailDrawing):
             )
 
         # Save the image.
-        logger.info("Saving the image...")
+        self.logger.info("Saving the image...")
         bytes_io = await self._async_save_bytes(self._canvas)
 
-        logger.info("Cleaning up...")
+        self.logger.info("Cleaning up...")
         await self._async_close(self._canvas)
 
         # Return the bytes.
