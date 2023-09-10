@@ -18,7 +18,7 @@
             "lightning_dmg": "Blitz-SCH",
             "wind_dmg": "Wind-SCH",
             "quantum_dmg": "Quanten-SCH",
-            "imaginary_dmg": "Imaginären-SCH",
+            "imaginary_dmg": "Imaginär-SCH",
             "all_dmg": "Alle-SCH",
             "physical_res": "Phys-WDS",
             "fire_res": "Freur-WDS",
@@ -26,7 +26,7 @@
             "lightning_res": "Blitz-WDS",
             "wind_res": "Wind-WDS",
             "quantum_res": "Quanten-WDS",
-            "imaginary_res": "Imaginären-WDS",
+            "imaginary_res": "Imaginär-WDS",
             "all_res": "Alle-WDS",
             "unknown": "Unbekannt"
         },

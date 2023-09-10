@@ -18,7 +18,7 @@
             "lightning_dmg": "Daño Rayo",
             "wind_dmg": "Daño Viento",
             "quantum_dmg": "Daño Cuántico",
-            "imaginary_dmg": "Daño Imaginario",
+            "imaginary_dmg": "Daño Imaginar",
             "all_dmg": "Todo Daño",
             "physical_res": "RES Físico",
             "fire_res": "RES Fuego",
@@ -26,7 +26,7 @@
             "lightning_res": "RES Rayo",
             "wind_res": "RES Viento",
             "quantum_res": "RES Cuántico",
-            "imaginary_res": "RES Imaginario",
+            "imaginary_res": "RES Imaginar",
             "all_res": "RES Todo",
             "unknown": "Desconocido"
         },
