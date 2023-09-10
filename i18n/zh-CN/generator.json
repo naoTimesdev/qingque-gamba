@@ -72,6 +72,7 @@
             "point": "Point Rewards",
             "score": "分数",
             "score_high": "最高积分",
+            "difficulty": "Difficulty",
             "num_clears": "Number of Clears",
             "locust_narrow": "Trail of Pathstrider"
         },

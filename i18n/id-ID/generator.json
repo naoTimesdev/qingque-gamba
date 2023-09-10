@@ -72,6 +72,7 @@
             "point": "Point Rewards",
             "score": "Poin",
             "score_high": "Poin Tertinggi",
+            "difficulty": "Difficulty",
             "num_clears": "Number of Clears",
             "locust_narrow": "Trail of Pathstrider"
         },

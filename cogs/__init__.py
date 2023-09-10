@@ -11,3 +11,4 @@ from .admin import *
 from .helps import *
 from .persistent import *
 from .profiles import *
+from .rewards import *

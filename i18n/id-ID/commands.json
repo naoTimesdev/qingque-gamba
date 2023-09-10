@@ -34,6 +34,11 @@
         "value_format": "{game} — {uid} ({region})",
         "timeout": "You didn't response in time, please try again."
     },
+    "srdaily": {
+        "desc": "Claim your HoyoLab daily check-in rewards.",
+        "already_claimed": "You have already claimed your daily check-in rewards.",
+        "claimed": "Successfully claimed daily rewards."
+    },
     "srhelp": {
         "desc": "See the list of commands."
     }

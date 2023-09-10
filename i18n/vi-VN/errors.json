@@ -1,10 +1,13 @@
 {
     "bind_uid": "You haven't binded your UID yet.",
     "bind_hoyolab": "You haven't binded your HoyoLab account yet.",
+    "bind_hoyolab_token": "You binded your HoyoLab account, but haven't binded your HoyoLab token yet.",
     "hoyolab_public": "Your HoyoLab data is not public, please make it public!",
     "hoyolab_unavailable": "Your HoyoLab data is not available, please make it public if you haven't!",
     "exception": "Something went wrong, please try again later.\n{0}",
     "srs_unloaded": "You must load the data first.",
     "gen_mihomo_box": "Invalid box indicator: {0}",
-    "api_not_enabled": "API is not enabled."
+    "api_not_enabled": "API is not enabled.",
+    "invalid_token": "Invalid token provided, unable to do action.",
+    "geetest_error": "GeeTest captcha triggered, please try again later."
 }

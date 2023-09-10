@@ -75,8 +75,8 @@ CLAIM_ROUTE = Route(
     overseas="https://sg-hkrpg-api.hoyoverse.com/common/apicdkey/api/webExchangeCdkey",
 )
 DAILY_ROUTE = Route(
-    overseas="https://sg-public-api.hoyolab.com/event/luna/os?act_id=e202303301540311",
-    china="https://api-takumi.mihoyo.com/event/luna/?act_id=e202304121516551",
+    overseas="https://sg-public-api.hoyolab.com/event/luna/os/sign",
+    china="https://api-takumi.mihoyo.com/event/luna/sign",
 )
 STARRAIL_SERVER: dict[HYVServer, str] = {
     HYVServer.ChinaA: "prod_gf_cn",

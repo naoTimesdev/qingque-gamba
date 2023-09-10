@@ -72,6 +72,7 @@
             "point": "ポイント報酬",
             "score": "ポイント",
             "score_high": "最高ポイント",
+            "difficulty": "Difficulty",
             "num_clears": "クリア回数",
             "locust_narrow": "行人の道"
         },

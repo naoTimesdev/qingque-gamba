@@ -72,6 +72,7 @@
             "point": "Recompensa de puntos",
             "score": "Puntuación",
             "score_high": "Puntuación máxima",
+            "difficulty": "Difficulty",
             "num_clears": "Veces completadas",
             "locust_narrow": "Camino del Andavías"
         },

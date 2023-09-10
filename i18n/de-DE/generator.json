@@ -72,6 +72,7 @@
             "point": "Punktebelohnungen",
             "score": "Punktzahl",
             "score_high": "Höchstpunktzahl",
+            "difficulty": "Difficulty",
             "num_clears": "Anzahl der Abschlüsse",
             "locust_narrow": "Weg des Pfadfinders"
         },

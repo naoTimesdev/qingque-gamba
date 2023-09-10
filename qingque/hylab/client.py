@@ -34,11 +34,12 @@ import msgspec
 import yarl
 
 from qingque.hylab.interceptor import log_request
+from qingque.hylab.models.errors import HYAlreadyClaimed, HYGeetestTriggered
 from qingque.models.region import HYVRegion, HYVServer
 
 from .constants import CHRONICLES_ROUTE, DAILY_ROUTE, DS_SALT, STARRAIL_SERVER, USER_AGENT
 from .ds import generate_dynamic_salt, get_ds_headers
-from .models.base import HYLanguage, HYResponse
+from .models.base import HYGeeTestError, HYLanguage, HYResponse
 from .models.characters import ChronicleCharacters
 from .models.forgotten_hall import ChronicleForgottenHall
 from .models.notes import ChronicleNotes
@@ -560,11 +561,6 @@ class HYLabClient:
         lang: :class:`HYLanguage`
             The language to use.
 
-        Returns
-        -------
-        :class:`None`
-            Successfully claimed the daily reward.
-
         Raises
         ------
         :exc:`.HYLabException`
@@ -577,13 +573,15 @@ class HYLabClient:
         region = HYVRegion.from_server(server)
 
         headers = {}
-        params = {}
+        json_body = {}
         if region == HYVRegion.Overseas:
-            params["lang"] = lang.value
+            json_body["lang"] = lang.value
+            json_body["act_id"] = "e202303301540311"
             headers["referer"] = "https://act.hoyolab.com/"
         elif region == HYVRegion.China:
-            params["uid"] = str(uid)
-            params["region"] = STARRAIL_SERVER[server]
+            json_body["uid"] = str(uid)
+            json_body["region"] = STARRAIL_SERVER[server]
+            json_body["act_id"] = "e202304121516551"
 
             headers["x-rpc-app_version"] = "2.34.1"
             headers["x-rpc-client_type"] = "5"
@@ -606,4 +604,13 @@ class HYLabClient:
 
         cookies = self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, lang=lang)
 
-        await self._request("POST", sign_route, params=params, headers=headers, cookies=cookies, type=None)
+        resp = await self._request(
+            "POST", sign_route, body=json_body, headers=headers, cookies=cookies, type=HYGeeTestError
+        )
+        if resp.data is None:
+            raise ValueError("Expected JSON response, got None")
+
+        if resp.data.success != 0:
+            if resp.data.gt != "":
+                raise HYGeetestTriggered(resp, None)
+            raise HYAlreadyClaimed(resp, None)

@@ -72,6 +72,7 @@
             "point": "Point Rewards",
             "score": "Счет",
             "score_high": "Рекорд",
+            "difficulty": "Difficulty",
             "num_clears": "Number of Clears",
             "locust_narrow": "Trail of Pathstrider"
         },

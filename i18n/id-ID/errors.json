@@ -1,10 +1,13 @@
 {
     "bind_uid": "Anda belum binding UID akun anda.",
     "bind_hoyolab": "Anda belum binding akun HoyoLab.",
+    "bind_hoyolab_token": "You binded your HoyoLab account, but haven't binded your HoyoLab token yet.",
     "hoyolab_public": "Informasi akun anda tidak publik di HoyoLab, tolong jadikan publik!",
     "hoyolab_unavailable": "Informasi akun anda tidak dapat ditemukan, mohon jadikan publik jika belum!",
     "exception": "Terjadi kesalahan, mohon coba lagi nanti\n{0}",
     "srs_unloaded": "Anda harus memuat data terlebih dahulu.",
     "gen_mihomo_box": "Tanda box salah: {0}",
-    "api_not_enabled": "API tidak aktif."
+    "api_not_enabled": "API tidak aktif.",
+    "invalid_token": "Invalid token provided, unable to do action.",
+    "geetest_error": "GeeTest captcha triggered, please try again later."
 }
