@@ -49,7 +49,10 @@ from qingque.starrail.generator.chronicles import StarRailChronicleNotesCard
 from qingque.starrail.loader import SRSDataLoader
 from qingque.tooling import get_logger
 
-__all__ = ("qqprofile_srprofile",)
+__all__ = (
+    "qqprofile_srprofile",
+    "qqprofile_srchronicle",
+)
 logger = get_logger("cogs.profiles")
 SRS_BASE = "https://raw.githubusercontent.com/Mar-7th/StarRailRes/master/"
 

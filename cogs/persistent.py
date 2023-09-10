@@ -42,7 +42,10 @@ from qingque.models.persistence import (
 )
 from qingque.tooling import get_logger
 
-__all__ = ("qqpersist_srbind",)
+__all__ = (
+    "qqpersist_srbind",
+    "qqpersist_srhoyobind",
+)
 logger = get_logger("cogs.persistent")
 
 

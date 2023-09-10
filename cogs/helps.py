@@ -35,6 +35,7 @@ from discord.interactions import Interaction
 from qingque.bot import QingqueClient
 from qingque.i18n import PartialTranslate, get_i18n_discord
 
+__all__ = ("qqhelps_main",)
 _EMBED_COLOR: Final[int] = 3626589
 _EMBED_ICON: Final[str] = "https://raw.githubusercontent.com/naoTimesdev/qingque-data/master/icon/character/1201.png"
 _EMBED_URL: Final[str] = "https://github.com/naoTimesdev/qingque-gamba"

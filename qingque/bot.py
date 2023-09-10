@@ -136,15 +136,18 @@ class QingqueClient(discord.Client):
             self.logger.info("HYLab client connected.")
             self._hoyoapi = hoyolab
         logger.info("Setting up SRS data...")
+        await self.load_srs_data()
+        await self.load_extensions()
+        self.logger.info("Syncing commands...")
+        await self.tree.sync()
+        self.logger.info("Bot is ready to go")
+
+    async def load_srs_data(self):
         for lang in list(QingqueLanguage):
             loader = SRSDataLoader(lang.to_mihomo())
             logger.debug(f"Loading SRS data for {lang}...")
             await loader.async_loads()
             self._srs_datas[lang] = loader
-        await self.load_extensions()
-        self.logger.info("Syncing commands...")
-        await self.tree.sync()
-        self.logger.info("Bot is ready to go")
 
     async def available_extensions(self) -> list[app_commands.Command]:
         COGS_FOLDER = AsyncPath(ROOT_DIR / "cogs")
