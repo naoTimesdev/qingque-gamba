@@ -502,14 +502,16 @@ class StarRailDrawing:
         mask_data = []
         for y in range(height):
             mask_data.extend([int(255 * (y / height))] * width)  # type: ignore
+        if movement == "hor":
+            # Transpose the mask data
+            mask_data = [mask_data[y::height] for y in range(height)]
+            # Flatten the mask data
+            mask_data = [item for sublist in mask_data for item in sublist]
         await self._loop.run_in_executor(
             None,
             mask.putdata,
             mask_data,
         )
-        if movement == "hor":
-            # Transpose the mask
-            mask = await self._loop.run_in_executor(None, mask.transpose, Image.Transpose.ROTATE_90)
         await self._paste_image(
             top,
             (0, 0),
