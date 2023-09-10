@@ -599,13 +599,15 @@ class HYLabClient:
         else:
             raise ValueError(f"Unknown region {region}")
 
-        route = DAILY_ROUTE.get_route(region)
-        sign_route = (route / "sign").update_query(**route.query)
-
         cookies = self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, lang=lang)
 
         resp = await self._request(
-            "POST", sign_route, body=json_body, headers=headers, cookies=cookies, type=HYGeeTestError
+            "POST",
+            DAILY_ROUTE.get_route(region),
+            body=json_body,
+            headers=headers,
+            cookies=cookies,
+            type=HYGeeTestError,
         )
         if resp.data is None:
             raise ValueError("Expected JSON response, got None")
