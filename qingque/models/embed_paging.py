@@ -24,15 +24,25 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any
+from uuid import uuid4
 
 import discord
+from discord.components import SelectOption
 from discord.interactions import Interaction
+from discord.utils import MISSING
+
+from qingque.i18n import get_i18n_discord
 
 if TYPE_CHECKING:
     from qingque.bot import QingqueClient
 
-__all__ = ("EmbedPaginatedView",)
+__all__ = (
+    "EmbedPaginatedView",
+    "EmbedPagingSelectView",
+    "PagingChoice",
+)
 
 
 class EmbedPaginatedView(discord.ui.View):
@@ -138,3 +148,76 @@ class EmbedPaginatedView(discord.ui.View):
         else:
             self._message = message
             await message.edit(**send_thing)
+
+
+@dataclass
+class PagingChoice:
+    title: str
+    embed: discord.Embed
+    file: discord.File | None = None
+    emoji: str | discord.PartialEmoji | None = None
+    id: str = field(default_factory=lambda: str(uuid4()))
+
+
+class EmbedPagingSelection(discord.ui.Select):
+    def __init__(
+        self,
+        parent: "EmbedPagingSelectView",
+        choices: list[PagingChoice],
+        *,
+        custom_id: str = MISSING,
+        placeholder: str | None = None,
+        disabled: bool = False,
+    ) -> None:
+        self._parent_view = parent
+
+        options: list[SelectOption] = []
+        for choice in choices:
+            opts = SelectOption(
+                label=choice.title,
+                value=choice.id,
+                emoji=choice.emoji,
+            )
+            options.append(opts)
+        self._choices = choices
+
+        super().__init__(custom_id=custom_id, placeholder=placeholder, disabled=disabled, options=options)
+
+    async def callback(self, _):
+        pass
+
+
+class EmbedPagingSelectView(discord.ui.View):
+    _message: discord.InteractionMessage
+
+    def __init__(self, choices: list[PagingChoice], locale: discord.Locale, *, timeout: float | None = 180):
+        super().__init__(timeout=timeout)
+        t = get_i18n_discord(locale)
+        placeholder = t("srchoices.placeholder")
+
+        item = EmbedPagingSelection(self, choices, placeholder=placeholder)
+        self._choices: list[PagingChoice] = choices
+        self._selection = item
+        self.add_item(item)
+
+    async def set_response(self, inter: discord.Interaction[QingqueClient], choice: PagingChoice):
+        await inter.response.edit_message(
+            embed=choice.embed,
+            attachments=[choice.file] if choice.file is not None else [],
+            view=self,
+        )
+
+    async def on_timeout(self) -> None:
+        self._selection.disabled = True
+        if hasattr(self, "_message"):
+            await self._message.edit(view=None)
+
+    async def start(self, inter: discord.InteractionMessage):
+        self._message = inter
+        first_val: dict[str, Any] = {
+            "embed": self._choices[0].embed,
+            "view": self,
+        }
+        if self._choices[0].file is not None:
+            first_val["attachments"] = [self._choices[0].file]
+        await inter.edit(**first_val)

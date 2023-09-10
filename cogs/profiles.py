@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import asyncio
 import functools
+from datetime import timedelta, timezone
 from io import BytesIO
 from typing import Any, Coroutine
 
@@ -37,21 +38,30 @@ from qingque.bot import QingqueClient
 from qingque.extensions.files import FileBytes
 from qingque.hylab.models.base import HYLanguage
 from qingque.hylab.models.errors import HYDataNotPublic
-from qingque.i18n import PartialTranslate, QingqueLanguage, get_i18n
+from qingque.hylab.models.simuniverse import (
+    ChronicleRogueLocustDetailRecord,
+    ChronicleRogueLocustOverview,
+    ChronicleRogueOverview,
+    ChronicleRoguePeriodRun,
+    ChronicleRogueUserInfo,
+)
+from qingque.i18n import PartialTranslate, QingqueLanguage, get_i18n, get_i18n_discord, get_roman_numeral
 from qingque.mihomo.models.characters import Character
 from qingque.mihomo.models.player import PlayerInfo
 from qingque.models.account_select import AccountSelectView
-from qingque.models.embed_paging import EmbedPaginatedView
+from qingque.models.embed_paging import EmbedPaginatedView, EmbedPagingSelectView, PagingChoice
 from qingque.models.persistence import QingqueProfile, QingqueProfileV2
 from qingque.redisdb import RedisDatabase
 from qingque.starrail.generator import StarRailMihomoCard
 from qingque.starrail.generator.chronicles import StarRailChronicleNotesCard
+from qingque.starrail.generator.simuniverse import StarRailSimulatedUniverseCard
 from qingque.starrail.loader import SRSDataLoader
 from qingque.tooling import get_logger
 
 __all__ = (
     "qqprofile_srprofile",
     "qqprofile_srchronicle",
+    "qqprofile_srrogue",
 )
 logger = get_logger("cogs.profiles")
 SRS_BASE = "https://raw.githubusercontent.com/Mar-7th/StarRailRes/master/"
@@ -328,3 +338,231 @@ async def qqprofile_srchronicle(inter: discord.Interaction[QingqueClient]):
 
     logger.info("Sending to Discord...")
     await original_message.edit(content=None, embed=embed, attachments=[card_file])
+
+
+async def _make_rogue_card(
+    inter: discord.Interaction[QingqueClient],
+    rogue: ChronicleRoguePeriodRun | ChronicleRogueLocustDetailRecord,
+    user: ChronicleRogueUserInfo,
+    overview: ChronicleRogueOverview | ChronicleRogueLocustOverview,
+    filename_pre: str,
+    period_total: int | None = None,
+    previous_period: bool = False,
+) -> PagingChoice:
+    lang = QingqueLanguage.from_discord(inter.locale)
+    t = get_i18n_discord(inter.locale)
+    rogue_title = t("chronicle_titles.rogue")
+    if isinstance(rogue, ChronicleRogueLocustDetailRecord):
+        rogue_title = t("chronicle_titles.rogue_locust")
+    embed = discord.Embed(title=rogue_title)
+    embed.set_author(name=user.name)
+    descriptions = []
+    if isinstance(rogue, ChronicleRoguePeriodRun):
+        descriptions.append(
+            t("chronicles.rogue.period_now") if not previous_period else t("chronicles.rogue.preiod_before")
+        )
+
+    if period_total is not None:
+        descriptions.append(f"**{t('chronicles.rogue.num_clears')}**: {period_total:,}")
+    if isinstance(overview, ChronicleRogueOverview):
+        descriptions.append(f"**{t('chronicles.rogue.unlock_ability')}**: {overview.unlocked_skills:,}")
+        descriptions.append(f"**{t('chronicles.rogue.unlock_curio')}**: {overview.unlocked_curios:,}")
+        descriptions.append(f"**{t('chronicles.rogue.unlock_blessing')}**: {overview.unlocked_blessings:,}")
+    else:
+        stats = overview.stats
+        descriptions.append(f"**{t('chronicles.rogue.locust_narrow')}**: {stats.pathstrider:,}")
+        descriptions.append(f"**{t('chronicles.rogue.unlock_curio')}**: {stats.curios:,}")
+        descriptions.append(f"**{t('chronicles.rogue.unlock_event')}**: {stats.events:,}")
+    end_time = rogue.end_time.datetime
+    challenged_on = f"<t:{int(end_time.timestamp())}:f>"
+    challenged_tl = t("chronicles.rogue.challenged_on", ["REPLACEME"])
+    # Find REPLACEME
+    replace_me_idx = challenged_tl.find("REPLACEME")
+    # Add bold to the challenged on text but not the timestamp
+    challenged_tl = "**" + challenged_tl[:replace_me_idx] + "**: " + challenged_tl[replace_me_idx:]
+    challenged_tl = challenged_tl.replace("REPLACEME", challenged_on)
+    descriptions.append(challenged_tl)
+
+    gen_card = StarRailSimulatedUniverseCard(
+        user,
+        rogue,
+        language=lang,
+        loader=inter.client.get_srs(lang),
+    )
+
+    end_time_gmt8 = end_time.replace(tzinfo=timezone.utc).astimezone(tz=timezone(timedelta(hours=8)))
+    end_time_fmt = end_time_gmt8.strftime("%a, %b %d %Y %H:%M")
+
+    card_bytes = await gen_card.create()
+    card_io = FileBytes(card_bytes, filename=f"SimulatedUniverse_Run{filename_pre}.png")
+    title = t("chronicles.rogue.title")
+    if isinstance(rogue, ChronicleRogueLocustDetailRecord):
+        title += ": " + t("chronicles.rogue_locust.title")
+    if isinstance(rogue, ChronicleRoguePeriodRun):
+        title_world = t("rogue_world", [str(rogue.progress)])
+        title_world += f" — {get_roman_numeral(rogue.difficulty, lang=lang)}"
+    else:
+        title_world = " — " + get_roman_numeral(rogue.difficulty, lang=lang)
+    title += f" {title_world} | {end_time_fmt} UTC+8"
+    emoji_icon = None
+    if isinstance(rogue, ChronicleRoguePeriodRun):
+        emoji_icon = inter.client.custom_emojis.get(f"su_world{rogue.progress}")
+    else:
+        emoji_icon = inter.client.custom_emojis.get("su_swarmdlc")
+    return PagingChoice(
+        title,
+        embed,
+        file=card_io,
+        emoji=emoji_icon,
+    )
+
+
+@app_commands.command(name="srsimuniverse", description=locale_str("srsimuniverse.desc"))
+async def qqprofile_srrogue(inter: discord.Interaction[QingqueClient]):
+    lang = QingqueLanguage.from_discord(inter.locale)
+    t = functools.partial(get_i18n().t, language=lang)
+
+    try:
+        hoyoapi = inter.client.hoyoapi
+    except RuntimeError:
+        logger.warning("HYLab API is not enabled.")
+        await inter.response.send_message(t("api_not_enabled"), ephemeral=True)
+        return
+
+    await inter.response.defer(ephemeral=False, thinking=True)
+
+    original_message = await inter.original_response()
+    profile = await get_profile_from_persistent(inter.user.id, inter.client.redis)
+    if profile is None:
+        return await original_message.edit(content=t("bind_uid"))
+    if len(profile.games) == 0:
+        return await original_message.edit(content=t("bind_uid"))
+
+    if profile.hylab_id is None:
+        logger.warning(f"Discord ID {inter.user.id} haven't binded their HoyoLab account yet.")
+        return await original_message.edit(content=t("bind_hoyolab"))
+
+    if len(profile.games) > 1:
+        select_account = AccountSelectView(profile.games, inter.locale, timeout=30)
+        original_message = await original_message.edit(content=t("srchoices.ask_account"), view=select_account)
+        await select_account.wait()
+
+        if (error := select_account.error) is not None:
+            logger.error(f"Error getting profile info for Discord ID {inter.user.id}: {error}")
+            error_message = str(error)
+            await original_message.edit(content=t("exception", [f"```{error_message}```"]))
+            return
+
+        if select_account.account is None:
+            return await original_message.edit(content=t("srchoices.timeout"))
+
+        sel_uid = select_account.account.uid
+    else:
+        sel_uid = profile.games[0].uid
+
+    logger.info(f"Getting profile simulated universe for UID {sel_uid}")
+    try:
+        hoyo_rogue = await hoyoapi.get_battle_chronicles_simulated_universe(
+            sel_uid,
+            hylab_id=profile.hylab_id,
+            hylab_token=profile.hylab_token,
+            lang=HYLanguage(lang.value.lower()),
+        )
+    except HYDataNotPublic:
+        logger.warning(f"UID {sel_uid} data is not public.")
+        await original_message.edit(content=t("hoyolab_public"))
+        return
+    except Exception as e:
+        logger.error(f"Error getting profile info for UID {sel_uid}: {e}")
+        error_message = str(e)
+        await original_message.edit(content=t("exception", [f"`{error_message}`"]))
+        return
+    logger.info(f"Getting profile simulated universe: swarm DLC for UID {sel_uid}")
+    try:
+        hoyo_locust = await hoyoapi.get_battle_chronicles_simulated_universe_swarm_dlc(
+            sel_uid,
+            hylab_id=profile.hylab_id,
+            hylab_token=profile.hylab_token,
+            lang=HYLanguage(lang.value.lower()),
+        )
+    except HYDataNotPublic:
+        logger.warning(f"UID {sel_uid} data is not public.")
+        await original_message.edit(content=t("hoyolab_public"))
+        return
+    except Exception as e:
+        logger.error(f"Error getting profile info for UID {sel_uid}: {e}")
+        error_message = str(e)
+        await original_message.edit(content=t("exception", [f"`{error_message}`"]))
+        return
+
+    if hoyo_rogue is None:
+        logger.warning(f"UID {sel_uid} data is not available. (Rogue)")
+        await original_message.edit(content=t("hoyolab_unavailable"))
+        return
+
+    if hoyo_locust is None:
+        logger.warning(f"UID {sel_uid} data is not available. (Locust)")
+        await original_message.edit(content=t("hoyolab_unavailable"))
+        return
+
+    async def _run_rogue_wrapper(
+        sorting: str,
+        simu: ChronicleRogueLocustDetailRecord | ChronicleRoguePeriodRun,
+        overview: ChronicleRogueOverview | ChronicleRogueLocustOverview,
+        user: ChronicleRogueUserInfo,
+        filename_pre: str,
+        total_run: int | None = None,
+    ):
+        logger.info(f"Generating simulated universe card for {user.name} | {type(simu)} | {sorting}...")
+        data = await _make_rogue_card(
+            inter,
+            simu,
+            user,
+            overview,
+            filename_pre,
+            period_total=total_run,
+        )
+        return data, sorting
+
+    rogue_over = hoyo_rogue.overview
+    task_managerials: list[Coroutine[Any, Any, tuple[PagingChoice, str]]] = []
+    for idx, simu in enumerate(hoyo_rogue.current.records):
+        task_managerials.append(
+            _run_rogue_wrapper(
+                f"01_{idx:03d}",
+                simu,
+                rogue_over,
+                hoyo_rogue.user,
+                f"Current{idx:02d}",
+                total_run=hoyo_rogue.current.overview.total_run,
+            )
+        )
+    for idx, simu in enumerate(hoyo_rogue.previous.records):
+        task_managerials.append(
+            _run_rogue_wrapper(
+                f"02_{idx:03d}",
+                simu,
+                rogue_over,
+                hoyo_rogue.user,
+                f"Previous{idx:02d}",
+                total_run=hoyo_rogue.current.overview.total_run,
+            )
+        )
+    for idx, simu in enumerate(hoyo_locust.details.records):
+        task_managerials.append(
+            _run_rogue_wrapper(
+                f"03_{idx:03d}",
+                simu,
+                hoyo_locust.overview,
+                hoyo_locust.user,
+                f"Locust{idx:02d}",
+            )
+        )
+
+    task_executor: list[tuple[PagingChoice, str]] = await asyncio.gather(*task_managerials)
+    task_executor.sort(key=lambda x: x[1])
+    paging_choices: list[PagingChoice] = [x[0] for x in task_executor]
+
+    logger.info("Sending to Discord...")
+    pagination_view = EmbedPagingSelectView(paging_choices, inter.locale)
+    await pagination_view.start(original_message)

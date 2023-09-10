@@ -86,7 +86,7 @@ class QingqueClient(discord.Client):
         self._redis: RedisDatabase | None = None
         self._srs_datas = {}
 
-        self._emojis = CustomEmoji()
+        self._custom_emojis = CustomEmoji()
 
     @property
     def mihomo(self) -> MihomoAPI:
@@ -109,6 +109,10 @@ class QingqueClient(discord.Client):
         if self._redis is None:
             raise RuntimeError("Redis client is not setup yet.")
         return self._redis
+
+    @property
+    def custom_emojis(self) -> CustomEmoji:
+        return self._custom_emojis
 
     def get_srs(self, lang: QingqueLanguage) -> SRSDataLoader:
         return self._srs_datas[lang]
@@ -220,7 +224,7 @@ class QingqueClient(discord.Client):
         try:
             await self.fetch_guild(self.EMOTE_GUILD, with_counts=False)
             self.logger.info("Emote guild found, using custom emojis...")
-            self._emojis.has_guilds = True
+            self._custom_emojis.has_guilds = True
         except discord.Forbidden:
             self.logger.warning("Failed to fetch emote guild, using default emojis...")
-            self._emojis.has_guilds = False
+            self._custom_emojis.has_guilds = False
