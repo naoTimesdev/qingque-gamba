@@ -394,10 +394,11 @@ async def _make_rogue_card(
     end_time_fmt = end_time_gmt8.strftime("%a, %b %d %Y %H:%M")
 
     card_bytes = await gen_card.create()
-    card_io = FileBytes(card_bytes, filename=f"SimulatedUniverse_Run{filename_pre}.png")
+    card_fn = f"SimulatedUniverse_Run{filename_pre}.png"
+    card_io = FileBytes(card_bytes, filename=card_fn)
     title = t("chronicles.rogue.title")
     if isinstance(rogue, ChronicleRogueLocustDetailRecord):
-        title += ": " + t("chronicles.rogue_locust.title")
+        title += ": " + t("chronicles.rogue.title_locust")
     if isinstance(rogue, ChronicleRoguePeriodRun):
         title_world = t("rogue_world", [str(rogue.progress)])
         title_world += f" — {get_roman_numeral(rogue.difficulty, lang=lang)}"
@@ -409,6 +410,8 @@ async def _make_rogue_card(
         emoji_icon = inter.client.custom_emojis.get(f"su_world{rogue.progress}")
     else:
         emoji_icon = inter.client.custom_emojis.get("su_swarmdlc")
+    embed.description = "\n".join(descriptions)
+    embed.set_image(url=f"attachment://{card_fn}")
     return PagingChoice(
         title,
         embed,
