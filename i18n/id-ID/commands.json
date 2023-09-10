@@ -6,6 +6,9 @@
     "srchronicle": {
         "desc": "Lihat profil chronicle anda dari HoyoLab."
     },
+    "srsimuniverse": {
+        "desc": "See your simulated universe progress from HoyoLab."
+    },
     "srbind": {
         "ask_action": "What do you want to do with UID `{uid}`?",
         "desc": "Bind UID akun dengan akun Discord anda.",
@@ -32,7 +35,8 @@
     "srchoices": {
         "ask_account": "Which account do you want to see?",
         "value_format": "{game} — {uid} ({region})",
-        "timeout": "You didn't response in time, please try again."
+        "timeout": "You didn't response in time, please try again.",
+        "placeholder": "Choose an option"
     },
     "srdaily": {
         "desc": "Claim your HoyoLab daily check-in rewards.",
