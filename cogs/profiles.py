@@ -375,7 +375,7 @@ async def _make_rogue_card(
         descriptions.append(f"**{t('chronicles.rogue.unlock_event')}**: {stats.events:,}")
     end_time = rogue.end_time.datetime
     challenged_on = f"<t:{int(end_time.timestamp())}:f>"
-    challenged_tl = t("chronicles.rogue.challenged_on", ["REPLACEME"])
+    challenged_tl = t("chronicles.challenged_on", ["REPLACEME"])
     # Find REPLACEME
     replace_me_idx = challenged_tl.find("REPLACEME")
     # Add bold to the challenged on text but not the timestamp
@@ -400,7 +400,7 @@ async def _make_rogue_card(
     if isinstance(rogue, ChronicleRogueLocustDetailRecord):
         title += ": " + t("chronicles.rogue.title_locust")
     if isinstance(rogue, ChronicleRoguePeriodRun):
-        title_world = t("rogue_world", [str(rogue.progress)])
+        title_world = "| " + t("rogue_world", [str(rogue.progress)])
         title_world += f" — {get_roman_numeral(rogue.difficulty, lang=lang)}"
     else:
         title_world = " — " + get_roman_numeral(rogue.difficulty, lang=lang)
