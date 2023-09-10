@@ -183,8 +183,12 @@ class EmbedPagingSelection(discord.ui.Select):
 
         super().__init__(custom_id=custom_id, placeholder=placeholder, disabled=disabled, options=options)
 
-    async def callback(self, _):
-        pass
+    async def callback(self, inter: discord.Interaction[QingqueClient]):
+        sel_choice = self.values[0]
+        for choice in self._choices:
+            if choice.id == sel_choice:
+                await self._parent_view.set_response(inter, choice)
+                break
 
 
 class EmbedPagingSelectView(discord.ui.View):
