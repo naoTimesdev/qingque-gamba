@@ -14,6 +14,12 @@
             "srprofile": "See your profile card, you can also see other people by providing their UID.\nThis will show the same four characters you set on your Trailblaze Profile",
             "srchronicle": "See your battle chronicle overview data. Make sure you bind both your UID and HoyoLab account for this."
         },
+        "rewards": {
+            "title": "Rewards",
+            "desc": "Claim rewards and redemption",
+            "short_desc": "Claim rewards and redemption",
+            "srclaim": "Claim your HoyoLab daily check-in rewards.\nYou will need to have your HoyoLab token binded, see [here](https://github.com/naoTimesdev/qingque-gamba/wiki/HoyoLab) for more info."
+        },
         "footer": "Supported by Interastral Peace Corporation",
         "placeholder": "Please select one of the help menu..."
     }

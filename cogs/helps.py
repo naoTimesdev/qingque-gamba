@@ -41,7 +41,7 @@ _EMBED_ICON: Final[str] = "https://raw.githubusercontent.com/naoTimesdev/qingque
 _EMBED_URL: Final[str] = "https://github.com/naoTimesdev/qingque-gamba"
 
 
-def _help_bind(t: PartialTranslate):
+def _help_bind(t: PartialTranslate) -> discord.Embed:
     embed = discord.Embed(title=t("help.bind.title"), description=t("help.bind.desc"), color=_EMBED_COLOR)
     embed.add_field(name="/srbind", value=t("help.bind.srbind"), inline=False)
     embed.add_field(name="/srhoyobind", value=t("help.bind.srhoyobind"), inline=False)
@@ -50,10 +50,18 @@ def _help_bind(t: PartialTranslate):
     return embed
 
 
-def _help_profiles(t: PartialTranslate):
+def _help_profiles(t: PartialTranslate) -> discord.Embed:
     embed = discord.Embed(title=t("help.profiles.title"), description=t("help.profiles.desc"), color=_EMBED_COLOR)
     embed.add_field(name="/srprofile", value=t("help.profiles.srprofile"), inline=False)
     embed.add_field(name="/srchronicles", value=t("help.profiles.srchronicle"), inline=False)
+    embed.set_author(name="Qingque", icon_url=_EMBED_ICON, url=_EMBED_URL)
+    embed.set_footer(text=t("help.footer"))
+    return embed
+
+
+def _help_rewards(t: PartialTranslate) -> discord.Embed:
+    embed = discord.Embed(title=t("help.rewards.title"), description=t("help.rewards.desc"), color=_EMBED_COLOR)
+    embed.add_field(name="/srclaim", value=t("help.rewards.srclaim"), inline=False)
     embed.set_author(name="Qingque", icon_url=_EMBED_ICON, url=_EMBED_URL)
     embed.set_footer(text=t("help.footer"))
     return embed
@@ -66,6 +74,9 @@ class HelpDropdown(discord.ui.Select):
             SelectOption(label=t("help.bind.title"), description=t("help.bind.short_desc"), value="bind", emoji="🔑"),
             SelectOption(
                 label=t("help.profiles.title"), description=t("help.profiles.short_desc"), value="profiles", emoji="🎆"
+            ),
+            SelectOption(
+                label=t("help.rewards.title"), description=t("help.rewards.short_desc"), value="rewards", emoji="🎁"
             ),
         ]
 
@@ -81,16 +92,31 @@ class HelpDropdown(discord.ui.Select):
             await interaction.response.edit_message(embed=_help_bind(self.t))
         elif self.values[0] == "profiles":
             await interaction.response.edit_message(embed=_help_profiles(self.t))
+        elif self.values[0] == "rewards":
+            await interaction.response.edit_message(embed=_help_rewards(self.t))
 
 
 class HelpView(discord.ui.View):
+    _message: discord.InteractionMessage
+
     def __init__(self, t: PartialTranslate, *, timeout: float | None = 180):
         super().__init__(timeout=timeout)
-        self.add_item(HelpDropdown(t))
+        self._dropdown = HelpDropdown(t)
+        self.add_item(self._dropdown)
+
+    async def on_timeout(self) -> None:
+        self._dropdown.disabled = True
+        await self._message.edit(view=self)
+
+    async def start(self, inter: discord.InteractionMessage):
+        self._message = inter
+        await self._message.edit(view=self)
 
 
 @app_commands.command(name="srhelp", description=locale_str("srhelp.desc"))
 async def qqhelps_main(inter: discord.Interaction):
     t = get_i18n_discord(inter.locale)
+    await inter.response.defer(ephemeral=False, thinking=True)
     view = HelpView(t)
-    await inter.response.send_message(embed=_help_bind(t), view=view)
+    original_resp = await inter.original_response()
+    await view.start(original_resp)
