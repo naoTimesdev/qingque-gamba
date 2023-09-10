@@ -84,6 +84,7 @@ class QingqueClient(discord.Client):
         self._mihomo: MihomoAPI | None = None
         self._hoyoapi: HYLabClient | None = None
         self._redis: RedisDatabase | None = None
+        self._srs_datas = {}
 
         self._emojis = CustomEmoji()
 
@@ -199,12 +200,10 @@ class QingqueClient(discord.Client):
             await self._redis.close()
             self.logger.info("Redis client closed.")
 
-        srs_data: dict[QingqueLanguage, SRSDataLoader] | None = getattr(self, "_srs_datas", None)
-        if srs_data is not None:
-            self.logger.info("Unloading SRS data...")
-            for loader in srs_data.values():
-                loader.unloads()
-            self.logger.info("SRS data unloaded.")
+        self.logger.info("Unloading SRS data...")
+        for loader in self._srs_datas.values():
+            loader.unloads()
+        self.logger.info("SRS data unloaded.")
 
         return await super().close()
 
