@@ -89,7 +89,7 @@ async def qqrewards_daily(inter: discord.Interaction[QingqueClient]):
         await select_account.wait()
 
         if (error := select_account.error) is not None:
-            logger.error(f"Error getting profile info for Discord ID {inter.user.id}: {error}")
+            logger.error(f"Error getting profile info for Discord ID {inter.user.id}: {error}", exc_info=error)
             error_message = str(error)
             await original_message.edit(content=t("exception", [f"```{error_message}```"]))
             return
@@ -113,7 +113,7 @@ async def qqrewards_daily(inter: discord.Interaction[QingqueClient]):
         logger.error(f"Discord ID {inter.user.id} has invalid cookies.")
         return await original_message.edit(content=t("invalid_token"))
     except Exception as e:
-        logger.error(f"Error getting profile info for Discord ID {inter.user.id}: {e}")
+        logger.error(f"Error claiming daily reward for Discord ID {inter.user.id}: {e}", exc_info=e)
         error_message = str(e)
         return await original_message.edit(content=t("exception", [f"```{error_message}```"]))
 

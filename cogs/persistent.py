@@ -223,4 +223,4 @@ async def qqpersist_srhoyobind(
         return
 
     await inter.client.redis.set(f"qqgamba:profilev2:{discord_id}", profile)
-    await response.edit(content=t("srhoyobind.binded"))
+    await response.edit(content=t("srhoyobind.binded"), view=None)
