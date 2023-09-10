@@ -25,20 +25,24 @@ SOFTWARE.
 from __future__ import annotations
 
 import logging
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
-from qingque.hylab.models.base import HYLanguage
 from qingque.hylab.models.simuniverse import (
     ChronicleRogueBlessingItem,
     ChronicleRogueLocustDetailRecord,
     ChronicleRoguePeriodRun,
     ChronicleRogueUserInfo,
 )
-from qingque.i18n import QingqueLanguage, get_roman_numeral
+from qingque.i18n import get_roman_numeral
 from qingque.mihomo.models.constants import MihomoLanguage
 from qingque.utils import strip_unity_rich_text
 
 from .base import RGB, StarRailDrawing
+
+if TYPE_CHECKING:
+    from qingque.hylab.models.base import HYLanguage
+    from qingque.i18n import QingqueLanguage
+    from qingque.starrail.loader import SRSDataLoader
 
 __all__ = ("StarRailSimulatedUniverseCard",)
 logger = logging.getLogger("qingque.starrail.generator.simuniverse")
@@ -74,8 +78,9 @@ class StarRailSimulatedUniverseCard(StarRailDrawing):
         record: ChronicleRoguePeriodRun | ChronicleRogueLocustDetailRecord,
         *,
         language: MihomoLanguage | HYLanguage | QingqueLanguage = MihomoLanguage.EN,
+        loader: SRSDataLoader | None = None,
     ) -> None:
-        super().__init__(language=language)
+        super().__init__(language=language, loader=loader)
         self._record = record
         self._user = user
 
@@ -357,5 +362,4 @@ class StarRailSimulatedUniverseCard(StarRailDrawing):
         bytes_io.seek(0)
         all_bytes = await self._loop.run_in_executor(None, bytes_io.read)
         bytes_io.close()
-        self._index_data.unloads()
         return all_bytes

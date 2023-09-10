@@ -24,6 +24,7 @@ SOFTWARE.
 
 from __future__ import annotations
 
+import gc
 from pathlib import Path
 from typing import TypeVar, overload
 
@@ -32,6 +33,7 @@ import orjson
 from aiopath import AsyncPath
 from msgspec import Struct
 
+from qingque.i18n import QingqueLanguage
 from qingque.mihomo.models.constants import MihomoLanguage
 
 from .models import (
@@ -70,8 +72,8 @@ KVModel = dict[str, SRSModelT]
 
 class SRSDataLoader:
     def __init__(self, language: MihomoLanguage, *, base_path: Path | None = None) -> None:
-        self.language = language
-        self.base_path = base_path or INDEX_ROOT_DIR
+        self._language: MihomoLanguage = language
+        self.base_path: Path = base_path or INDEX_ROOT_DIR
 
         # Attributes
         self._achievements: KVModel[SRSAchievement] | None = None
@@ -130,7 +132,21 @@ class SRSDataLoader:
 
     def __repr__(self) -> str:
         loaded = self._achievements is not None
-        return f"<SRSDataLoader language={self.language.value!r} loaded={loaded!r}>"
+        return f"<SRSDataLoader language={self._language.value!r} loaded={loaded!r}>"
+
+    @property
+    def loaded(self) -> bool:
+        return self._achievements is not None
+
+    @property
+    def language(self) -> MihomoLanguage:
+        return self._language
+
+    @language.setter
+    def language(self, value: MihomoLanguage | QingqueLanguage) -> None:
+        if isinstance(value, QingqueLanguage):
+            value = value.to_mihomo()
+        self._language = value
 
     @overload
     def _load_models(self, data: bytes, model: type[SRSModelT]) -> dict[str, SRSModelT]:
@@ -155,11 +171,13 @@ class SRSDataLoader:
 
     def loads(self):
         for key, (model, attr) in self.__loader_maps.items():
-            index_json = self.base_path / self.language.value / f"{key}.json"
+            if getattr(self, attr) is not None:
+                continue
+            index_json = self.base_path / self._language.value / f"{key}.json"
             index_data = index_json.read_bytes()
             loaded_models = self._load_models(index_data, model)
             setattr(self, attr, loaded_models)
-        nickname = self.base_path / self.language.value / "nickname.json"
+        nickname = self.base_path / self._language.value / "nickname.json"
         nickname_data = nickname.read_bytes()
         self._nicknames = self._load_models(nickname_data, SRSNickname, root_mode=True)
 
@@ -167,11 +185,11 @@ class SRSDataLoader:
         for key, (model, attr) in self.__loader_maps.items():
             if getattr(self, attr) is not None:
                 continue
-            index_json = AsyncPath(self.base_path / self.language.value / f"{key}.json")
+            index_json = AsyncPath(self.base_path / self._language.value / f"{key}.json")
             index_data = await index_json.read_bytes()
             loaded_models = self._load_models(index_data, model)
             setattr(self, attr, loaded_models)
-        nickname = AsyncPath(self.base_path / self.language.value / "nickname.json")
+        nickname = AsyncPath(self.base_path / self._language.value / "nickname.json")
         nickname_data = await nickname.read_bytes()
         self._nicknames = self._load_models(nickname_data, SRSNickname, root_mode=True)
 
@@ -179,6 +197,8 @@ class SRSDataLoader:
         for _, (_, attr) in self.__loader_maps.items():
             setattr(self, attr, None)
         self._nicknames = None
+        # Garbage collection
+        gc.collect()
 
     @property
     def achievements(self) -> KVModel[SRSAchievement]:

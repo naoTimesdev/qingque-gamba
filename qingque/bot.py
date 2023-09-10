@@ -27,6 +27,7 @@ from __future__ import annotations
 import importlib
 from pathlib import Path
 from typing import Any
+from venv import logger
 
 import discord
 from aiopath import AsyncPath
@@ -46,6 +47,7 @@ from qingque.i18n import QingqueLanguage, get_i18n, load_i18n_languages
 from qingque.mihomo.client import MihomoAPI
 from qingque.models.config import QingqueConfig
 from qingque.redisdb import RedisDatabase
+from qingque.starrail.loader import SRSDataLoader
 from qingque.tooling import get_logger
 
 __all__ = ("QingqueClient",)
@@ -69,6 +71,7 @@ class QingqueClientI18n(Translator):
 
 class QingqueClient(discord.Client):
     EMOTE_GUILD = 899109600509448232
+    _srs_datas: dict[QingqueLanguage, SRSDataLoader]
 
     def __init__(self, config: QingqueConfig, *, intents: Intents, **options: Any) -> None:
         super().__init__(intents=intents, **options)
@@ -106,6 +109,9 @@ class QingqueClient(discord.Client):
             raise RuntimeError("Redis client is not setup yet.")
         return self._redis
 
+    def get_srs(self, lang: QingqueLanguage) -> SRSDataLoader:
+        return self._srs_datas[lang]
+
     async def setup_hook(self) -> None:
         self.logger.info("Setting up the bot...")
         await self.tree.set_translator(QingqueClientI18n())
@@ -128,6 +134,12 @@ class QingqueClient(discord.Client):
             hoyolab = HYLabClient(self._config.hoyolab.ltuid, self._config.hoyolab.ltoken)
             self.logger.info("HYLab client connected.")
             self._hoyoapi = hoyolab
+        logger.info("Setting up SRS data...")
+        for lang in list(QingqueLanguage):
+            loader = SRSDataLoader(lang.to_mihomo())
+            logger.debug(f"Loading SRS data for {lang}...")
+            await loader.async_loads()
+            self._srs_datas[lang] = loader
         await self.load_extensions()
         self.logger.info("Syncing commands...")
         await self.tree.sync()
@@ -186,6 +198,13 @@ class QingqueClient(discord.Client):
             self.logger.info("Closing Redis client...")
             await self._redis.close()
             self.logger.info("Redis client closed.")
+
+        srs_data: dict[QingqueLanguage, SRSDataLoader] | None = getattr(self, "_srs_datas", None)
+        if srs_data is not None:
+            self.logger.info("Unloading SRS data...")
+            for loader in srs_data.values():
+                loader.unloads()
+            self.logger.info("SRS data unloaded.")
 
         return await super().close()
 

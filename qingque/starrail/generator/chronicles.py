@@ -25,15 +25,19 @@ SOFTWARE.
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from typing import TYPE_CHECKING
 
-from qingque.hylab.models.base import HYLanguage
 from qingque.hylab.models.notes import ChronicleNotes
 from qingque.hylab.models.overview import ChronicleOverview, ChronicleUserInfo, ChronicleUserOverview
-from qingque.i18n import QingqueLanguage
 from qingque.mihomo.models.constants import MihomoLanguage
 from qingque.tooling import get_logger
 
 from .base import StarRailDrawing, StarRailDrawingLogger
+
+if TYPE_CHECKING:
+    from qingque.hylab.models.base import HYLanguage
+    from qingque.i18n import QingqueLanguage
+    from qingque.starrail.loader import SRSDataLoader
 
 __all__ = ("StarRailChronicleNotesCard",)
 
@@ -48,8 +52,9 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         chronicle: ChronicleNotes,
         *,
         language: MihomoLanguage | HYLanguage | QingqueLanguage = MihomoLanguage.EN,
+        loader: SRSDataLoader | None = None,
     ) -> None:
-        super().__init__(language=language)
+        super().__init__(language=language, loader=loader)
         self._chronicle: ChronicleNotes = chronicle
 
         overall = overview.overview
@@ -474,5 +479,4 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         bytes_io.seek(0)
         all_bytes = await self._loop.run_in_executor(None, bytes_io.read)
         bytes_io.close()
-        self._index_data.unloads()
         return all_bytes

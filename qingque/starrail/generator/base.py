@@ -76,9 +76,32 @@ class StarRailDrawingLogger(LoggerAdapter):
 
 
 class StarRailDrawing:
+    """The base class for drawing Honkai: Star Rail profile cards.
+
+    Raises
+    ------
+    :class:`RuntimeError`
+        Canvas is not initialized, and no canvas is provided.
+    """
+
     _canvas: Image.Image
 
-    def __init__(self, *, language: MihomoLanguage | HYLanguage | QingqueLanguage = MihomoLanguage.EN) -> None:
+    def __init__(
+        self,
+        *,
+        language: MihomoLanguage | HYLanguage | QingqueLanguage = MihomoLanguage.EN,
+        loader: SRSDataLoader | None = None,
+    ) -> None:
+        """Initialize the asynchronous drawing mechanism.
+
+        Parameters
+        ----------
+        language: :class:`MihomoLanguage` | :class`HYLanguage` | :class`QingqueLanguage`, optional
+            The language to use, by default MihomoLanguage.EN
+        loader: :class:`SRSDataLoader` | :class:`None`, optional
+            The data loader, can be passed to reuse the same data loader, by default None
+        """
+
         if isinstance(language, HYLanguage):
             language = language.mihomo
         elif isinstance(language, QingqueLanguage):
@@ -91,7 +114,11 @@ class StarRailDrawing:
             self._i18n = get_i18n().copy(QingqueLanguage.from_mihomo(self._language))
 
         self._assets_folder = AsyncPath(__file__).parent.parent.parent / "assets" / "srs"
-        self._index_data: SRSDataLoader = SRSDataLoader(self._language)
+        self._index_data: SRSDataLoader = loader or SRSDataLoader(self._language)
+        if loader is not None:
+            if self._index_data.language != self._language:
+                self._index_data.unloads()
+                self._index_data.language = self._language
 
         self._foreground: RGB = (255, 255, 255)
         self._background: RGB = (0, 0, 0)
@@ -101,17 +128,71 @@ class StarRailDrawing:
         self._extend_down_by: int = 0
         self._extend_right_by: int = 0
 
-    def _make_canvas(self, *, width: int, height: int, color: RGB = (255, 255, 255)) -> None:
+    def _make_canvas(self, *, width: int, height: int, color: int | RGB = (255, 255, 255)) -> None:
+        """Create the base canvas.
+
+        Parameters
+        ----------
+        width: :class:`int`
+            The width of the canvas.
+        height: :class:`int`
+            The height of the canvas.
+        color: :class:`int` | :class:`RGB`, optional
+            The tuple or single number of the initial color, by default (255, 255, 255)
+        """
+
         self._canvas = Image.new("RGBA", (width, height), color)
 
     def has_canvas(self) -> bool:
+        """
+        Check if the canvas is initialized.
+
+        Returns
+        -------
+        :class:`bool`
+            Whether the canvas is initialized.
+        """
+
         return hasattr(self, "_canvas")
 
     async def _create_font(self, font_path: AsyncPath, size: int = 20) -> ImageFont.FreeTypeFont:
+        """Create a free type font to be used to writing text.
+
+        Parameters
+        ----------
+        font_path: :class:`AsyncPath`
+            The font path.
+        size: :class:`int`, optional
+            The font size, by default 20
+
+        Returns
+        -------
+        :class:`ImageFont.FreeTypeFont`
+            The font object.
+        """
+
         font = await self._loop.run_in_executor(None, ImageFont.truetype, str(font_path), size)
         return font
 
     async def _get_draw(self, *, canvas: Image.Image | None = None) -> ImageDraw.ImageDraw:
+        """Get the draw object for a canvas.
+
+        Parameters
+        ----------
+        canvas: :class:`Image.Image` | None, optional
+            The canvas you want to get the draw object from, default to the base canvas.
+
+        Returns
+        -------
+        :class:`ImageDraw.ImageDraw`
+            The draw object of a canvas.
+
+        Raises
+        ------
+        :class:`RuntimeError`
+            Canvas is not initialized, and no canvas is provided.
+        """
+
         if not self.has_canvas() and canvas is None:
             raise RuntimeError("Canvas is not initialized, and no canvas is provided.")
         canvas = canvas or self._canvas
@@ -162,6 +243,41 @@ class StarRailDrawing:
         canvas: Image.Image | None = None,
         **kwargs: Any,
     ) -> float:
+        """Write a text into the canvas, with automatic elipsis application and cut off.
+
+        Parameters
+        ----------
+        content: :class:`str`
+            The content to write.
+        box: :class:`tuple[float, float]` | :class:`tuple[float, float, float, float]`
+            The box boundary to write. (top-left, bottom-right) or (top-left, top-right, bottom-left, bottom-right).
+            If using the later, the text will be cut off if it exceeds the box.
+        font_size: :class:`int`, optional
+            The font size, by default 20
+        font_path: :class:`AsyncPath` | None, optional
+            The font path, by default None
+        color: :class:`tuple[int, int, int]` | None, optional
+            The color of the text, by default None
+        no_elipsis: :class:`bool`, optional
+            Whether to disable applying an elipsis `...` to the text when it exceeds the box, by default False
+        alpha: :class:`int`, optional
+            The alpha of the text, by default 255
+        canvas: :class:`Image.Image` | None, optional
+            The canvas you want to get the draw object from, default to the base canvas.
+        kwargs: :class:`Any`
+            The keyword arguments to pass to the draw.text function.
+
+        Returns
+        -------
+        :class:`float`
+            The length of the text.
+
+        Raises
+        ------
+        :class:`RuntimeError`
+            Canvas is not initialized, and no canvas is provided.
+        """
+
         if not self.has_canvas() and canvas is None:
             raise RuntimeError("Canvas is not initialized, and no canvas is provided.")
         kwargs.pop("fill", None)
@@ -223,6 +339,32 @@ class StarRailDrawing:
         canvas: Image.Image | None = None,
         direction: Literal["ltr", "rtl"] = "ltr",
     ) -> float:
+        """Calculate how much space a text will take.
+
+        Parameters
+        ----------
+        content: :class:`str`
+            The content to write.
+        font_size: :class:`int`, optional
+            The font size, by default 20
+        font_path: :class:`AsyncPath` | None, optional
+            The font path, by default None
+        canvas: :class:`Image.Image` | None, optional
+            The canvas you want to get the draw object from, default to the base canvas.
+        direction: :class:`Literal["ltr", "rtl"]`, optional
+            The direction of the text, by default "ltr"
+
+        Returns
+        -------
+        :class:`float`
+            The length of the text.
+
+        Raises
+        ------
+        :class:`RuntimeError`
+            Canvas is not initialized, and no canvas is provided.
+        """
+
         if not self.has_canvas() and canvas is None:
             raise RuntimeError("Canvas is not initialized, and no canvas is provided.")
         canvas = canvas or self._canvas
@@ -271,6 +413,11 @@ class StarRailDrawing:
             Used with anti-aliasing. Defaults to :class:`PIL.Image.LANCZOS`.
         canvas: :class:`PIL.Image.Image`
             The canvas to draw on, defaults to the current canvas.
+
+        Raises
+        ------
+        :class:`RuntimeError`
+            Canvas is not initialized, and no canvas is provided.
         """
 
         if not self.has_canvas() and canvas is None:
@@ -316,7 +463,7 @@ class StarRailDrawing:
         await self._loop.run_in_executor(None, draw_polygon, square_verticies)
         # Downsample the mask if angle is not 0.0
         if angle != 0.0:
-            mask = await self._loop.run_in_executor(None, mask.resize, canvas.size, resampling)
+            mask = await self._resize_image(mask, canvas.size, resampling=resampling)
         await self._paste_image(fill, mask=mask, canvas=canvas)
 
     async def _create_box_2_gradient(
@@ -327,6 +474,25 @@ class StarRailDrawing:
         *,
         canvas: Image.Image | None = None,
     ) -> None:
+        """Create a box with 2 color gradient.
+
+        Parameters
+        ----------
+        bounds: :class:`tuple[Number, Number, Number, Number]`
+            The box boundary to create. (top-left, bottom-right)
+        colors: :class:`tuple[RGB, RGB]`
+            The colors of the gradient.
+        movement: :class:`Literal["hor", "vert"]`, optional
+            The direction of the gradient, by default "vert"
+        canvas: :class:`PIL.Image.Image`
+            The canvas to draw on, defaults to the current canvas.
+
+        Raises
+        ------
+        :class:`RuntimeError`
+            Canvas is not initialized, and no canvas is provided.
+        """
+
         canvas = canvas or self._canvas
         width = int(round(bounds[2] - bounds[0]))
         height = int(round(bounds[3] - bounds[1]))
@@ -336,16 +502,14 @@ class StarRailDrawing:
         mask_data = []
         for y in range(height):
             mask_data.extend([int(255 * (y / height))] * width)  # type: ignore
-        if movement == "hor":
-            # Transpose the mask data
-            mask_data = [mask_data[y::height] for y in range(height)]
-            # Flatten the mask data
-            mask_data = [item for sublist in mask_data for item in sublist]
         await self._loop.run_in_executor(
             None,
             mask.putdata,
             mask_data,
         )
+        if movement == "hor":
+            # Transpose the mask
+            mask = await self._loop.run_in_executor(None, mask.transpose, Image.Transpose.ROTATE_90)
         await self._paste_image(
             top,
             (0, 0),
@@ -354,7 +518,7 @@ class StarRailDrawing:
         )
         await self._paste_image(base, (bounds[0], bounds[1]), canvas=canvas)
 
-    async def _create_circle(
+    async def _create_outline_circle(
         self,
         bounds: list[int],
         width: int = 1,
@@ -363,9 +527,30 @@ class StarRailDrawing:
         *,
         canvas: Image.Image | None = None,
     ) -> None:
-        """Improved ellipse drawing function, based on PIL.ImageDraw.
+        """Create an outlined circle on the canvas.
+
+        This version of the function is better than the original one, since it uses
+        anti-aliasing to create a smoother outline.
 
         Source: https://stackoverflow.com/a/34926008
+
+        Parameters
+        ----------
+        bounds: :class:`list[int]`
+            The bounds of the circle. (left, top, right, bottom)
+        width: :class:`int`, optional
+            The width of the outline, by default 1
+        outline: :class:`tuple[int, int, int]`, optional
+            The color of the outline, by default (255, 255, 255)
+        antialias: :class:`int`, optional
+            The antialiasing level to use when drawing the box, by default 4
+        canvas: :class:`PIL.Image.Image`
+            The canvas to draw on, defaults to the current canvas.
+
+        Raises
+        ------
+        :class:`RuntimeError`
+            Canvas is not initialized, and no canvas is provided.
         """
 
         if not self.has_canvas() and canvas is None:
@@ -387,7 +572,7 @@ class StarRailDrawing:
 
         # downsample the mask using PIL.Image.LANCZOS
         # (a high-quality downsampling filter).
-        mask = await self._loop.run_in_executor(None, mask.resize, canvas.size, Image.LANCZOS)
+        mask = await self._resize_image(mask, canvas.size, resampling=Image.Resampling.LANCZOS)
         # paste outline color to input image through the mask
         await self._paste_image(outline, mask=mask, canvas=canvas)
 
@@ -406,18 +591,93 @@ class StarRailDrawing:
         *,
         canvas: Image.Image | None = None,
     ) -> None:
+        """Paste an image onto the canvas.
+
+        Parameters
+        ----------
+        img: :class:`PIL.Image.Image` | :class:`tuple[int, int, int]`
+            The image or color to paste.
+        box: :class:`tuple[float, float]` | :class:`tuple[float, float, float, float]` | None, optional
+            The box boundary to paste. (top-left, bottom-right) or (top-left, top-right, bottom-left, bottom-right).
+        mask: :class:`PIL.Image.Image` | None, optional
+            The mask to use, by default None
+        canvas: :class:`PIL.Image.Image` | None, optional
+            The canvas to draw on, defaults to the current canvas.
+
+        Raises
+        ------
+        :class:`RuntimeError`
+            Canvas is not initialized, and no canvas is provided.
+        """
+
         if not self.has_canvas() and canvas is None:
             raise RuntimeError("Canvas is not initialized, and no canvas is provided.")
         canvas = canvas or self._canvas
         await self._loop.run_in_executor(None, canvas.paste, img, box, mask)
 
     async def _crop_image(self, img: Image.Image, box: tuple[float, float, float, float]) -> Image.Image:
+        """Crop an image.
+
+        Parameters
+        ----------
+        img: :class:`PIL.Image.Image`
+            The image to crop.
+        box: :class:`tuple[float, float, float, float]`
+            The box boundary to crop. (top-left, bottom-right)
+
+        Returns
+        -------
+        :class:`PIL.Image.Image`
+            The cropped image.
+
+        """
+
         return await self._loop.run_in_executor(None, img.crop, box)
 
-    async def _resize_image(self, img: Image.Image, size: tuple[int, int]) -> Image.Image:
-        return await self._loop.run_in_executor(None, img.resize, size)
+    async def _resize_image(
+        self, img: Image.Image, size: tuple[int, int], resampling: Image.Resampling | None = None
+    ) -> Image.Image:
+        """Resize an image.
+
+        Parameters
+        ----------
+        img: :class:`PIL.Image.Image`
+            The image to resize.
+        box: :class:`tuple[float, float, float, float]`
+            The box boundary to crop. (top-left, bottom-right)
+        resampling: :class:`PIL.Image.Resampling`, optional
+            The resampling method to use when resizing the mask.
+            If not provided, will use the default resampling method
+
+        Returns
+        -------
+        :class:`PIL.Image.Image`
+            The cropped image.
+        """
+
+        return await self._loop.run_in_executor(None, img.resize, size, resampling)
 
     async def _async_open(self, img_path: AsyncPath) -> Image.Image:
+        """Open an image asynchronously.
+
+        Parameters
+        ----------
+        img_path: :class:`AsyncPath`
+            The image path.
+
+        Returns
+        -------
+        :class:`PIL.Image.Image`
+            The opened image.
+
+        Raises
+        ------
+        :class:`FileNotFoundError`
+            The file is not found.
+        :class:`PIL.UnidentifiedImageError`
+            The file is not a valid image.
+        """
+
         io = BytesIO()
         read_data = await img_path.read_bytes()
         io.write(read_data)
@@ -427,16 +687,38 @@ class StarRailDrawing:
         return as_image
 
     async def _async_save_bytes(self, canvas: Image.Image) -> BytesIO:
+        """Save the canvas as :class:`BytesIO` asynchronously.
+
+        Parameters
+        ----------
+        canvas: :class:`PIL.Image.Image`
+            The canvas to save.
+
+        Returns
+        -------
+        :class:`BytesIO`
+            The saved canvas.
+        """
+
         io = BytesIO()
         await self._loop.run_in_executor(None, canvas.save, io, "PNG")
         io.seek(0)
         return io
 
     async def _async_close(self, canvas: Image.Image) -> None:
+        """Close the canvas asynchronously.
+
+        Parameters
+        ----------
+        canvas: :class:`PIL.Image.Image`
+            The canvas to close.
+        """
+
         await self._loop.run_in_executor(None, canvas.close)
 
     async def create(self, **kwargs: Any) -> bytes:
         """
         Create the card.
         """
+
         raise NotImplementedError

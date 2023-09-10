@@ -46,6 +46,7 @@ from qingque.models.persistence import QingqueProfile, QingqueProfileV2
 from qingque.redisdb import RedisDatabase
 from qingque.starrail.generator import StarRailMihomoCard
 from qingque.starrail.generator.chronicles import StarRailChronicleNotesCard
+from qingque.starrail.loader import SRSDataLoader
 from qingque.tooling import get_logger
 
 __all__ = ("qqprofile_srprofile",)
@@ -69,10 +70,15 @@ async def get_profile_from_persistent(discord_id: int, redis: RedisDatabase) -> 
 
 
 async def _batch_gen_player_card(
-    idx: int, player: PlayerInfo, character: Character, t: PartialTranslate
+    idx: int,
+    player: PlayerInfo,
+    character: Character,
+    t: PartialTranslate,
+    language: QingqueLanguage,
+    loader: SRSDataLoader,
 ) -> tuple[FileBytes, discord.Embed, int]:
     logger.info(f"Generating character {character.name} profile card for UID {player.id}")
-    card_char = StarRailMihomoCard(character, player)
+    card_char = StarRailMihomoCard(character, player, language=language, loader=loader)
     card_data = await card_char.create()
 
     logger.info(f"Adding character {character.name} profile card for UID {player.id}")
@@ -152,7 +158,14 @@ async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: in
     embeds: list[discord.Embed] = []
     files: list[discord.File] = []
     task_creation: list[Coroutine[Any, Any, tuple[FileBytes, discord.Embed, int]]] = [
-        _batch_gen_player_card(idx, data_player.player, character, t)
+        _batch_gen_player_card(
+            idx,
+            data_player.player,
+            character,
+            t,
+            lang,
+            inter.client.get_srs(lang),
+        )
         for idx, character in enumerate(data_player.characters)
     ]
     task_executor: list[tuple[FileBytes, discord.Embed, int]] = await asyncio.gather(*task_creation)
@@ -282,8 +295,15 @@ async def qqprofile_srchronicle(inter: discord.Interaction[QingqueClient]):
     descriptions.append(f"**{t('echo_of_war')}**: {hoyo_realtime.eow_available:,}/{hoyo_realtime.eow_limit:,}")
     embed.description = "\n".join(descriptions)
 
+    loader = inter.client.get_srs(lang)
+
     logger.info(f"Generating profile card for {sel_uid}...")
-    card_char = StarRailChronicleNotesCard(hoyo_overview, hoyo_realtime)
+    card_char = StarRailChronicleNotesCard(
+        hoyo_overview,
+        hoyo_realtime,
+        language=lang,
+        loader=loader,
+    )
     card_data = await card_char.create()
 
     card_io = BytesIO(card_data)

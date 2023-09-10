@@ -24,12 +24,11 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from typing import TypeAlias, cast
+from typing import TYPE_CHECKING, TypeAlias, cast
 
 from aiopath import AsyncPath
 from PIL import Image
 
-from qingque.i18n import QingqueI18n, QingqueLanguage, get_i18n
 from qingque.mihomo.models.base import MihomoBase
 from qingque.mihomo.models.characters import Character
 from qingque.mihomo.models.combats import ElementType, SkillTrace, SkillUsageType
@@ -42,6 +41,11 @@ from qingque.starrail.models.relics import SRSRelicType
 from qingque.tooling import get_logger
 
 from .base import RGB, StarRailDrawing, StarRailDrawingLogger
+
+if TYPE_CHECKING:
+    from qingque.hylab.models import HYLanguage
+    from qingque.i18n import PartialTranslate, QingqueI18n, QingqueLanguage
+    from qingque.starrail.loader import SRSDataLoader
 
 __all__ = (
     "SRSCardStats",
@@ -91,20 +95,18 @@ _COLOR_DOMINANT: dict[str, RGB | list[RGB]] = {
 _MetaStats: TypeAlias = dict[StatsField, int | float]
 
 
-def _get_player_server(server: HYVServer, language: MihomoLanguage) -> str:
-    i18n = get_i18n()
-    lang = QingqueLanguage.from_mihomo(language)
+def _get_player_server(server: HYVServer, i18n: PartialTranslate) -> str:
     match server:
         case HYVServer.ChinaA | HYVServer.ChinaB | HYVServer.ChinaC:
-            return i18n.t("region.short.china", language=lang)
+            return i18n("region.short.china")
         case HYVServer.NorthAmerica:
-            return i18n.t("region.short.na", language=lang)
+            return i18n("region.short.na")
         case HYVServer.Europe:
-            return i18n.t("region.short.eur", language=lang)
+            return i18n("region.short.eur")
         case HYVServer.Asia:
-            return i18n.t("region.short.asia", language=lang)
+            return i18n("region.short.asia")
         case HYVServer.Taiwan:
-            return i18n.t("region.short.taiwan", language=lang)
+            return i18n("region.short.taiwan")
 
 
 # Sizing:
@@ -155,9 +157,10 @@ class StarRailMihomoCard(StarRailDrawing):
         character: Character,
         player: PlayerInfo,
         *,
-        language: MihomoLanguage | QingqueLanguage = MihomoLanguage.EN,
+        language: MihomoLanguage | QingqueLanguage | HYLanguage = MihomoLanguage.EN,
+        loader: SRSDataLoader | None = None,
     ) -> None:
-        super().__init__(language=language)
+        super().__init__(language=language, loader=loader)
         self.logger = get_logger(
             "qingque.starrail.generator.mihomo",
             adapter=StarRailDrawingLogger.create(f"UID-{player.id}/C-{character.id}"),
@@ -911,7 +914,7 @@ class StarRailMihomoCard(StarRailDrawing):
             (self.RELIC_LEFT, self.CHARACTER_TOP - 144),
             avatar_icon,
         )
-        await self._create_circle(
+        await self._create_outline_circle(
             [self.RELIC_LEFT, self.CHARACTER_TOP - 144, self.RELIC_LEFT + 120, self.CHARACTER_TOP - 144 + 120],
             4,
             self._foreground,
@@ -965,7 +968,7 @@ class StarRailMihomoCard(StarRailDrawing):
         height_mid = starting_foot + ((main_canvas.height - starting_foot) // 2) + 8
         player_uid = f"UID: {self._player.id}"
         if player_region is not None:
-            player_reg_name = _get_player_server(player_region, self._language)
+            player_reg_name = _get_player_server(player_region, self._i18n.t)
             player_uid += f" | {t('mihomo.region')}: {player_reg_name}"
         player_uid += f" | {t('mihomo.level')}: {self._player.level:02d}"
         if hide_uid:
@@ -1005,5 +1008,4 @@ class StarRailMihomoCard(StarRailDrawing):
         bytes_io.seek(0)
         all_bytes = await self._loop.run_in_executor(None, bytes_io.read)
         bytes_io.close()
-        self._index_data.unloads()
         return all_bytes
