@@ -3,7 +3,7 @@
     "light_cones": "Conos de luz",
     "rogue": "Universo Simulado",
     "rogue_world": "Mundo {0}",
-    "rogue_locust": "Swarm Disaster",
+    "rogue_locust": "La Plaga",
     "abyss": "Salón olvidado",
     "abyss_hard": "Evocación caótica",
     "character_header": "{0} (Niv. {1})",
@@ -26,6 +26,6 @@
         "overview": "Registro de batalla",
         "rogue": "Registro de batalla — Universo Simulado",
         "abyss": "Registro de batalla — Evocación caótica",
-        "rogue_locust": "Battle Chronicles — Simulated Universe: Swarm Disaster"
+        "rogue_locust": "Registro de batalla — Universo Simulado: La Plaga"
     }
 }

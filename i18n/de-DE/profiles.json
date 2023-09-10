@@ -3,7 +3,7 @@
     "light_cones": "Lichtkegel",
     "rogue": "Universum-Simulation",
     "rogue_world": "Welt {0}",
-    "rogue_locust": "Swarm Disaster",
+    "rogue_locust": "Schwarmkatastrophe",
     "abyss": "Vergessene Halle",
     "abyss_hard": "Chaos-Erinnerung",
     "character_header": "{0} (Lv. {1})",
@@ -26,6 +26,6 @@
         "overview": "Kampferfolge",
         "rogue": "Kampferfolge — Universum-Simulation",
         "abyss": "Kampferfolge — Chaos-Erinnerung",
-        "rogue_locust": "Battle Chronicles — Simulated Universe: Swarm Disaster"
+        "rogue_locust": "Kampferfolge — Universum-Simulation: Schwarmkatastrophe"
     }
 }
