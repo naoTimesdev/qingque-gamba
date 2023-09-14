@@ -31,7 +31,7 @@ from .common import ChronicleDate, HYElementType
 __all__ = (
     "ChronicleFHCharacter",
     "ChronicleFHNode",
-    "ChroniclesFHFloor",
+    "ChronicleFHFloor",
     "ChronicleForgottenHall",
 )
 
@@ -43,6 +43,8 @@ class ChronicleFHCharacter(Struct):
     """:class:`str`: The URL of the character's icon."""
     rarity: int
     """:class:`int`: The rarity of the character."""
+    level: int
+    """:class:`int`: The level of the character."""
     eidolon: int = field(name="rank")
     """:class:`int`: The total of activated eidolon of a character."""
     element: HYElementType
@@ -71,7 +73,7 @@ class ChronicleFHNode(Struct):
     """:class:`list[ChronicleMoCCharacter]`: The list of characters used for the node."""
 
 
-class ChroniclesFHFloor(Struct):
+class ChronicleFHFloor(Struct):
     name: str
     """:class:`str`: The name of the floor."""
     is_chaos: bool
@@ -101,5 +103,5 @@ class ChronicleForgottenHall(Struct):
     """:class:`int`: The total battles conducted for this forgotten hall."""
     has_data: bool
     """:class:`bool`: Whether the forgotten hall has data or not."""
-    floors: list[ChroniclesFHFloor] = field(name="all_floor_detail")
+    floors: list[ChronicleFHFloor] = field(name="all_floor_detail")
     """:class:`list[ChroniclesFHFloor]`: The list of floors for the forgotten hall."""

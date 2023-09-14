@@ -25,6 +25,7 @@ SOFTWARE.
 from __future__ import annotations
 
 from datetime import datetime as dt
+from datetime import timedelta, timezone
 from enum import Enum
 
 from msgspec import Struct
@@ -46,6 +47,13 @@ class HYElementType(str, Enum):
 
     Unknown = ""
 
+    @property
+    def icon_url(self) -> str:
+        """:class:`str`: The URL of the element's icon."""
+        if self == HYElementType.Unknown:
+            return "icon/element/None.png"
+        return f"icon/element/{self.name}.png"
+
 
 class ChronicleDate(Struct):
     year: int
@@ -61,4 +69,5 @@ class ChronicleDate(Struct):
 
     @property
     def datetime(self) -> dt:
-        return dt(self.year, self.month, self.day, self.hour, self.minute)
+        tz = timezone(timedelta(hours=8), "Asia/Shanghai")
+        return dt(self.year, self.month, self.day, self.hour, self.minute, tzinfo=tz)

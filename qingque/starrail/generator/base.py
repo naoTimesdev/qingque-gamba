@@ -46,6 +46,7 @@ __all__ = (
     "StarRailDrawingLogger",
     "RGB",
 )
+RGBA: TypeAlias = tuple[int, int, int, int]
 RGB: TypeAlias = tuple[int, int, int]
 Number: TypeAlias = int | float
 
@@ -386,7 +387,7 @@ class StarRailDrawing:
     async def _create_box(
         self,
         box: tuple[tuple[float, float], tuple[float, float]],
-        color: RGB | None = None,
+        color: RGB | RGBA | None = None,
         width: int = 0,
         angle: int | float = 0,
         antialias: int = 4,
@@ -589,7 +590,7 @@ class StarRailDrawing:
 
     async def _paste_image(
         self,
-        img: Image.Image | RGB,
+        img: Image.Image | RGB | RGBA,
         box: tuple[float, float] | tuple[float, float, float, float] | None = None,
         mask: Image.Image | None = None,
         *,

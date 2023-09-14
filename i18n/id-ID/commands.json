@@ -9,6 +9,11 @@
     "srsimuniverse": {
         "desc": "See your simulated universe progress from HoyoLab."
     },
+    "srmoc": {
+        "desc": "See your Memory of Chaos data from HoyoLab.",
+        "previous_desc": "See the previous period instead of the current one.",
+        "no_data": "No challenge data found for this period."
+    },
     "srbind": {
         "ask_action": "What do you want to do with UID `{uid}`?",
         "desc": "Bind UID akun dengan akun Discord anda.",

@@ -38,6 +38,7 @@ from qingque.bot import QingqueClient
 from qingque.extensions.files import FileBytes
 from qingque.hylab.models.base import HYLanguage
 from qingque.hylab.models.errors import HYDataNotPublic
+from qingque.hylab.models.forgotten_hall import ChronicleFHFloor, ChronicleForgottenHall
 from qingque.hylab.models.simuniverse import (
     ChronicleRogueLocustDetailRecord,
     ChronicleRogueLocustOverview,
@@ -54,9 +55,11 @@ from qingque.models.persistence import QingqueProfile, QingqueProfileV2
 from qingque.redisdb import RedisDatabase
 from qingque.starrail.generator import StarRailMihomoCard
 from qingque.starrail.generator.chronicles import StarRailChronicleNotesCard
+from qingque.starrail.generator.moc import StarRailMoCCard
 from qingque.starrail.generator.simuniverse import StarRailSimulatedUniverseCard
 from qingque.starrail.loader import SRSDataLoader
 from qingque.tooling import get_logger
+from qingque.utils import strip_unity_rich_text
 
 __all__ = (
     "qqprofile_srprofile",
@@ -562,6 +565,165 @@ async def qqprofile_srrogue(inter: discord.Interaction[QingqueClient]):
                 hoyo_locust.overview,
                 hoyo_locust.user,
                 f"Locust{idx:02d}",
+            )
+        )
+
+    task_executor: list[tuple[PagingChoice, str]] = await asyncio.gather(*task_managerials)
+    task_executor.sort(key=lambda x: x[1])
+    paging_choices: list[PagingChoice] = [x[0] for x in task_executor]
+
+    logger.info("Sending to Discord...")
+    pagination_view = EmbedPagingSelectView(paging_choices, inter.locale)
+    await pagination_view.start(original_message)
+
+
+async def _make_moc_card(
+    inter: discord.Interaction[QingqueClient],
+    floor: ChronicleFHFloor,
+    overall: ChronicleForgottenHall,
+    sorter: str,
+    previous_period: bool = False,
+) -> PagingChoice:
+    lang = QingqueLanguage.from_discord(inter.locale)
+    t = get_i18n_discord(inter.locale)
+    embed = discord.Embed(title=t("chronicle_titles.abyss"))
+    descriptions = []
+
+    start_time = int(overall.start_time.datetime.astimezone(timezone.utc).timestamp())
+    end_time = int(overall.end_time.datetime.astimezone(timezone.utc).timestamp())
+    period_desc = t("chronicles.moc_periods", [f"<t:{start_time}:f>", f"<t:{end_time}:f>"])
+    period_timing = t("chronicles.rogue.period_now") if not previous_period else t("chronicles.rogue.preiod_before")
+    period_desc = f"{period_desc} ({period_timing})"
+
+    descriptions.append(period_desc)
+    descriptions.append(f"**{t('chronicles.moc_stars')}**: {overall.total_stars:,}")
+    descriptions.append(f"**{t('chronicles.moc_battles')}**: {overall.total_battles:,}")
+    challenge_time = floor.node_1.challenge_time.datetime.astimezone(timezone.utc)
+    challenged_on = f"<t:{int(challenge_time.timestamp())}:f>"
+    challenged_tl = t("chronicles.challenged_on", ["REPLACEME"])
+    # Find REPLACEME
+    replace_me_idx = challenged_tl.find("REPLACEME")
+    # Add bold to the challenged on text but not the timestamp
+    challenged_tl = "**" + challenged_tl[:replace_me_idx] + "**: " + challenged_tl[replace_me_idx:]
+    challenged_tl = challenged_tl.replace("REPLACEME", challenged_on)
+    descriptions.append(challenged_tl)
+
+    gen_card = StarRailMoCCard(
+        floor,
+        language=lang,
+        loader=inter.client.get_srs(lang),
+    )
+
+    challenge_time_fmt = challenge_time.strftime("%a, %b %d %Y %H:%M")
+
+    card_bytes = await gen_card.create()
+    card_fn = f"MemoryOfChaos_{sorter}.png"
+    card_io = FileBytes(card_bytes, filename=card_fn)
+    title = strip_unity_rich_text(floor.name) + " | " + challenge_time_fmt
+    embed.description = "\n".join(descriptions)
+    embed.set_image(url=f"attachment://{card_fn}")
+    return PagingChoice(
+        title,
+        embed,
+        file=card_io,
+    )
+
+
+@app_commands.command(name="srmoc", description=locale_str("srmoc.desc"))
+@app_commands.describe(previous=locale_str("srmoc.previous_desc"))
+async def qqprofile_moc(inter: discord.Interaction[QingqueClient], previous: bool):
+    lang = QingqueLanguage.from_discord(inter.locale)
+    t = functools.partial(get_i18n().t, language=lang)
+
+    try:
+        hoyoapi = inter.client.hoyoapi
+    except RuntimeError:
+        logger.warning("HYLab API is not enabled.")
+        await inter.response.send_message(t("api_not_enabled"), ephemeral=True)
+        return
+
+    await inter.response.defer(ephemeral=False, thinking=True)
+
+    original_message = await inter.original_response()
+    profile = await get_profile_from_persistent(inter.user.id, inter.client.redis)
+    if profile is None:
+        return await original_message.edit(content=t("bind_uid"))
+    if len(profile.games) == 0:
+        return await original_message.edit(content=t("bind_uid"))
+
+    if profile.hylab_id is None:
+        logger.warning(f"Discord ID {inter.user.id} haven't binded their HoyoLab account yet.")
+        return await original_message.edit(content=t("bind_hoyolab"))
+
+    if len(profile.games) > 1:
+        select_account = AccountSelectView(profile.games, inter.locale, timeout=30)
+        original_message = await original_message.edit(content=t("srchoices.ask_account"), view=select_account)
+        await select_account.wait()
+
+        if (error := select_account.error) is not None:
+            logger.error(f"Error getting profile info for Discord ID {inter.user.id}: {error}")
+            error_message = str(error)
+            await original_message.edit(content=t("exception", [f"```{error_message}```"]))
+            return
+
+        if select_account.account is None:
+            return await original_message.edit(content=t("srchoices.timeout"))
+
+        sel_uid = select_account.account.uid
+    else:
+        sel_uid = profile.games[0].uid
+
+    logger.info(f"Getting profile memory of chaos for UID {sel_uid}")
+    try:
+        hoyo_moc = await hoyoapi.get_battle_chronicles_forgotten_hall(
+            sel_uid,
+            previous=previous,
+            hylab_id=profile.hylab_id,
+            hylab_token=profile.hylab_token,
+            lang=HYLanguage(lang.value.lower()),
+        )
+    except HYDataNotPublic:
+        logger.warning(f"UID {sel_uid} data is not public.")
+        await original_message.edit(content=t("hoyolab_public"))
+        return
+    except Exception as e:
+        logger.error(f"Error getting profile info for UID {sel_uid}: {e}")
+        error_message = str(e)
+        await original_message.edit(content=t("exception", [f"`{error_message}`"]))
+        return
+
+    if hoyo_moc is None:
+        logger.warning(f"UID {sel_uid} data is not available. (MoC)")
+        await original_message.edit(content=t("hoyolab_unavailable"))
+        return
+
+    if not hoyo_moc.has_data:
+        logger.warning(f"UID {sel_uid} has no data for this period. (MoC)")
+        await original_message.edit(content=t("srmoc.no_data"))
+        return
+
+    async def _run_moc_wrapper(
+        sorting: str,
+        floor: ChronicleFHFloor,
+        overall: ChronicleForgottenHall,
+    ):
+        logger.info(f"Generating moc card for {sel_uid} | {sorting}...")
+        data = await _make_moc_card(
+            inter,
+            floor,
+            overall,
+            sorting,
+            previous_period=previous,
+        )
+        return data, sorting
+
+    task_managerials: list[Coroutine[Any, Any, tuple[PagingChoice, str]]] = []
+    for idx, floor in enumerate(hoyo_moc.floors):
+        task_managerials.append(
+            _run_moc_wrapper(
+                f"01_{idx:03d}",
+                floor,
+                hoyo_moc,
             )
         )
 
