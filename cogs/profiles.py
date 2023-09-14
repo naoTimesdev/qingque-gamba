@@ -631,7 +631,7 @@ async def _make_moc_card(
 
 @app_commands.command(name="srmoc", description=locale_str("srmoc.desc"))
 @app_commands.describe(previous=locale_str("srmoc.previous_desc"))
-async def qqprofile_moc(inter: discord.Interaction[QingqueClient], previous: bool):
+async def qqprofile_moc(inter: discord.Interaction[QingqueClient], previous: bool = False):
     lang = QingqueLanguage.from_discord(inter.locale)
     t = functools.partial(get_i18n().t, language=lang)
 
