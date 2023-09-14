@@ -63,6 +63,8 @@ def rotate_square_points(ax: float, ay: float, bx: float, by: float, angle: int 
 
 
 class StarRailDrawingLogger(LoggerAdapter):
+    """A logger adapter for StarRailDrawing."""
+
     def __init__(self, logger: Logger, *, metadata: str) -> None:
         super().__init__(logger, {})
         self.metadata = metadata
