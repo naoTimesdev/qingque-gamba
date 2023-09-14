@@ -68,6 +68,21 @@ class HYLabClient:
     async def close(self) -> None:
         await self._client.close()
 
+    def _merge_cookies(self, child: dict[str, str] | None = None) -> dict[str, str]:
+        base = {
+            "ltuid": str(self._ltuid),
+            "ltoken": self._ltoken,
+        }
+        if child is None:
+            return base
+        ltuid_child = child.get("ltuid")
+        ltoken_child = child.get("ltoken")
+        if ltuid_child is not None and ltuid_child != base["ltuid"] and ltoken_child is None:
+            # Drop ltoken
+            base.pop("ltoken", None)
+        base.update(child)
+        return base
+
     @overload
     async def _request(
         self,
@@ -122,16 +137,10 @@ class HYLabClient:
                 "Origin": self.HOYOLAB,
             }
         )
-        default_cookies = {
-            "ltuid": str(self._ltuid),
-            "ltoken": self._ltoken,
-        }
-        if cookies is not None:
-            default_cookies.update(cookies)
 
         kwargs_body: dict[str, Any] = {
             "headers": headers,
-            "cookies": default_cookies,
+            "cookies": self._merge_cookies(cookies),
         }
         if body is not None and method == "POST":
             kwargs_body["json"] = body
