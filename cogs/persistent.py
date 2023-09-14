@@ -161,7 +161,7 @@ async def qqpersist_srbind(inter: discord.Interaction[QingqueClient], uid: int):
 async def qqpersist_srhoyobind(
     inter: discord.Interaction[QingqueClient],
     hoyo_id: int,
-    hoyo_token: str | None = None,
+    hoyo_token: str,
     hoyo_cookie: str | None = None,
 ):
     discord_id = inter.user.id
