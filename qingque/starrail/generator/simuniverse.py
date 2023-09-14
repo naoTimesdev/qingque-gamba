@@ -29,6 +29,7 @@ from typing import TYPE_CHECKING, ClassVar
 
 from qingque.hylab.models.simuniverse import (
     ChronicleRogueBlessingItem,
+    ChronicleRogueCurio,
     ChronicleRogueLocustDetailRecord,
     ChronicleRoguePeriodRun,
     ChronicleRogueUserInfo,
@@ -204,6 +205,132 @@ class StarRailSimulatedUniverseCard(StarRailDrawing):
             )
             await self._async_close(chara_icon)
 
+    async def _create_decoration(self, hide_credits: bool = False) -> None:
+        # DialogFrameDeco1.png (orig 395x495)
+
+        deco_top_right = await self._async_open(
+            self._assets_folder / "icon" / "deco" / "DecoShortLineRing177R@3x.png",
+        )
+        deco_top_right = await self._tint_image(deco_top_right, self._foreground)
+        await self._paste_image(
+            deco_top_right,
+            (self._canvas.width - deco_top_right.width, 0),
+            deco_top_right,
+        )
+
+        deco_bot_left = await self._async_open(
+            self._assets_folder / "icon" / "deco" / "DialogFrameDeco1.png",
+        )
+        deco_bot_left = await self._tint_image(deco_bot_left, self._foreground)
+        deco_bot_left = await self._resize_image(deco_bot_left, (160, 200))
+        await self._paste_image(
+            deco_bot_left,
+            (0, self._canvas.height - deco_bot_left.height),
+            deco_bot_left,
+        )
+
+        deco_bot_right = await self._async_open(
+            self._assets_folder / "icon" / "deco" / "DialogFrameDeco1@3x.png",
+        )
+        deco_bot_right = await self._tint_image(deco_bot_right, self._foreground)
+        deco_bot_right_mid = (deco_bot_right.height // 2) - (deco_bot_right.height // 6)
+
+        await self._paste_image(
+            deco_bot_right,
+            (
+                self._canvas.width - deco_bot_right.width + deco_bot_right_mid,
+                self._canvas.height - deco_bot_right.height + deco_bot_right_mid,
+            ),
+            deco_bot_right,
+        )
+
+        # Bottom middle
+        deco_bot_mid = await self._async_open(self._assets_folder / "icon" / "deco" / "NewSystemDecoLine.png")
+        deco_bot_mid = await self._tint_image(deco_bot_mid, self._foreground)
+        # 360 x 48, put in the middle with 25 padding
+
+        deco_bot_mid_vert_box = self._canvas.height - deco_bot_mid.height - 35
+        if not hide_credits:
+            deco_bot_mid_vert_box -= 10
+        await self._paste_image(
+            deco_bot_mid,
+            (
+                (self._canvas.width // 2) - (deco_bot_mid.width // 2),
+                deco_bot_mid_vert_box,
+            ),
+            deco_bot_mid,
+        )
+
+        # Close all images
+        await self._async_close(deco_top_right)
+        await self._async_close(deco_bot_left)
+        await self._async_close(deco_bot_right)
+        await self._async_close(deco_bot_mid)
+
+    async def _precalculate_blessings_and_curios(self):
+        MARGIN_TOP = self.MARGIN_TP + 450
+        ICON_SIZE = 50
+        MAX_WIDTH = self._canvas.width - self.MARGIN_LR - (ICON_SIZE * 2) - 60
+        TEXT_SIZE = 20
+        TEXT_MARGIN = 13
+
+        for blessing_info in self._record.blessings:
+            _temp_nested_blessings = []
+            _temp_current_length = 0
+            blessings = blessing_info.items
+            nested_blessings: list[list[ChronicleRogueBlessingItem]] = []
+            for blessing in blessings:
+                bless_item = self._index_data.simuniverse_blessings[str(blessing.id)]
+                calc_length = await self._calc_text(_text_fixup(bless_item.name), font_size=TEXT_SIZE)
+                _temp_current_length += calc_length + TEXT_MARGIN
+                if _temp_current_length >= MAX_WIDTH:
+                    nested_blessings.append(_temp_nested_blessings)
+                    _temp_nested_blessings = []
+                    _temp_current_length = calc_length + TEXT_MARGIN
+                _temp_nested_blessings.append(blessing)
+            if _temp_nested_blessings:
+                nested_blessings.append(_temp_nested_blessings)
+
+            for _ in nested_blessings:
+                MARGIN_TOP += 30
+            MARGIN_TOP -= 30
+            MARGIN_TOP += 65
+
+        MARGIN_TOP += 55
+        EXTRA_MARGIN = 10
+        ICON_SIZE = 50
+        ICON_MARGIN = 10
+        MAX_WIDTH = self._canvas.width - self.MARGIN_LR - ICON_MARGIN
+
+        nested_curios: list[list[ChronicleRogueCurio]] = []
+        _temp_curios = []
+        _counter = 0
+        for curio in self._record.curios:
+            calc_length = (_counter * ICON_SIZE) + (_counter * ICON_MARGIN)
+            if self.MARGIN_LR + calc_length >= MAX_WIDTH:
+                nested_curios.append(_temp_curios)
+                _temp_curios = []
+                _counter = 0
+            _temp_curios.append(curio)
+            _counter += 1
+        if _temp_curios:
+            nested_curios.append(_temp_curios)
+
+        for _ in nested_curios:
+            MARGIN_TOP += ICON_SIZE + ICON_MARGIN
+        MARGIN_TOP -= ICON_SIZE + ICON_MARGIN
+        MARGIN_TOP += EXTRA_MARGIN
+
+        # Automatic extend down
+        canvas_max = self._canvas.height - self.MARGIN_TP
+        bottom_part = MARGIN_TOP + 65
+        if bottom_part >= canvas_max:
+            # We need to extend the canvas.
+            extended = bottom_part - canvas_max
+            if extended < 0:
+                extended = canvas_max - bottom_part
+            await self._extend_canvas_down(int(round(extended)))
+
     async def _create_obtained_blessings(self) -> float:
         MARGIN_TOP = self.MARGIN_TP + 450
         ICON_SIZE = 50
@@ -256,21 +383,6 @@ class StarRailSimulatedUniverseCard(StarRailDrawing):
             if _temp_nested_blessings:
                 nested_blessings.append(_temp_nested_blessings)
 
-            total_xtend_down = 0
-            for _ in nested_blessings:
-                total_xtend_down += 30
-            total_xtend_down += 65
-
-            # Margin bottom + 65
-            canvas_max = self._canvas.height - self.MARGIN_TP
-            bottom_part = MARGIN_TOP + total_xtend_down
-            if bottom_part >= canvas_max:
-                # We need to extend the canvas.
-                extended = bottom_part - canvas_max
-                if extended < 0:
-                    extended = canvas_max - bottom_part
-                await self._extend_canvas_down(extended)
-
             for bless_nest in nested_blessings:
                 start_left = self.MARGIN_LR + 60
                 for blessing in bless_nest:
@@ -310,8 +422,54 @@ class StarRailSimulatedUniverseCard(StarRailDrawing):
 
         return MARGIN_TOP
 
-    async def _create_obtained_curios(self, margin_top: float):
-        pass
+    async def _create_obtained_curios(self, margin_top: float) -> float:
+        # Text header
+        await self._write_text(
+            self._i18n.t("chronicles.rogue.curios"),
+            (self.MARGIN_LR, margin_top + 30),
+            font_size=20,
+            anchor="ls",
+        )
+
+        EXTRA_MARGIN = 10
+        MARGIN_TOP = margin_top + 55
+        ICON_SIZE = 50
+        ICON_MARGIN = 10
+        MAX_WIDTH = self._canvas.width - self.MARGIN_LR - ICON_MARGIN
+
+        # We will create it into a nested blessings first before writing it.
+        nested_curios: list[list[ChronicleRogueCurio]] = []
+        _temp_curios = []
+        _counter = 0
+        for curio in self._record.curios:
+            calc_length = (_counter * ICON_SIZE) + (_counter * ICON_MARGIN)
+            if self.MARGIN_LR + calc_length >= MAX_WIDTH:
+                nested_curios.append(_temp_curios)
+                _temp_curios = []
+                _counter = 0
+            _temp_curios.append(curio)
+            _counter += 1
+        if _temp_curios:
+            nested_curios.append(_temp_curios)
+
+        for curio_nest in nested_curios:
+            for idx, curio in enumerate(curio_nest):
+                # Open the image
+                curio_info = self._index_data.simuniverse_curios[str(curio.id)]
+                curio_icon = await self._async_open(self._assets_folder / curio_info.icon_url)
+                # Resize
+                curio_icon = await self._resize_image(curio_icon, (ICON_SIZE, ICON_SIZE))
+                # Paste
+                marg_length = self.MARGIN_LR + (idx * ICON_SIZE) + (idx * ICON_MARGIN)
+                await self._paste_image(
+                    curio_icon,
+                    (marg_length, MARGIN_TOP),
+                    curio_icon,
+                )
+                await self._async_close(curio_icon)
+            MARGIN_TOP += ICON_SIZE + ICON_MARGIN
+        MARGIN_TOP -= ICON_SIZE + ICON_MARGIN
+        return MARGIN_TOP + EXTRA_MARGIN
 
     async def create(self, *, hide_credits: bool = False):
         self._assets_folder = await self._assets_folder.absolute()
@@ -319,16 +477,26 @@ class StarRailSimulatedUniverseCard(StarRailDrawing):
             raise FileNotFoundError("The assets folder does not exist.")
         await self._index_data.async_loads()
 
-        # Write the username
+        # Write the world header
         logger.info("Writing world header...")
         await self._create_world_header()
 
+        # Precalculate blessings and curios height so we can extend the canvas.
+        logger.info("Precalculating blessings and curios...")
+        await self._precalculate_blessings_and_curios()
+
+        logger.info("Creating decoration...")
+        await self._create_decoration(hide_credits=hide_credits)
+
+        # Create the character used.
         logger.info("Writing character profile...")
         await self._create_character_profile()
 
+        # Create blessings
         logger.info("Writing obtained blessings...")
         obtain_max = await self._create_obtained_blessings()
 
+        # Create curios
         logger.info("Writing obtained curios...")
         await self._create_obtained_curios(obtain_max)
 
@@ -345,10 +513,10 @@ class StarRailSimulatedUniverseCard(StarRailDrawing):
         if not hide_credits:
             await self._write_text(
                 self._i18n.t("chronicles.credits"),
-                (self._canvas.width - 20, self._canvas.height - 20),
-                font_size=20,
+                (self._canvas.width // 2, self._canvas.height - 20),
+                font_size=16,
                 alpha=128,
-                anchor="rs",
+                anchor="ms",
             )
 
         # Save the image.
