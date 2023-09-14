@@ -515,6 +515,7 @@ async def qqprofile_srrogue(inter: discord.Interaction[QingqueClient]):
         user: ChronicleRogueUserInfo,
         filename_pre: str,
         total_run: int | None = None,
+        previous_run: bool = False,
     ):
         logger.info(f"Generating simulated universe card for {user.name} | {type(simu)} | {sorting}...")
         data = await _make_rogue_card(
@@ -524,6 +525,7 @@ async def qqprofile_srrogue(inter: discord.Interaction[QingqueClient]):
             overview,
             filename_pre,
             period_total=total_run,
+            previous_period=previous_run,
         )
         return data, sorting
 
@@ -549,6 +551,7 @@ async def qqprofile_srrogue(inter: discord.Interaction[QingqueClient]):
                 hoyo_rogue.user,
                 f"Previous{idx:02d}",
                 total_run=hoyo_rogue.current.overview.total_run,
+                previous_run=True,
             )
         )
     for idx, simu in enumerate(hoyo_locust.details.records):
