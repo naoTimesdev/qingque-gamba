@@ -268,68 +268,72 @@ class StarRailSimulatedUniverseCard(StarRailDrawing):
         await self._async_close(deco_bot_mid)
 
     async def _precalculate_blessings_and_curios(self):
-        MARGIN_TOP = self.MARGIN_TP + 450
-        ICON_SIZE = 50
-        MAX_WIDTH = self._canvas.width - self.MARGIN_LR - (ICON_SIZE * 2) - 60
-        TEXT_SIZE = 20
-        TEXT_MARGIN = 13
+        if len(self._record.blessings) > 0:
+            MARGIN_TOP = self.MARGIN_TP + 450
+            ICON_SIZE = 50
+            MAX_WIDTH = self._canvas.width - self.MARGIN_LR - (ICON_SIZE * 2) - 60
+            TEXT_SIZE = 20
+            TEXT_MARGIN = 13
 
-        for blessing_info in self._record.blessings:
-            _temp_nested_blessings = []
-            _temp_current_length = 0
-            blessings = blessing_info.items
-            nested_blessings: list[list[ChronicleRogueBlessingItem]] = []
-            for blessing in blessings:
-                bless_item = self._index_data.simuniverse_blessings[str(blessing.id)]
-                calc_length = await self._calc_text(_text_fixup(bless_item.name), font_size=TEXT_SIZE)
-                _temp_current_length += calc_length + TEXT_MARGIN
-                if _temp_current_length >= MAX_WIDTH:
+            for blessing_info in self._record.blessings:
+                _temp_nested_blessings = []
+                _temp_current_length = 0
+                blessings = blessing_info.items
+                nested_blessings: list[list[ChronicleRogueBlessingItem]] = []
+                for blessing in blessings:
+                    bless_item = self._index_data.simuniverse_blessings[str(blessing.id)]
+                    calc_length = await self._calc_text(_text_fixup(bless_item.name), font_size=TEXT_SIZE)
+                    _temp_current_length += calc_length + TEXT_MARGIN
+                    if _temp_current_length >= MAX_WIDTH:
+                        nested_blessings.append(_temp_nested_blessings)
+                        _temp_nested_blessings = []
+                        _temp_current_length = calc_length + TEXT_MARGIN
+                    _temp_nested_blessings.append(blessing)
+                if _temp_nested_blessings:
                     nested_blessings.append(_temp_nested_blessings)
-                    _temp_nested_blessings = []
-                    _temp_current_length = calc_length + TEXT_MARGIN
-                _temp_nested_blessings.append(blessing)
-            if _temp_nested_blessings:
-                nested_blessings.append(_temp_nested_blessings)
 
-            for _ in nested_blessings:
-                MARGIN_TOP += 30
-            MARGIN_TOP -= 30
-            MARGIN_TOP += 65
+                for _ in nested_blessings:
+                    MARGIN_TOP += 30
+                MARGIN_TOP -= 30
+                MARGIN_TOP += 65
+        else:
+            MARGIN_TOP = self.MARGIN_TP
 
-        MARGIN_TOP += 55
-        EXTRA_MARGIN = 10
-        ICON_SIZE = 50
-        ICON_MARGIN = 10
-        MAX_WIDTH = self._canvas.width - self.MARGIN_LR - ICON_MARGIN
+        if len(self._record.curios) > 0:
+            MARGIN_TOP += 55
+            EXTRA_MARGIN = 10
+            ICON_SIZE = 50
+            ICON_MARGIN = 10
+            MAX_WIDTH = self._canvas.width - self.MARGIN_LR - ICON_MARGIN
 
-        nested_curios: list[list[ChronicleRogueCurio]] = []
-        _temp_curios = []
-        _counter = 0
-        for curio in self._record.curios:
-            calc_length = (_counter * ICON_SIZE) + (_counter * ICON_MARGIN)
-            if self.MARGIN_LR + calc_length >= MAX_WIDTH:
+            nested_curios: list[list[ChronicleRogueCurio]] = []
+            _temp_curios = []
+            _counter = 0
+            for curio in self._record.curios:
+                calc_length = (_counter * ICON_SIZE) + (_counter * ICON_MARGIN)
+                if self.MARGIN_LR + calc_length >= MAX_WIDTH:
+                    nested_curios.append(_temp_curios)
+                    _temp_curios = []
+                    _counter = 0
+                _temp_curios.append(curio)
+                _counter += 1
+            if _temp_curios:
                 nested_curios.append(_temp_curios)
-                _temp_curios = []
-                _counter = 0
-            _temp_curios.append(curio)
-            _counter += 1
-        if _temp_curios:
-            nested_curios.append(_temp_curios)
 
-        for _ in nested_curios:
-            MARGIN_TOP += ICON_SIZE + ICON_MARGIN
-        MARGIN_TOP -= ICON_SIZE + ICON_MARGIN
-        MARGIN_TOP += EXTRA_MARGIN
+            for _ in nested_curios:
+                MARGIN_TOP += ICON_SIZE + ICON_MARGIN
+            MARGIN_TOP -= ICON_SIZE + ICON_MARGIN
+            MARGIN_TOP += EXTRA_MARGIN
 
-        # Automatic extend down
-        canvas_max = self._canvas.height - self.MARGIN_TP
-        bottom_part = MARGIN_TOP + 65
-        if bottom_part >= canvas_max:
-            # We need to extend the canvas.
-            extended = bottom_part - canvas_max
-            if extended < 0:
-                extended = canvas_max - bottom_part
-            await self._extend_canvas_down(int(round(extended)))
+            # Automatic extend down
+            canvas_max = self._canvas.height - self.MARGIN_TP
+            bottom_part = MARGIN_TOP + 65
+            if bottom_part >= canvas_max:
+                # We need to extend the canvas.
+                extended = bottom_part - canvas_max
+                if extended < 0:
+                    extended = canvas_max - bottom_part
+                await self._extend_canvas_down(int(round(extended)))
 
     async def _create_obtained_blessings(self) -> float:
         MARGIN_TOP = self.MARGIN_TP + 450
@@ -337,6 +341,17 @@ class StarRailSimulatedUniverseCard(StarRailDrawing):
         MAX_WIDTH = self._canvas.width - self.MARGIN_LR - (ICON_SIZE * 2) - 60
         TEXT_SIZE = 20
         TEXT_MARGIN = 13
+
+        # Precheck blessings
+        if len(self._record.blessings) < 1:
+            return self.MARGIN_TP
+
+        emptyness = []
+        for blessing_info in self._record.blessings:
+            emptyness.append(len(blessing_info.items) > 0)
+        # Check if all are emptyness is False
+        if not any(emptyness):
+            return self.MARGIN_TP
 
         # How this works?
         # We start from the afformentioned margin top, and we will go to the maximum of 1774 in length total
@@ -423,6 +438,8 @@ class StarRailSimulatedUniverseCard(StarRailDrawing):
         return MARGIN_TOP
 
     async def _create_obtained_curios(self, margin_top: float) -> float:
+        if len(self._record.curios) < 1:
+            return margin_top
         # Text header
         await self._write_text(
             self._i18n.t("chronicles.rogue.curios"),
@@ -433,6 +450,8 @@ class StarRailSimulatedUniverseCard(StarRailDrawing):
 
         EXTRA_MARGIN = 10
         MARGIN_TOP = margin_top + 55
+        if len(self._record.blessings) < 1:
+            MARGIN_TOP = self.MARGIN_TP
         ICON_SIZE = 50
         ICON_MARGIN = 10
         MAX_WIDTH = self._canvas.width - self.MARGIN_LR - ICON_MARGIN
