@@ -151,21 +151,25 @@ class StarRailMoCCard(StarRailDrawing):
             await self._async_close(chara_icon)
 
             # Create the element icon
-            await self._create_box(
-                (
-                    (self.MARGIN_LR + (inbetween_margin * idx), margin_top),
-                    (self.MARGIN_LR + (inbetween_margin * idx) + 31, margin_top + 31),
-                ),
-                color=(*self._background, round(0.5 * 255)),
+            await self._create_circle(
+                [
+                    self.MARGIN_LR + (inbetween_margin * idx) + 2,
+                    margin_top + 2,
+                    self.MARGIN_LR + (inbetween_margin * idx) + 33,
+                    margin_top + 33,
+                ],
+                color=(*self._background, 128),
+                width=0,
             )
             element_icon = await self._async_open(self._assets_folder / lineup.element.icon_url)
-            element_icon = await self._resize_image(element_icon, (30, 30))
+            element_icon = await self._resize_image(element_icon, (28, 28))
             # Paste Top-left corner
             await self._paste_image(
                 element_icon,
-                (self.MARGIN_LR + (inbetween_margin * idx) + 1, margin_top + 1),
+                (self.MARGIN_LR + (inbetween_margin * idx) + 3, margin_top + 3),
                 element_icon,
             )
+            await self._async_close(element_icon)
 
     async def _create_nodes(self):
         # Create first node
