@@ -24,21 +24,22 @@ SOFTWARE.
 
 from __future__ import annotations
 
-import logging
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, ClassVar, cast
 
 from qingque.hylab.models.simuniverse import (
     ChronicleRogueBlessingItem,
     ChronicleRogueCurio,
     ChronicleRogueLocustDetailRecord,
+    ChronicleRogueLocustOverviewDestiny,
     ChronicleRoguePeriodRun,
     ChronicleRogueUserInfo,
 )
 from qingque.i18n import get_roman_numeral
 from qingque.mihomo.models.constants import MihomoLanguage
+from qingque.tooling import get_logger
 from qingque.utils import strip_unity_rich_text
 
-from .base import RGB, StarRailDrawing
+from .base import RGB, StarRailDrawing, StarRailDrawingLogger
 
 if TYPE_CHECKING:
     from qingque.hylab.models.base import HYLanguage
@@ -46,7 +47,6 @@ if TYPE_CHECKING:
     from qingque.starrail.loader import SRSDataLoader
 
 __all__ = ("StarRailSimulatedUniverseCard",)
-logger = logging.getLogger("qingque.starrail.generator.simuniverse")
 
 
 def _text_fixup(text: str):
@@ -54,6 +54,14 @@ def _text_fixup(text: str):
     text = text.replace("≪", "<<")
     text = text.replace("≫", ">>")
     return text
+
+
+def hex_to_rgb(hex_str: str) -> RGB | None:
+    hex_str = hex_str.lstrip("#")
+    if not hex_str:
+        return None
+    rgb = tuple(int(hex_str[i : i + 2], 16) for i in (0, 2, 4))
+    return cast(RGB, rgb)
 
 
 class StarRailSimulatedUniverseCard(StarRailDrawing):
@@ -77,6 +85,7 @@ class StarRailSimulatedUniverseCard(StarRailDrawing):
         self,
         user: ChronicleRogueUserInfo,
         record: ChronicleRoguePeriodRun | ChronicleRogueLocustDetailRecord,
+        swarm_striders: list[ChronicleRogueLocustOverviewDestiny] | None = None,
         *,
         language: MihomoLanguage | HYLanguage | QingqueLanguage = MihomoLanguage.EN,
         loader: SRSDataLoader | None = None,
@@ -84,9 +93,17 @@ class StarRailSimulatedUniverseCard(StarRailDrawing):
         super().__init__(language=language, loader=loader)
         self._record = record
         self._user = user
-
-        self._background = (18, 18, 18)
-        self._foreground = (219, 194, 145)
+        self._swarm_striders = swarm_striders or []
+        self.logger = get_logger(
+            "qingque.starrail.generator.simuniverse",
+            adapter=StarRailDrawingLogger.create(f"{self._user.name}-{type(record).__name__}—{self._record.name}"),
+        )
+        if isinstance(self._record, ChronicleRogueLocustDetailRecord):
+            self._background = (26, 27, 51)
+            self._foreground = (250, 250, 250)
+        else:
+            self._background = (18, 18, 18)
+            self._foreground = (219, 194, 145)
         self._make_canvas(width=2000, height=1125, color=self._background)
 
     async def _create_world_header(self) -> None:
@@ -191,19 +208,41 @@ class StarRailSimulatedUniverseCard(StarRailDrawing):
             # Create backdrop for eidolons (top right)
             await self._create_box(
                 (
-                    (self.MARGIN_LR + (inbetween_margin * idx) + chara_icon.width - 30, MARGIN_TOP),
-                    (self.MARGIN_LR + (inbetween_margin * idx) + chara_icon.width, MARGIN_TOP + 30),
-                )
+                    (self.MARGIN_LR + (inbetween_margin * idx) + chara_icon.width - 31, MARGIN_TOP),
+                    (self.MARGIN_LR + (inbetween_margin * idx) + chara_icon.width - 1, MARGIN_TOP + 30),
+                ),
+                color=(*self._foreground, round(0.8 * 255)),
             )
             # Write the eidolon
             await self._write_text(
                 f"E{lineup.eidolons}",
-                (self.MARGIN_LR + (inbetween_margin * idx) + chara_icon.width - 15, MARGIN_TOP + 22),
+                (self.MARGIN_LR + (inbetween_margin * idx) + chara_icon.width - 16, MARGIN_TOP + 22),
                 font_size=20,
                 anchor="ms",
                 color=self._background,
             )
+            # Create the element icon
+            await self._create_circle(
+                [
+                    self.MARGIN_LR + (inbetween_margin * idx) + 2,
+                    MARGIN_TOP + 2,
+                    self.MARGIN_LR + (inbetween_margin * idx) + 33,
+                    MARGIN_TOP + 33,
+                ],
+                color=(*self._background, 128),
+                width=0,
+            )
+            element_icon = await self._async_open(self._assets_folder / lineup.element.icon_url)
+            element_icon = await self._resize_image(element_icon, (28, 28))
+            # Paste Top-left corner
+            await self._paste_image(
+                element_icon,
+                (self.MARGIN_LR + (inbetween_margin * idx) + 3, MARGIN_TOP + 3),
+                element_icon,
+            )
+            await self._async_close(element_icon)
             await self._async_close(chara_icon)
+        return self.MARGIN_LR + (inbetween_margin * len(self._record.final_lineups))
 
     async def _create_decoration(self, hide_credits: bool = False) -> None:
         # DialogFrameDeco1.png (orig 395x495)
@@ -490,37 +529,142 @@ class StarRailSimulatedUniverseCard(StarRailDrawing):
         MARGIN_TOP -= ICON_SIZE + ICON_MARGIN
         return MARGIN_TOP + EXTRA_MARGIN
 
-    async def create(self, *, hide_credits: bool = False):
+    async def _create_swarm_pathstrider(self, margin_left: int):
+        if not isinstance(self._record, ChronicleRogueLocustDetailRecord):
+            return
+        if not self._swarm_striders:
+            return
+
+        MARGIN_TOP = self.MARGIN_TP + 240
+
+        await self._write_text(
+            self._i18n.t("chronicles.rogue.locust_narrow"),
+            (margin_left, MARGIN_TOP + 16),
+            font_size=20,
+            anchor="ls",
+        )
+
+        inbetween_margin = 100
+        for idx, strider in enumerate(self._swarm_striders):
+            text_len = await self._calc_text(str(strider.level).zfill(2), font_size=20)
+            # Create box
+            await self._create_box(
+                (
+                    (margin_left + (inbetween_margin * idx), MARGIN_TOP + 30),
+                    (margin_left + (inbetween_margin * idx) + 50 + text_len, MARGIN_TOP + 30 + 30),
+                ),
+                color=(189, 172, 255, round(0.25 * 255)),
+            )
+
+            icon_destiny = await self._async_open(self._assets_folder / strider.type.icon_url)
+            icon_destiny = await self._resize_image(icon_destiny, (25, 25))
+            await self._paste_image(
+                icon_destiny,
+                (margin_left + (inbetween_margin * idx) + 4, MARGIN_TOP + 33),
+                icon_destiny,
+            )
+            await self._async_close(icon_destiny)
+            await self._write_text(
+                str(strider.level).zfill(2),
+                (margin_left + (inbetween_margin * idx) + 50, MARGIN_TOP + 46),
+                font_size=20,
+                anchor="mm",
+                color=(255, 255, 255),
+                alpha=round(0.75 * 255),
+            )
+
+    async def _create_swarm_domain_type(self, margin_left: int):
+        if not isinstance(self._record, ChronicleRogueLocustDetailRecord):
+            return
+
+        MARGIN_TOP = self.MARGIN_TP + 240
+        if self._swarm_striders:
+            MARGIN_TOP += 80
+
+        await self._write_text(
+            self._i18n.t("chronicles.rogue.locust_domain"),
+            (margin_left, MARGIN_TOP + 16),
+            font_size=20,
+            anchor="ls",
+        )
+
+        inbetween_margin = 90
+        boss_color = (61, 21, 29, round(0.8 * 255))
+        default_color = (189, 172, 255, round(0.25 * 255))
+        boss_blocks = [11, 12]
+        for idx, block in enumerate(self._record.blocks):
+            block_info = self._index_data.swarmdlc_blocks[str(block.id)]
+            text_len = await self._calc_text(str(block.count).zfill(2), font_size=20)
+            # Create box
+            await self._create_box(
+                (
+                    (margin_left + (inbetween_margin * idx), MARGIN_TOP + 30),
+                    (margin_left + (inbetween_margin * idx) + 50 + text_len, MARGIN_TOP + 30 + 30),
+                ),
+                color=boss_color if block_info.id in boss_blocks else default_color,
+            )
+
+            # Icon block
+            icon_block_path = self._assets_folder / block_info.icon_url
+            icon_blocks = await self._async_open(icon_block_path.with_stem(icon_block_path.stem + "White"))
+            icon_block_col = hex_to_rgb(block_info.color)
+            if icon_block_col and icon_block_col != (255, 255, 255):
+                # Tint if needed
+                icon_blocks = await self._tint_image(icon_blocks, icon_block_col)
+            icon_blocks = await self._resize_image(icon_blocks, (25, 25))
+            await self._paste_image(
+                icon_blocks,
+                (margin_left + (inbetween_margin * idx) + 4, MARGIN_TOP + 33),
+                icon_blocks,
+            )
+            await self._async_close(icon_blocks)
+            await self._write_text(
+                str(block.count).zfill(2),
+                (margin_left + (inbetween_margin * idx) + 50, MARGIN_TOP + 46),
+                font_size=20,
+                anchor="mm",
+                color=(255, 255, 255),
+                alpha=round(0.75 * 255),
+            )
+
+    async def create(self, *, hide_credits: bool = False, hide_timestamp: bool = False):
         self._assets_folder = await self._assets_folder.absolute()
         if not await self._assets_folder.exists():
             raise FileNotFoundError("The assets folder does not exist.")
         await self._index_data.async_loads()
 
-        # Write the world header
-        logger.info("Writing world header...")
-        await self._create_world_header()
-
         # Precalculate blessings and curios height so we can extend the canvas.
-        logger.info("Precalculating blessings and curios...")
+        self.logger.info("Precalculating blessings and curios...")
         await self._precalculate_blessings_and_curios()
 
-        logger.info("Creating decoration...")
+        # Decoration
+        self.logger.info("Creating decoration...")
         await self._create_decoration(hide_credits=hide_credits)
 
+        # Write the world header
+        self.logger.info("Writing world header...")
+        await self._create_world_header()
+
         # Create the character used.
-        logger.info("Writing character profile...")
-        await self._create_character_profile()
+        self.logger.info("Writing character profile...")
+        profile_right = await self._create_character_profile()
 
         # Create blessings
-        logger.info("Writing obtained blessings...")
+        self.logger.info("Writing obtained blessings...")
         obtain_max = await self._create_obtained_blessings()
 
         # Create curios
-        logger.info("Writing obtained curios...")
+        self.logger.info("Writing obtained curios...")
         await self._create_obtained_curios(obtain_max)
 
+        if isinstance(self._record, ChronicleRogueLocustDetailRecord):
+            self.logger.info("Writing swarm pathstrider...")
+            await self._create_swarm_pathstrider(profile_right)
+            self.logger.info("Writing swarm domain type...")
+            await self._create_swarm_domain_type(profile_right)
+
         # Create footer
-        logger.info("Creating footer...")
+        self.logger.info("Creating footer...")
         await self._write_text(
             "Supported by Interastral Peace Corporation",
             (20, self._canvas.height - 20),
@@ -537,12 +681,25 @@ class StarRailSimulatedUniverseCard(StarRailDrawing):
                 alpha=128,
                 anchor="ms",
             )
+        if not hide_timestamp:
+            # DateTime are in UTC+8
+            dt = self._record.end_time.datetime
+            # Format to Day, Month YYYY HH:MM
+            fmt_timestamp = dt.strftime("%a, %b %d %Y %H:%M")
+            await self._write_text(
+                f"{fmt_timestamp} UTC+8",
+                (20, 20),
+                font_size=20,
+                anchor="lt",
+                align="left",
+                alpha=round(0.35 * 255),
+            )
 
         # Save the image.
-        logger.info("Saving the image...")
+        self.logger.info("Saving the image...")
         bytes_io = await self._async_save_bytes(self._canvas)
 
-        logger.info("Cleaning up...")
+        self.logger.info("Cleaning up...")
         await self._async_close(self._canvas)
 
         # Return the bytes.

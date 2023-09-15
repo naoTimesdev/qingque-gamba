@@ -530,16 +530,16 @@ class StarRailDrawing:
         )
         await self._paste_image(base, (bounds[0], bounds[1]), canvas=canvas)
 
-    async def _create_outline_circle(
+    async def _create_circle(
         self,
         bounds: list[int],
         width: int = 1,
-        outline: RGB = (255, 255, 255),
+        color: RGB | RGBA = (255, 255, 255),
         antialias: int = 4,
         *,
         canvas: Image.Image | None = None,
     ) -> None:
-        """Create an outlined circle on the canvas.
+        """Create a circle on the canvas.
 
         This version of the function is better than the original one, since it uses
         anti-aliasing to create a smoother outline.
@@ -551,9 +551,9 @@ class StarRailDrawing:
         bounds: :class:`list[int]`
             The bounds of the circle. (left, top, right, bottom)
         width: :class:`int`, optional
-            The width of the outline, by default 1
-        outline: :class:`tuple[int, int, int]`, optional
-            The color of the outline, by default (255, 255, 255)
+            The width of the circle (outline), by default 1
+        color: :class:`tuple[int, int, int]`, optional
+            The color of the circle, by default (255, 255, 255)
         antialias: :class:`int`, optional
             The antialiasing level to use when drawing the box, by default 4
         canvas: :class:`PIL.Image.Image`
@@ -577,16 +577,27 @@ class StarRailDrawing:
         draw = await self._get_draw(canvas=mask)
 
         # draw outer shape in white (color) and inner shape in black (transparent)
-        for offset, fill in (width / -2.0, "white"), (width / 2.0, "black"):
-            left, top = [(value + offset) * antialias for value in bounds[:2]]
-            right, bottom = [(value - offset) * antialias for value in bounds[2:]]
-            await self._loop.run_in_executor(None, draw.ellipse, [left, top, right, bottom], fill)
+        if width > 0:
+            for offset, fill in (width / -2.0, "white"), (width / 2.0, "black"):
+                left, top = [(value + offset) * antialias for value in bounds[:2]]
+                right, bottom = [(value - offset) * antialias for value in bounds[2:]]
+                await self._loop.run_in_executor(None, draw.ellipse, [left, top, right, bottom], fill)
+        else:
+            await self._loop.run_in_executor(None, draw.ellipse, [value * antialias for value in bounds], "white")
 
         # downsample the mask using PIL.Image.LANCZOS
         # (a high-quality downsampling filter).
         mask = await self._resize_image(mask, canvas.size, resampling=Image.Resampling.LANCZOS)
         # paste outline color to input image through the mask
-        await self._paste_image(outline, mask=mask, canvas=canvas)
+        fill_overlay = color
+        if len(color) == 3:
+            fill_overlay += (0,)
+        else:
+            fill_overlay = fill_overlay[:3] + (0,)
+        overlay = Image.new("RGBA", canvas.size, cast(RGBA, fill_overlay))
+        await self._paste_image(color, mask=mask, canvas=overlay)
+        # Paste the overlay onto the canvas
+        await self._loop.run_in_executor(None, canvas.alpha_composite, overlay)
 
     async def _tint_image(self, im: Image.Image, color: RGB) -> Image.Image:
         alpha = im.split()[3]

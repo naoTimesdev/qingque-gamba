@@ -914,7 +914,7 @@ class StarRailMihomoCard(StarRailDrawing):
             (self.RELIC_LEFT, self.CHARACTER_TOP - 144),
             avatar_icon,
         )
-        await self._create_outline_circle(
+        await self._create_circle(
             [self.RELIC_LEFT, self.CHARACTER_TOP - 144, self.RELIC_LEFT + 120, self.CHARACTER_TOP - 144 + 120],
             4,
             self._foreground,
