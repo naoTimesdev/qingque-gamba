@@ -302,7 +302,7 @@ class HYLabClient:
             CHRONICLES_ROUTE.get_route(region) / "role" / "basicInfo",
             params,
             get_ds_headers(HYVRegion.from_server(server), lang=lang),
-            cookies=self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, lang=lang),
+            cookies=self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, hylab_mid_token, lang=lang),
             type=ChronicleUserInfo,
         )
 
@@ -360,7 +360,7 @@ class HYLabClient:
             CHRONICLES_ROUTE.get_route(region) / "index",
             params,
             get_ds_headers(HYVRegion.from_server(server), lang=lang),
-            cookies=self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, lang=lang),
+            cookies=self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, hylab_mid_token, lang=lang),
             type=ChronicleOverview,
         )
         basic_info_req = self.get_battle_chronicles_basic_info(
@@ -423,7 +423,7 @@ class HYLabClient:
             CHRONICLES_ROUTE.get_route(region) / "note",
             params,
             get_ds_headers(HYVRegion.from_server(server), lang=lang),
-            cookies=self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, lang=lang),
+            cookies=self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, hylab_mid_token, lang=lang),
             type=ChronicleNotes,
         )
 
@@ -481,7 +481,7 @@ class HYLabClient:
             CHRONICLES_ROUTE.get_route(region) / "avatar" / "info",
             params,
             get_ds_headers(HYVRegion.from_server(server), lang=lang),
-            cookies=self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, lang=lang),
+            cookies=self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, hylab_mid_token, lang=lang),
             type=ChronicleCharacters,
         )
 
@@ -544,7 +544,7 @@ class HYLabClient:
             CHRONICLES_ROUTE.get_route(region) / "challenge",
             params,
             get_ds_headers(HYVRegion.from_server(server), lang=lang),
-            cookies=self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, lang=lang),
+            cookies=self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, hylab_mid_token, lang=lang),
             type=ChronicleForgottenHall,
         )
 
@@ -604,7 +604,7 @@ class HYLabClient:
             CHRONICLES_ROUTE.get_route(region) / "rogue",
             params,
             get_ds_headers(HYVRegion.from_server(server), lang=lang),
-            cookies=self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, lang=lang),
+            cookies=self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, hylab_mid_token, lang=lang),
             type=ChronicleSimulatedUniverse,
         )
 
@@ -663,7 +663,7 @@ class HYLabClient:
             CHRONICLES_ROUTE.get_route(region) / "rogue_locust",
             params,
             get_ds_headers(HYVRegion.from_server(server), lang=lang),
-            cookies=self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, lang=lang),
+            cookies=self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, hylab_mid_token, lang=lang),
             type=ChronicleSimulatedUniverseSwarmDLC,
         )
 
@@ -733,7 +733,7 @@ class HYLabClient:
         else:
             raise ValueError(f"Unknown region {region}")
 
-        cookies = self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, lang=lang)
+        cookies = self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, hylab_mid_token, lang=lang)
 
         resp = await self._request(
             "POST",
