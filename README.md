@@ -17,9 +17,9 @@ A simple Discord Interaction bot to see your Honkai: Star Rail profile
 - Automatic localization depending on your Discord language! ![Localization Progress](https://badges.crowdin.net/qingque-gamba/localized.svg)
 - Character profile card
 - Battle Chronicles (via HoyoLab)
-- **[TODO]** Simulated Universe (via HoyoLab)
-- **[TODO]** Memory of Chaos (via HoyoLab)
-- **[TODO]** Daily reward claim (HoyoLab)
+- Simulated Universe (via HoyoLab)
+- Memory of Chaos (via HoyoLab)
+- Daily reward claim (HoyoLab)
 - **[TODO]** Redemption code claim
 
 ## Running it Yourself
