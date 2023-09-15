@@ -427,6 +427,7 @@ class StarRailDrawing:
             raise RuntimeError("Canvas is not initialized, and no canvas is provided.")
 
         canvas = canvas or self._canvas
+        fill = color or self._foreground
 
         # Use a single channel image (mode='L') as mask.
         # The size of the mask can be increased relative to the imput image
@@ -436,10 +437,14 @@ class StarRailDrawing:
             # Disable AA if angle is 0.0
             canvas_size = canvas.size
             antialias = 1
+        fill_overlay = fill
+        if len(fill) == 3:
+            fill_overlay += (0,)
+        else:
+            fill_overlay = fill_overlay[:3] + (0,)
+        overlay = Image.new("RGBA", canvas_size, cast(RGBA, fill_overlay))
         mask = Image.new(size=canvas_size, mode="L", color="black")
         draw = await self._get_draw(canvas=mask)
-
-        fill = color or self._foreground
 
         square_verticies: list[tuple[float, float]] = [
             (box[0][0], box[0][1]),
@@ -467,7 +472,9 @@ class StarRailDrawing:
         # Downsample the mask if angle is not 0.0
         if angle != 0.0:
             mask = await self._resize_image(mask, canvas.size, resampling=resampling)
-        await self._paste_image(fill, mask=mask, canvas=canvas)
+        # Paste into overlay first for compositing
+        await self._paste_image(fill, mask=mask, canvas=overlay)
+        await self._loop.run_in_executor(None, canvas.alpha_composite, overlay)
 
     async def _create_box_2_gradient(
         self,

@@ -118,7 +118,7 @@ class StarRailMoCCard(StarRailDrawing):
                         margin_top + chara_icon.height + 30,
                     ),
                 ),
-                color=self._background,
+                color=(*self._background, round(0.6 * 255)),
             )
             # Write the level
             await self._write_text(
@@ -135,15 +135,15 @@ class StarRailMoCCard(StarRailDrawing):
             # Create backdrop for eidolons (top right)
             await self._create_box(
                 (
-                    (self.MARGIN_LR + (inbetween_margin * idx) + chara_icon.width - 30, margin_top),
-                    (self.MARGIN_LR + (inbetween_margin * idx) + chara_icon.width, margin_top + 30),
+                    (self.MARGIN_LR + (inbetween_margin * idx) + chara_icon.width - 31, margin_top),
+                    (self.MARGIN_LR + (inbetween_margin * idx) + chara_icon.width - 1, margin_top + 30),
                 ),
-                color=self._background,
+                color=(*self._background, round(0.5 * 255)),
             )
             # Write the eidolon
             await self._write_text(
                 f"E{lineup.eidolon}",
-                (self.MARGIN_LR + (inbetween_margin * idx) + chara_icon.width - 15, margin_top + 22),
+                (self.MARGIN_LR + (inbetween_margin * idx) + chara_icon.width - 15 - 1, margin_top + 22),
                 font_size=20,
                 anchor="ms",
                 color=self._foreground,
@@ -156,7 +156,7 @@ class StarRailMoCCard(StarRailDrawing):
                     (self.MARGIN_LR + (inbetween_margin * idx), margin_top),
                     (self.MARGIN_LR + (inbetween_margin * idx) + 31, margin_top + 31),
                 ),
-                color=self._background,
+                color=(*self._background, round(0.5 * 255)),
             )
             element_icon = await self._async_open(self._assets_folder / lineup.element.icon_url)
             element_icon = await self._resize_image(element_icon, (30, 30))
