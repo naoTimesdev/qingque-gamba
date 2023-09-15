@@ -71,7 +71,7 @@ def log_with_redact(kwargs_body: dict[str, Any]):
             cookie_value = cookie_value[:2] + "*" * (len(cookie_value) - 2) + cookie_value[-2:]
         cookie_strs.append(f"{cookie_name}={cookie_value}")
     kwargs_body["cookies"] = cookie_strs
-    logger.info("Requesting with %s", orjson.dumps(kwargs_body, option=orjson.OPT_INDENT_2).decode("utf-8"))
+    logger.debug("Requesting with %s", orjson.dumps(kwargs_body, option=orjson.OPT_INDENT_2).decode("utf-8"))
 
 
 class HYLabClient:
@@ -105,16 +105,21 @@ class HYLabClient:
             base["ltoken"] = self._ltoken
         if child is None:
             return base
-        base.update(child)
         ltuid_child = child.get("ltuid", child.get("ltuid_v2", None))
         ltoken_child = child.get("ltoken", child.get("ltoken_v2", None))
         if ltuid_child is not None and ltuid_child != str(self._ltuid) and ltoken_child is None:
             # Use parent ltuid, and ltoken.
             base[ltuid] = str(self._ltuid)
-        if ltuid == "ltuid_v2":
-            # Drop ltuid if ltuid_v2 is present.
-            base.pop("ltuid", None)
-            base.pop("ltoken", None)
+        elif ltuid_child is not None and ltuid_child != str(self._ltuid) and ltoken_child is not None:
+            if ltoken_child.startswith("v2_"):
+                base["ltoken_v2"] = ltoken_child
+                base["ltuid_v2"] = ltuid_child
+                base.pop("ltoken", None)
+                base.pop("ltuid", None)
+            else:
+                base["ltoken"] = ltoken_child
+                base["ltuid"] = ltuid_child
+        base["mi18nLang"] = child.get("mi18nLang", HYLanguage.EN.value)
         return base
 
     @overload

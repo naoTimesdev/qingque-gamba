@@ -213,9 +213,10 @@ async def qqpersist_srhoyobind(
             hylab_token=hoyo_token,
             hylab_cookie=hoyo_cookie,
         )
-    except HYLabException as e:
-        logger.error(f"Failed to bind UID {first_uid} to HYLab ID {hoyo_id}: {e}", exc_info=e)
-        return await response.edit(content=t("srhoyobind.invalid_token"))
+    except HYLabException as hye:
+        logger.error(f"Failed to bind UID {first_uid} to HYLab ID {hoyo_id}: {hye}", exc_info=hye)
+        error_message = str(hye)
+        return await response.edit(content=t("srhoyobind.invalid_token") + f"\n```{error_message}```")
     except Exception as exc:
         logger.error(f"Error getting profile overview for UID {first_uid}: {exc}")
         error_message = str(exc)
