@@ -699,9 +699,9 @@ class StarRailMihomoCard(StarRailDrawing):
             # Create the set name
             properties_joined = []
             for prop in select_relic.properties:
+                prop_info = self._index_data.properties[prop.type]
                 prop_fmt = "{:.1%}" if prop.percent else "{:.0f}"
-                prop_name = self._i18n.t(f"mihomo.stats_simple.{prop.field.value}")
-                properties_joined.append(f"{prop_name} {prop_fmt.format(prop.value)}")
+                properties_joined.append(f"{prop_info.name} {prop_fmt.format(prop.value)}")
             relic_set_name = self._index_data.relics_sets[select_relic.id].name
             if properties_joined:
                 relic_set_name += " (" + ", ".join(properties_joined) + ")"
