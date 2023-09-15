@@ -30,12 +30,14 @@
         "desc_id": "The Hoyolab account ID you want to bind.",
         "desc_token": "The Hoyolab account token you want to bind.",
         "desc_cookie_token": "The Hoyolab account cookie token you want to bind.",
+        "desc_mid_token": "The Hoyolab account ltmid token that you want to bind. (Only for v2 token)",
         "invalid_token": "Invalid token provided, unable to bind.",
         "already_bind": "You have already binded your Hoyolab account, do you want to replace it?",
         "timeout": "You didn't response in time, please try again.",
         "cancelled": "Aborted.",
         "binded": "Your Hoyolab account has been binded to your Discord account.",
-        "bind_first": "You need to bind any UID first before binding your Hoyolab account.\nUse `/srbind` to bind your UID."
+        "bind_first": "You need to bind any UID first before binding your Hoyolab account.\nUse `/srbind` to bind your UID.",
+        "need_ltmid": "You need to provide hoyo_mid_token (or `ltmid`) to the command for this work."
     },
     "srchoices": {
         "ask_account": "Which account do you want to see?",
