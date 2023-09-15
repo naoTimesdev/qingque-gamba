@@ -391,6 +391,7 @@ async def _make_rogue_card(
     gen_card = StarRailSimulatedUniverseCard(
         user,
         rogue,
+        overview.destiny if isinstance(overview, ChronicleRogueLocustOverview) else [],
         language=lang,
         loader=inter.client.get_srs(lang),
     )
