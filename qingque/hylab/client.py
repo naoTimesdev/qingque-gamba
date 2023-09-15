@@ -107,6 +107,7 @@ class HYLabClient:
             return base
         ltuid_child = child.get("ltuid", child.get("ltuid_v2", None))
         ltoken_child = child.get("ltoken", child.get("ltoken_v2", None))
+        use_v2 = False
         if ltuid_child is not None and ltuid_child != str(self._ltuid) and ltoken_child is None:
             # Use parent ltuid, and ltoken.
             base[ltuid] = str(self._ltuid)
@@ -116,9 +117,15 @@ class HYLabClient:
                 base["ltuid_v2"] = ltuid_child
                 base.pop("ltoken", None)
                 base.pop("ltuid", None)
+                use_v2 = True
             else:
                 base["ltoken"] = ltoken_child
                 base["ltuid"] = ltuid_child
+        if ltmid_child := child.get("ltmid", child.get("ltmid_v2")):
+            if use_v2:
+                base["ltmid_v2"] = ltmid_child
+            else:
+                base["ltmid"] = ltmid_child
         base["mi18nLang"] = child.get("mi18nLang", HYLanguage.EN.value)
         return base
 
@@ -215,9 +222,15 @@ class HYLabClient:
         return decoded
 
     def _create_hylab_cookie(
-        self, hylab_id: int | None, hylab_token: str | None, hylab_cookie: str | None, lang: HYLanguage = HYLanguage.EN
+        self,
+        hylab_id: int | None,
+        hylab_token: str | None,
+        hylab_cookie: str | None,
+        hylab_mid_token: str | None = None,
+        lang: HYLanguage = HYLanguage.EN,
     ) -> dict[str, str]:
         cookies: dict[str, str] = {"mi18nLang": lang.value}
+        use_v2 = False
         if hylab_id is not None:
             cookies["ltuid"] = str(hylab_id)
         if hylab_token is not None:
@@ -227,8 +240,11 @@ class HYLabClient:
                 ltuid_v1 = cookies.pop("ltuid", None)
                 if ltuid_v1 is not None:
                     cookies["ltuid_v2"] = ltuid_v1
+                use_v2 = True
             else:
                 cookies["ltoken"] = hylab_token
+        if hylab_mid_token is not None:
+            cookies["ltmid_v2" if use_v2 else "ltmid"] = hylab_mid_token
         if hylab_cookie is not None:
             # TODO: Handle v2 token soon:tm:
             cookies["cookie_token"] = hylab_cookie
@@ -241,6 +257,7 @@ class HYLabClient:
         hylab_id: int | None = None,
         hylab_token: str | None = None,
         hylab_cookie: str | None = None,
+        hylab_mid_token: str | None = None,
         lang: HYLanguage = HYLanguage.EN,
     ) -> ChronicleUserInfo | None:
         """
@@ -298,6 +315,7 @@ class HYLabClient:
         hylab_id: int | None = None,
         hylab_token: str | None = None,
         hylab_cookie: str | None = None,
+        hylab_mid_token: str | None = None,
         lang: HYLanguage = HYLanguage.EN,
     ) -> ChronicleUserOverview:
         """
@@ -360,6 +378,7 @@ class HYLabClient:
         hylab_id: int | None = None,
         hylab_token: str | None = None,
         hylab_cookie: str | None = None,
+        hylab_mid_token: str | None = None,
         lang: HYLanguage = HYLanguage.EN,
     ) -> ChronicleNotes | None:
         """
@@ -417,6 +436,7 @@ class HYLabClient:
         hylab_id: int | None = None,
         hylab_token: str | None = None,
         hylab_cookie: str | None = None,
+        hylab_mid_token: str | None = None,
         lang: HYLanguage = HYLanguage.EN,
     ) -> ChronicleCharacters | None:
         """
@@ -475,6 +495,7 @@ class HYLabClient:
         hylab_id: int | None = None,
         hylab_token: str | None = None,
         hylab_cookie: str | None = None,
+        hylab_mid_token: str | None = None,
         lang: HYLanguage = HYLanguage.EN,
     ) -> ChronicleForgottenHall | None:
         """
@@ -536,6 +557,7 @@ class HYLabClient:
         hylab_id: int | None = None,
         hylab_token: str | None = None,
         hylab_cookie: str | None = None,
+        hylab_mid_token: str | None = None,
         lang: HYLanguage = HYLanguage.EN,
     ) -> ChronicleSimulatedUniverse | None:
         """
@@ -595,6 +617,7 @@ class HYLabClient:
         hylab_id: int | None = None,
         hylab_token: str | None = None,
         hylab_cookie: str | None = None,
+        hylab_mid_token: str | None = None,
         lang: HYLanguage = HYLanguage.EN,
     ) -> ChronicleSimulatedUniverseSwarmDLC | None:
         """
@@ -653,6 +676,7 @@ class HYLabClient:
         *,
         hylab_token: str | None = None,
         hylab_cookie: str | None = None,
+        hylab_mid_token: str | None = None,
         lang: HYLanguage = HYLanguage.EN,
     ) -> None:
         """

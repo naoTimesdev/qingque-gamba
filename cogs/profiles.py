@@ -246,6 +246,7 @@ async def qqprofile_srchronicle(inter: discord.Interaction[QingqueClient]):
             sel_uid,
             hylab_id=profile.hylab_id,
             hylab_token=profile.hylab_token,
+            hylab_mid_token=profile.hylab_mid_token,
             lang=HYLanguage(lang.value.lower()),
         )
     except HYDataNotPublic:
@@ -263,6 +264,7 @@ async def qqprofile_srchronicle(inter: discord.Interaction[QingqueClient]):
             sel_uid,
             hylab_id=profile.hylab_id,
             hylab_token=profile.hylab_token,
+            hylab_mid_token=profile.hylab_mid_token,
             lang=HYLanguage(lang.value.lower()),
         )
     except HYDataNotPublic:
@@ -472,6 +474,7 @@ async def qqprofile_srrogue(inter: discord.Interaction[QingqueClient]):
             sel_uid,
             hylab_id=profile.hylab_id,
             hylab_token=profile.hylab_token,
+            hylab_mid_token=profile.hylab_mid_token,
             lang=HYLanguage(lang.value.lower()),
         )
     except HYDataNotPublic:
@@ -680,6 +683,7 @@ async def qqprofile_moc(inter: discord.Interaction[QingqueClient], previous: boo
             previous=previous,
             hylab_id=profile.hylab_id,
             hylab_token=profile.hylab_token,
+            hylab_mid_token=profile.hylab_mid_token,
             lang=HYLanguage(lang.value.lower()),
         )
     except HYDataNotPublic:

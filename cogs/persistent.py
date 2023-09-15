@@ -158,11 +158,13 @@ async def qqpersist_srbind(inter: discord.Interaction[QingqueClient], uid: int):
 @app_commands.describe(hoyo_id=locale_str("srhoyobind.desc_id"))
 @app_commands.describe(hoyo_token=locale_str("srhoyobind.desc_token"))
 @app_commands.describe(hoyo_cookie=locale_str("srhoyobind.desc_cookie_token"))
+@app_commands.describe(hoyo_mid_token=locale_str("srhoyobind.desc_mid_token"))
 async def qqpersist_srhoyobind(
     inter: discord.Interaction[QingqueClient],
     hoyo_id: int,
     hoyo_token: str,
     hoyo_cookie: str | None = None,
+    hoyo_mid_token: str | None = None,
 ):
     discord_id = inter.user.id
     t = get_i18n_discord(inter.locale)
@@ -202,6 +204,10 @@ async def qqpersist_srhoyobind(
     profile.hylab_id = hoyo_id
     profile.hylab_token = hoyo_token
     profile.hylab_cookie = hoyo_cookie
+    profile.hylab_mid_token = hoyo_mid_token
+
+    if hoyo_token.startswith("v2_") and hoyo_mid_token is None:
+        return await response.edit(content=t("srhoyobind.need_ltmid"), view=None)
 
     # Test if the token is valid
     first_uid = profile.games[0].uid
@@ -212,6 +218,7 @@ async def qqpersist_srhoyobind(
             hylab_id=hoyo_id,
             hylab_token=hoyo_token,
             hylab_cookie=hoyo_cookie,
+            hylab_mid_token=hoyo_mid_token,
         )
     except HYLabException as hye:
         logger.error(f"Failed to bind UID {first_uid} to HYLab ID {hoyo_id}: {hye}", exc_info=hye)

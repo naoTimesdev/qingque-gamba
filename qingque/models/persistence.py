@@ -77,6 +77,8 @@ class QingqueProfileV2(Struct):
     """:class:`str | None`: The user HoyoLab token."""
     hylab_cookie: str | None = None
     """:class:`str | None`: The user HoyoLab cookie."""
+    hylab_mid_token: str | None = None
+    """:class:`str | None`: The user HoyoLab mid token."""
     lang: QingqueLanguage | None = None
     """:class:`QingqueLanguage | None`: The user selected language."""
 
