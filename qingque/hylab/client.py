@@ -111,7 +111,10 @@ class HYLabClient:
         if ltuid_child is not None and ltuid_child != str(self._ltuid) and ltoken_child is None:
             # Use parent ltuid, and ltoken.
             base[ltuid] = str(self._ltuid)
-        log_with_redact({"cookies": base})
+        if ltuid == "ltuid_v2":
+            # Drop ltuid if ltuid_v2 is present.
+            base.pop("ltuid", None)
+            base.pop("ltoken", None)
         return base
 
     @overload
