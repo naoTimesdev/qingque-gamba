@@ -3,7 +3,7 @@
     "light_cones": "Cônes de lumière",
     "rogue": "Univers simulé",
     "rogue_world": "Monde {0}",
-    "rogue_locust": "Swarm Disaster",
+    "rogue_locust": "Le Désastre de l'Essaim",
     "abyss": "Salle oubliée",
     "abyss_hard": "Mémoire du Chaos",
     "character_header": "{0} (Niv. {1})",
@@ -26,6 +26,6 @@
         "overview": "Registre des combats",
         "rogue": "Registre des combats — Univers simulé",
         "abyss": "Registre des combats — Mémoire du Chaos",
-        "rogue_locust": "Battle Chronicles — Simulated Universe: Swarm Disaster"
+        "rogue_locust": "Registre des combats — Univers simulé: Le Désastre de l'Essaim"
     }
 }

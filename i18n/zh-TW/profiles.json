@@ -3,7 +3,7 @@
     "light_cones": "光錐",
     "rogue": "模擬宇宙",
     "rogue_world": "第{0}世界",
-    "rogue_locust": "Swarm Disaster",
+    "rogue_locust": "寰宇蝗災",
     "abyss": "忘卻之庭",
     "abyss_hard": "第七世界",
     "character_header": "{0} ({1}級)",
@@ -26,6 +26,6 @@
         "overview": "戰績",
         "rogue": "戰績 — 模擬宇宙",
         "abyss": "戰績 — 混沌回憶",
-        "rogue_locust": "Battle Chronicles — Simulated Universe: Swarm Disaster"
+        "rogue_locust": "戰績 — 模擬宇宙: 寰宇蝗災"
     }
 }

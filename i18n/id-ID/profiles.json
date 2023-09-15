@@ -3,7 +3,7 @@
     "light_cones": "Light Cones",
     "rogue": "Simulated Universe",
     "rogue_world": "Dunia {0}",
-    "rogue_locust": "Swarm Disaster",
+    "rogue_locust": "Bencana Swarm",
     "abyss": "Forgotten Hall",
     "abyss_hard": "Memory of Chaos",
     "character_header": "{0} (Lv. {1})",
@@ -26,6 +26,6 @@
         "overview": "Jurnal Petualangan",
         "rogue": "Jurnal Petualangan — Simulated Universe",
         "abyss": "Jurnal Petualangan — Memory of Chaos",
-        "rogue_locust": "Battle Chronicles — Simulated Universe: Swarm Disaster"
+        "rogue_locust": "Jurnal Petualangan — Simulated Universe: Bencana Swarm"
     }
 }
