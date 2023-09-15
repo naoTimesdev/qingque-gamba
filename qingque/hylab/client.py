@@ -106,8 +106,8 @@ class HYLabClient:
         if child is None:
             return base
         base.update(child)
-        ltuid_child = child.get("ltuid")
-        ltoken_child = child.get("ltoken")
+        ltuid_child = child.get("ltuid", child.get("ltuid_v2", None))
+        ltoken_child = child.get("ltoken", child.get("ltoken_v2", None))
         if ltuid_child is not None and ltuid_child != str(self._ltuid) and ltoken_child is None:
             # Use parent ltuid, and ltoken.
             base[ltuid] = str(self._ltuid)
