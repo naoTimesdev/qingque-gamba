@@ -82,7 +82,7 @@
             "difficulty": "難易度",
             "num_clears": "クリア回数",
             "locust_narrow": "行人の道",
-            "locust_domain": "Domain Type"
+            "locust_domain": "エリアのタイプ"
         },
         "challenged_on": "挑戦時間 {0}",
         "credits": "HoyoLab からのデータ | @noaione 作成"

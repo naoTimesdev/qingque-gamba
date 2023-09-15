@@ -82,7 +82,7 @@
             "difficulty": "難度",
             "num_clears": "過關次數",
             "locust_narrow": "行者之道",
-            "locust_domain": "Domain Type"
+            "locust_domain": "區域類型"
         },
         "challenged_on": "挑戰時間{0}",
         "credits": "數據來自米有捨 | 創建者 @noaione"

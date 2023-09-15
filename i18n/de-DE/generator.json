@@ -82,7 +82,7 @@
             "difficulty": "Schwierigkeit",
             "num_clears": "Anzahl der Abschlüsse",
             "locust_narrow": "Weg des Pfadfinders",
-            "locust_domain": "Domain Type"
+            "locust_domain": "Arten der Regionen"
         },
         "challenged_on": "Herausforderungszeit {0}",
         "credits": "Daten aus HoyoLab | Erstellt von @noaione"
