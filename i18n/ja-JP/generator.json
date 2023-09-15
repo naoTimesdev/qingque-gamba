@@ -81,7 +81,8 @@
             "score_high": "最高ポイント",
             "difficulty": "難易度",
             "num_clears": "クリア回数",
-            "locust_narrow": "行人の道"
+            "locust_narrow": "行人の道",
+            "locust_domain": "Domain Type"
         },
         "challenged_on": "挑戦時間 {0}",
         "credits": "HoyoLab からのデータ | @noaione 作成"

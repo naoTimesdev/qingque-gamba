@@ -81,7 +81,8 @@
             "score_high": "최고 점수",
             "difficulty": "난이도",
             "num_clears": "회차 클리어 횟수s",
-            "locust_narrow": "행자의 길"
+            "locust_narrow": "행자의 길",
+            "locust_domain": "Domain Type"
         },
         "challenged_on": "도전 시간 {0}",
         "credits": "HoyoLab의 데이터 | 생성자 @noaione"

@@ -81,7 +81,8 @@
             "score_high": "Puntuación máxima",
             "difficulty": "Dificultad",
             "num_clears": "Veces completadas",
-            "locust_narrow": "Camino del Andavías"
+            "locust_narrow": "Camino del Andavías",
+            "locust_domain": "Domain Type"
         },
         "challenged_on": "Fecha del desafío {0}",
         "credits": "Datos de HoyoLab | Creado por @noaione"

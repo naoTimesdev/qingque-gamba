@@ -81,7 +81,8 @@
             "score_high": "Poin Tertinggi",
             "difficulty": "Tingkat Kesulitan",
             "num_clears": "Jumlah penyelesaian",
-            "locust_narrow": "Jalan Pathstrider"
+            "locust_narrow": "Jalan Pathstrider",
+            "locust_domain": "Domain Type"
         },
         "challenged_on": "Ditantang pada {0}",
         "credits": "Data dari HoyoLab | Dibuat oleh @noaione"

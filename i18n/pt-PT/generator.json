@@ -81,7 +81,8 @@
             "score_high": "Pontuação alta",
             "difficulty": "Difficulty",
             "num_clears": "Number of Clears",
-            "locust_narrow": "Trail of Pathstrider"
+            "locust_narrow": "Trail of Pathstrider",
+            "locust_domain": "Domain Type"
         },
         "challenged_on": "Challenged on {0}",
         "credits": "Dados do HoyoLab | Criado por @noaione"

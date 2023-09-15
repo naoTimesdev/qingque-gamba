@@ -81,7 +81,8 @@
             "score_high": "Meilleur score",
             "difficulty": "Difficulté",
             "num_clears": "Nombre de fois terminées",
-            "locust_narrow": "Sentier des Éclaireurs"
+            "locust_narrow": "Sentier des Éclaireurs",
+            "locust_domain": "Domain Type"
         },
         "challenged_on": "Date du défi le {0}",
         "credits": "Données de HoyoLab | Créé par @noaione"

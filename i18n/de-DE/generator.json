@@ -81,7 +81,8 @@
             "score_high": "Höchstpunktzahl",
             "difficulty": "Schwierigkeit",
             "num_clears": "Anzahl der Abschlüsse",
-            "locust_narrow": "Weg des Pfadfinders"
+            "locust_narrow": "Weg des Pfadfinders",
+            "locust_domain": "Domain Type"
         },
         "challenged_on": "Herausforderungszeit {0}",
         "credits": "Daten aus HoyoLab | Erstellt von @noaione"
