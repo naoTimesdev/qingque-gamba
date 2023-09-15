@@ -26,16 +26,19 @@ SOFTWARE.
 from __future__ import annotations
 
 import asyncio
+from copy import deepcopy
 from typing import Any, Mapping, TypeVar, overload
 from uuid import uuid4
 
 import aiohttp
 import msgspec
+import orjson
 import yarl
 
 from qingque.hylab.interceptor import log_request
 from qingque.hylab.models.errors import HYAlreadyClaimed, HYGeetestTriggered
 from qingque.models.region import HYVRegion, HYVServer
+from qingque.tooling import get_logger
 
 from .constants import CHRONICLES_ROUTE, DAILY_ROUTE, DS_SALT, STARRAIL_SERVER, USER_AGENT
 from .ds import generate_dynamic_salt, get_ds_headers
@@ -48,6 +51,27 @@ from .models.simuniverse import ChronicleSimulatedUniverse, ChronicleSimulatedUn
 
 __all__ = ("HYLabClient",)
 HYModelT = TypeVar("HYModelT", bound=msgspec.Struct)
+logger = get_logger("qingque.hylab.client")
+_COOKIES_REDACT = [
+    "ltuid",
+    "ltuid_v2",
+    "ltoken",
+    "ltoken_v2",
+    "cookie_token",
+    "cookie_token_v2",
+]
+
+
+def log_with_redact(kwargs_body: dict[str, Any]):
+    kwargs_body = deepcopy(kwargs_body)
+    cookies = kwargs_body.get("cookies", {})
+    cookie_strs = []
+    for cookie_name, cookie_value in cookies.items():
+        if cookie_name in _COOKIES_REDACT:
+            cookie_value = cookie_value[:2] + "*" * (len(cookie_value) - 2) + cookie_value[-2:]
+        cookie_strs.append(f"{cookie_name}={cookie_value}")
+    kwargs_body["cookies"] = cookie_strs
+    logger.info("Requesting with %s", orjson.dumps(kwargs_body, option=orjson.OPT_INDENT_2).decode("utf-8"))
 
 
 class HYLabClient:
@@ -69,18 +93,25 @@ class HYLabClient:
         await self._client.close()
 
     def _merge_cookies(self, child: dict[str, str] | None = None) -> dict[str, str]:
+        ltuid = "ltuid"
         base = {
             "ltuid": str(self._ltuid),
-            "ltoken": self._ltoken,
         }
+        if self._ltoken.startswith("v2_"):
+            ltuid = "ltuid_v2"
+            base[ltuid] = str(self._ltuid)
+            base["ltoken_v2"] = self._ltoken
+        else:
+            base["ltoken"] = self._ltoken
         if child is None:
             return base
+        base.update(child)
         ltuid_child = child.get("ltuid")
         ltoken_child = child.get("ltoken")
-        if ltuid_child is not None and ltuid_child != base["ltuid"] and ltoken_child is None:
-            # Drop ltoken
-            base.pop("ltoken", None)
-        base.update(child)
+        if ltuid_child is not None and ltuid_child != str(self._ltuid) and ltoken_child is None:
+            # Use parent ltuid, and ltoken.
+            base[ltuid] = str(self._ltuid)
+        log_with_redact({"cookies": base})
         return base
 
     @overload
@@ -155,6 +186,8 @@ class HYLabClient:
         kwargs.pop("cookies", None)
         kwargs_body.update(kwargs)
 
+        log_with_redact(kwargs_body)
+
         req = await self._client.request(method, url, **kwargs_body)
         req.raise_for_status()
 
@@ -180,10 +213,75 @@ class HYLabClient:
         if hylab_id is not None:
             cookies["ltuid"] = str(hylab_id)
         if hylab_token is not None:
-            cookies["ltoken"] = hylab_token
+            if hylab_token.startswith("v2_"):
+                # Assume v2 token
+                cookies["ltoken_v2"] = hylab_token
+                ltuid_v1 = cookies.pop("ltuid", None)
+                if ltuid_v1 is not None:
+                    cookies["ltuid_v2"] = ltuid_v1
+            else:
+                cookies["ltoken"] = hylab_token
         if hylab_cookie is not None:
+            # TODO: Handle v2 token soon:tm:
             cookies["cookie_token"] = hylab_cookie
         return cookies
+
+    async def get_battle_chronicles_basic_info(
+        self,
+        uid: int,
+        *,
+        hylab_id: int | None = None,
+        hylab_token: str | None = None,
+        hylab_cookie: str | None = None,
+        lang: HYLanguage = HYLanguage.EN,
+    ) -> ChronicleUserInfo | None:
+        """
+        Get the battle chronicles user basic info for the given UID.
+
+        Parameters
+        ----------
+        uid: :class:`int`
+            The UID to get the battle chronicles for.
+        hylab_id: :class:`int | None`
+            Override HoyoLab ID. (ltuid)
+        hylab_token: :class:`str | None`
+            Override HoyoLab token. (ltoken)
+        hylab_cookie: :class:`str | None`
+            Override HoyoLab cookie token. (cookie_token)
+        lang: :class:`HYLanguage`
+            The language to use.
+
+        Returns
+        -------
+        :class:`ChronicleUserInfo`
+            The battle chronicles user basic info for the given UID.
+
+        Raises
+        ------
+        :exc:`.HYLabException`
+            An error occurred while getting the battle chronicles.
+        :exc:`aiohttp.ClientResponseError`
+            An error occurred while requesting the battle chronicles.
+        """
+
+        server = HYVServer.from_uid(str(uid))
+        region = HYVRegion.from_server(server)
+
+        params = {
+            "server": STARRAIL_SERVER[server],
+            "role_id": str(uid),
+        }
+
+        basic_info = await self._request(
+            "GET",
+            CHRONICLES_ROUTE.get_route(region) / "role" / "basicInfo",
+            params,
+            get_ds_headers(HYVRegion.from_server(server), lang=lang),
+            cookies=self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, lang=lang),
+            type=ChronicleUserInfo,
+        )
+
+        return basic_info.data
 
     async def get_battle_chronicles_overview(
         self,
@@ -239,18 +337,13 @@ class HYLabClient:
             cookies=self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, lang=lang),
             type=ChronicleOverview,
         )
-        basic_info_req = self._request(
-            "GET",
-            CHRONICLES_ROUTE.get_route(region) / "role" / "basicInfo",
-            params,
-            get_ds_headers(HYVRegion.from_server(server), lang=lang),
-            cookies=self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, lang=lang),
-            type=ChronicleUserInfo,
+        basic_info_req = self.get_battle_chronicles_basic_info(
+            uid, hylab_id=hylab_id, hylab_token=hylab_token, lang=lang
         )
 
         resp_index, resp_basic = await asyncio.gather(index_req, basic_info_req)
 
-        return ChronicleUserOverview(resp_basic.data, resp_index.data)
+        return ChronicleUserOverview(resp_basic, resp_index.data)
 
     async def get_battle_chronicles_notes(
         self,

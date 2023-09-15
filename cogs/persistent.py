@@ -207,7 +207,7 @@ async def qqpersist_srhoyobind(
     first_uid = profile.games[0].uid
     try:
         logger.info(f"Testing HYLab token for UID {first_uid}...")
-        await hoyoapi.get_battle_chronicles_overview(
+        await hoyoapi.get_battle_chronicles_basic_info(
             first_uid,
             hylab_id=hoyo_id,
             hylab_token=hoyo_token,
