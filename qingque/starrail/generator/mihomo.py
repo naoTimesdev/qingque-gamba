@@ -38,6 +38,7 @@ from qingque.mihomo.models.relics import Relic, RelicSet
 from qingque.mihomo.models.stats import StatsAtrributes, StatsField, StatsProperties
 from qingque.models.region import HYVServer
 from qingque.starrail.models.relics import SRSRelicType
+from qingque.starrail.scoring import RelicScores, RelicScoring
 from qingque.tooling import get_logger
 
 from .base import RGB, StarRailDrawing, StarRailDrawingLogger
@@ -172,6 +173,7 @@ class StarRailMihomoCard(StarRailDrawing):
         # Inner canvas is 1568x910
         self._make_canvas(width=1568, height=910)
         self._stats_field_to_name: dict[StatsField, str] = {}
+        self._relic_scoring: RelicScoring = RelicScoring(self._assets_folder / ".." / "relic_scores.json")
 
     def is_trailblazer(self):
         return int(self._character.id) >= 8001
@@ -480,6 +482,7 @@ class StarRailMihomoCard(StarRailDrawing):
         rarity: int,
         box_icon: str,
         box_indicator: str | None = None,
+        score_indicator: str | None = None,
         box_size: int = 138,
         margin: int = 25,
     ) -> None:
@@ -522,6 +525,23 @@ class StarRailMihomoCard(StarRailDrawing):
                 (left + 4 + 20, top_margin + 4 + 10),
                 color=self._background,
                 font_size=16,
+                anchor="mm",
+            )
+
+        # Create box at top-right of the relic box for score indicator
+        if score_indicator is not None:
+            # Score indicator are 2 characters max, so make it smaller
+            await self._create_box(
+                (
+                    (left + box_size - 4 - 25, top_margin + 4),
+                    (left + box_size - 4, top_margin + 4 + 20),
+                ),
+            )
+            await self._write_text(
+                score_indicator,
+                (left + box_size - 4 - 11, top_margin + 4 + 9),
+                color=self._background,
+                font_size=15,
                 anchor="mm",
             )
 
@@ -613,7 +633,7 @@ class StarRailMihomoCard(StarRailDrawing):
         await self._async_close(relic_img)
         await self._async_close(stars_icon)
 
-    async def _create_main_relics(self) -> None:
+    async def _create_main_relics(self, relic_scores: RelicScores) -> None:
         sorted_relics = sorted(
             self._character.relics,
             key=lambda r: self._index_data.relics[r.id].type.order,
@@ -654,6 +674,7 @@ class StarRailMihomoCard(StarRailDrawing):
                     text=self._i18n.t("mihomo.no_relic"),
                 )
             else:
+                relic_score = relic_scores.scores.get(relic.id)
                 await self._create_stats_box(
                     position=idx,
                     left=self.RELIC_LEFT,
@@ -663,6 +684,7 @@ class StarRailMihomoCard(StarRailDrawing):
                     box_icon=relic.icon_url,
                     box_size=relic_size,
                     box_indicator=f"+{relic.level}",
+                    score_indicator=relic_score.rank if relic_score is not None else None,
                     margin=margin_relic,
                 )
 
@@ -713,7 +735,7 @@ class StarRailMihomoCard(StarRailDrawing):
                 align="left",
             )
 
-    async def _create_planar_and_light_cone(self) -> None:
+    async def _create_planar_and_light_cone(self, relic_scores: RelicScores) -> None:
         sorted_relics = sorted(
             self._character.relics,
             key=lambda r: self._index_data.relics[r.id].type.order,
@@ -757,6 +779,7 @@ class StarRailMihomoCard(StarRailDrawing):
             if relic.id == "-1":
                 await self._create_placeholder_slot(idx, RELIC_LEFT, text=self._i18n.t("mihomo.no_relic"))
             else:
+                relic_score = relic_scores.scores.get(relic.id)
                 await self._create_stats_box(
                     position=idx,
                     left=RELIC_LEFT,
@@ -764,6 +787,7 @@ class StarRailMihomoCard(StarRailDrawing):
                     sub_stats=[SRSCardStats.from_relic(sub, i18n=self._i18n) for sub in relic.sub_stats],
                     rarity=relic.rarity,
                     box_icon=relic.icon_url,
+                    score_indicator=relic_score.rank if relic_score is not None else None,
                     box_indicator=f"+{relic.level}",
                 )
 
@@ -878,6 +902,7 @@ class StarRailMihomoCard(StarRailDrawing):
         if not await self._assets_folder.exists():
             raise FileNotFoundError("The assets folder does not exist.")
         await self._index_data.async_loads()
+        await self._relic_scoring.async_load()
         await self._set_index_properties_name()
 
         t = self._i18n.t
@@ -929,10 +954,12 @@ class StarRailMihomoCard(StarRailDrawing):
         await self._create_character_stats()
 
         # Create relics sets
+        self.logger.info("Precalculating the relic scores...")
+        relic_scores = self._relic_scoring.calculate(self._character, loader=self._index_data)
         self.logger.info("Creating the character relics...")
-        await self._create_main_relics()
+        await self._create_main_relics(relic_scores)
         self.logger.info("Creating the character planar and light cone...")
-        await self._create_planar_and_light_cone()
+        await self._create_planar_and_light_cone(relic_scores)
         self.logger.info("Creating relic set bonus...")
         await self._create_relic_sets_bonus()
 
