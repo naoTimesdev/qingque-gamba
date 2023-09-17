@@ -56,6 +56,14 @@ class ElementType(str, Enum):
 
     Unknown = ""
 
+    @property
+    def icon_url(self) -> str:
+        match self:
+            case ElementType.Lightning | ElementType.Thunder:
+                return "icon/element/Lightning.png"
+            case _:
+                return f"icon/element/{self.name}.png"
+
 
 class PathType(str, Enum):
     Destruction = "Warrior"

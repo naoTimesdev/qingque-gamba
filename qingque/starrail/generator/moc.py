@@ -24,7 +24,7 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING
 
 from PIL import ImageEnhance
 
@@ -33,7 +33,8 @@ from qingque.mihomo.models.constants import MihomoLanguage
 from qingque.starrail.imaging import AsyncImageEnhance
 from qingque.tooling import get_logger
 
-from .base import RGB, StarRailDrawing, StarRailDrawingLogger
+from .base import StarRailDrawing, StarRailDrawingLogger
+from .mixins import SRDrawCharacter, StarRailDrawCharacterMixin, StarRailDrawGradientMixin
 
 if TYPE_CHECKING:
     from qingque.hylab.models.base import HYLanguage
@@ -43,11 +44,9 @@ if TYPE_CHECKING:
 __all__ = ("StarRailMoCCard",)
 
 
-class StarRailMoCCard(StarRailDrawing):
+class StarRailMoCCard(StarRailDrawGradientMixin, StarRailDrawCharacterMixin, StarRailDrawing):
     MARGIN_LR = 75
     MARGIN_TB = 75
-    FIVE_GRADIENT: ClassVar[tuple[RGB, RGB]] = ((117, 70, 66), (201, 164, 104))
-    FOUR_GRADIENT: ClassVar[tuple[RGB, RGB]] = ((55, 53, 87), (134, 89, 204))
 
     def __init__(
         self,
@@ -80,6 +79,8 @@ class StarRailMoCCard(StarRailDrawing):
     async def _create_node(self, node: ChronicleFHNode, node_name: str, margin_top: int):
         inbetween_margin = 180
 
+        characters = [SRDrawCharacter.from_hylab(c) for c in node.characters]
+
         await self._write_text(
             node_name,
             (self.MARGIN_LR, margin_top - 25),
@@ -88,88 +89,16 @@ class StarRailMoCCard(StarRailDrawing):
             anchor="ls",
             alpha=round(0.85 * 255),
         )
-        for idx, lineup in enumerate(node.characters, 0):
-            character = self._index_data.characters[str(lineup.id)]
-            chara_icon = await self._async_open(self._assets_folder / character.icon_url)
-            chara_icon = await self._resize_image(chara_icon, (150, 150))
-            # Create backdrop
-            gradient = self.FIVE_GRADIENT if lineup.rarity == 5 else self.FOUR_GRADIENT
-            await self._create_box_2_gradient(
-                (
-                    self.MARGIN_LR + (inbetween_margin * idx),
-                    margin_top,
-                    self.MARGIN_LR + (inbetween_margin * idx) + chara_icon.width,
-                    margin_top + chara_icon.height,
-                ),
-                gradient,
-            )
-            # Add the character icon
-            await self._paste_image(
-                chara_icon,
-                (self.MARGIN_LR + (inbetween_margin * idx), margin_top),
-                chara_icon,
-            )
-            # Create the backdrop for the level
-            await self._create_box(
-                (
-                    (self.MARGIN_LR + (inbetween_margin * idx), margin_top + chara_icon.height),
-                    (
-                        self.MARGIN_LR + (inbetween_margin * idx) + chara_icon.height,
-                        margin_top + chara_icon.height + 30,
-                    ),
-                ),
-                color=(*self._background, round(0.6 * 255)),
-            )
-            # Write the level
-            await self._write_text(
-                self._i18n.t("chronicles.level_short", [f"{lineup.level:02d}"]),
-                (
-                    self.MARGIN_LR + (inbetween_margin * idx) + (chara_icon.width // 2),
-                    margin_top + chara_icon.height + 22,
-                ),
-                font_size=20,
-                anchor="ms",
-                color=self._foreground,
-            )
-
-            # Create backdrop for eidolons (top right)
-            await self._create_box(
-                (
-                    (self.MARGIN_LR + (inbetween_margin * idx) + chara_icon.width - 31, margin_top),
-                    (self.MARGIN_LR + (inbetween_margin * idx) + chara_icon.width - 1, margin_top + 30),
-                ),
-                color=(*self._background, round(0.5 * 255)),
-            )
-            # Write the eidolon
-            await self._write_text(
-                f"E{lineup.eidolon}",
-                (self.MARGIN_LR + (inbetween_margin * idx) + chara_icon.width - 15 - 1, margin_top + 22),
-                font_size=20,
-                anchor="ms",
-                color=self._foreground,
-            )
-            await self._async_close(chara_icon)
-
-            # Create the element icon
-            await self._create_circle(
-                [
-                    self.MARGIN_LR + (inbetween_margin * idx) + 2,
-                    margin_top + 2,
-                    self.MARGIN_LR + (inbetween_margin * idx) + 33,
-                    margin_top + 33,
-                ],
-                color=(*self._background, 128),
-                width=0,
-            )
-            element_icon = await self._async_open(self._assets_folder / lineup.element.icon_url)
-            element_icon = await self._resize_image(element_icon, (28, 28))
-            # Paste Top-left corner
-            await self._paste_image(
-                element_icon,
-                (self.MARGIN_LR + (inbetween_margin * idx) + 3, margin_top + 3),
-                element_icon,
-            )
-            await self._async_close(element_icon)
+        await self._create_character_card(
+            characters,
+            margin_top=margin_top,
+            margin_lr=self.MARGIN_LR,
+            inbetween_margin=inbetween_margin,
+            icon_size=150,
+            drawing=self,
+            box_color=(*self._background, round(0.65 * 255)),
+            box_text_color=self._foreground,
+        )
 
     async def _create_nodes(self):
         # Create first node

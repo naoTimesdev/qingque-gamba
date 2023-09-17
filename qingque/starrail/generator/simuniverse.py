@@ -24,7 +24,9 @@ SOFTWARE.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar, cast
+from typing import TYPE_CHECKING, cast
+
+from PIL import ImageEnhance
 
 from qingque.hylab.models.simuniverse import (
     ChronicleRogueBlessingItem,
@@ -36,10 +38,12 @@ from qingque.hylab.models.simuniverse import (
 )
 from qingque.i18n import get_roman_numeral
 from qingque.mihomo.models.constants import MihomoLanguage
+from qingque.starrail.imaging import AsyncImageEnhance
 from qingque.tooling import get_logger
 from qingque.utils import strip_unity_rich_text
 
 from .base import RGB, StarRailDrawing, StarRailDrawingLogger
+from .mixins import SRDrawCharacter, StarRailDrawCharacterMixin, StarRailDrawGradientMixin
 
 if TYPE_CHECKING:
     from qingque.hylab.models.base import HYLanguage
@@ -64,22 +68,9 @@ def hex_to_rgb(hex_str: str) -> RGB | None:
     return cast(RGB, rgb)
 
 
-class StarRailSimulatedUniverseCard(StarRailDrawing):
+class StarRailSimulatedUniverseCard(StarRailDrawGradientMixin, StarRailDrawCharacterMixin, StarRailDrawing):
     MARGIN_LR = 75
     MARGIN_TP = 75
-    FIVE_GRADIENT: ClassVar[tuple[RGB, RGB]] = ((117, 70, 66), (201, 164, 104))
-    FOUR_GRADIENT: ClassVar[tuple[RGB, RGB]] = ((55, 53, 87), (134, 89, 204))
-
-    RARITY_COLOR: ClassVar[dict[int, RGB]] = {
-        1: (83, 85, 95),
-        2: (52, 75, 123),
-        3: (152, 108, 82),
-    }
-    RARITY_GRADIANT: ClassVar[dict[int, tuple[RGB, RGB]]] = {
-        1: ((49, 51, 64), (130, 131, 138)),
-        2: ((45, 47, 81), (68, 116, 187)),
-        3: FIVE_GRADIENT,
-    }
 
     def __init__(
         self,
@@ -100,7 +91,7 @@ class StarRailSimulatedUniverseCard(StarRailDrawing):
         )
         if isinstance(self._record, ChronicleRogueLocustDetailRecord):
             self._background = (26, 27, 51)
-            self._foreground = (250, 250, 250)
+            self._foreground = (189, 172, 255)
         else:
             self._background = (18, 18, 18)
             self._foreground = (219, 194, 145)
@@ -161,88 +152,20 @@ class StarRailSimulatedUniverseCard(StarRailDrawing):
 
     async def _create_character_profile(self):
         MARGIN_TOP = self.MARGIN_TP + 240
+        characters: list[SRDrawCharacter] = [
+            SRDrawCharacter.from_hylab(lineup) for lineup in self._record.final_lineups
+        ]
 
-        inbetween_margin = 190
-        for idx, lineup in enumerate(self._record.final_lineups, 0):
-            chara_icon = await self._async_open(self._assets_folder / lineup.icon_path)
-            chara_icon = await self._resize_image(chara_icon, (150, 150))
-            # Create backdrop
-            gradient = self.FIVE_GRADIENT if lineup.rarity == 5 else self.FOUR_GRADIENT
-            await self._create_box_2_gradient(
-                (
-                    self.MARGIN_LR + (inbetween_margin * idx),
-                    MARGIN_TOP,
-                    self.MARGIN_LR + (inbetween_margin * idx) + chara_icon.width,
-                    MARGIN_TOP + chara_icon.height,
-                ),
-                gradient,
-            )
-            # Add the character icon
-            await self._paste_image(
-                chara_icon,
-                (self.MARGIN_LR + (inbetween_margin * idx), MARGIN_TOP),
-                chara_icon,
-            )
-            # Create the backdrop for the level
-            await self._create_box(
-                (
-                    (self.MARGIN_LR + (inbetween_margin * idx), MARGIN_TOP + chara_icon.height),
-                    (
-                        self.MARGIN_LR + (inbetween_margin * idx) + chara_icon.height,
-                        MARGIN_TOP + chara_icon.height + 30,
-                    ),
-                )
-            )
-            # Write the level
-            await self._write_text(
-                self._i18n.t("chronicles.level_short", [f"{lineup.level:02d}"]),
-                (
-                    self.MARGIN_LR + (inbetween_margin * idx) + (chara_icon.width // 2),
-                    MARGIN_TOP + chara_icon.height + 22,
-                ),
-                font_size=20,
-                anchor="ms",
-                color=self._background,
-            )
+        await self._create_character_card(
+            characters,
+            margin_top=MARGIN_TOP,
+            margin_lr=self.MARGIN_LR,
+            inbetween_margin=190,
+            icon_size=150,
+            drawing=self,
+        )
 
-            # Create backdrop for eidolons (top right)
-            await self._create_box(
-                (
-                    (self.MARGIN_LR + (inbetween_margin * idx) + chara_icon.width - 31, MARGIN_TOP),
-                    (self.MARGIN_LR + (inbetween_margin * idx) + chara_icon.width - 1, MARGIN_TOP + 30),
-                ),
-                color=(*self._foreground, round(0.8 * 255)),
-            )
-            # Write the eidolon
-            await self._write_text(
-                f"E{lineup.eidolons}",
-                (self.MARGIN_LR + (inbetween_margin * idx) + chara_icon.width - 16, MARGIN_TOP + 22),
-                font_size=20,
-                anchor="ms",
-                color=self._background,
-            )
-            # Create the element icon
-            await self._create_circle(
-                [
-                    self.MARGIN_LR + (inbetween_margin * idx) + 2,
-                    MARGIN_TOP + 2,
-                    self.MARGIN_LR + (inbetween_margin * idx) + 33,
-                    MARGIN_TOP + 33,
-                ],
-                color=(*self._background, 128),
-                width=0,
-            )
-            element_icon = await self._async_open(self._assets_folder / lineup.element.icon_url)
-            element_icon = await self._resize_image(element_icon, (28, 28))
-            # Paste Top-left corner
-            await self._paste_image(
-                element_icon,
-                (self.MARGIN_LR + (inbetween_margin * idx) + 3, MARGIN_TOP + 3),
-                element_icon,
-            )
-            await self._async_close(element_icon)
-            await self._async_close(chara_icon)
-        return self.MARGIN_LR + (inbetween_margin * len(self._record.final_lineups))
+        return self.MARGIN_LR + (190 * len(self._record.final_lineups))
 
     async def _create_decoration(self, hide_credits: bool = False) -> None:
         # DialogFrameDeco1.png (orig 395x495)
@@ -251,6 +174,7 @@ class StarRailSimulatedUniverseCard(StarRailDrawing):
             self._assets_folder / "icon" / "deco" / "DecoShortLineRing177R@3x.png",
         )
         deco_top_right = await self._tint_image(deco_top_right, self._foreground)
+        deco_top_right = await AsyncImageEnhance.process(deco_top_right, 0.6, subclass=ImageEnhance.Brightness)
         await self._paste_image(
             deco_top_right,
             (self._canvas.width - deco_top_right.width, 0),
@@ -261,6 +185,7 @@ class StarRailSimulatedUniverseCard(StarRailDrawing):
             self._assets_folder / "icon" / "deco" / "DialogFrameDeco1.png",
         )
         deco_bot_left = await self._tint_image(deco_bot_left, self._foreground)
+        deco_bot_left = await AsyncImageEnhance.process(deco_bot_left, 0.6, subclass=ImageEnhance.Brightness)
         deco_bot_left = await self._resize_image(deco_bot_left, (160, 200))
         await self._paste_image(
             deco_bot_left,
@@ -272,6 +197,7 @@ class StarRailSimulatedUniverseCard(StarRailDrawing):
             self._assets_folder / "icon" / "deco" / "DialogFrameDeco1@3x.png",
         )
         deco_bot_right = await self._tint_image(deco_bot_right, self._foreground)
+        deco_bot_right = await AsyncImageEnhance.process(deco_bot_right, 0.6, subclass=ImageEnhance.Brightness)
         deco_bot_right_mid = (deco_bot_right.height // 2) - (deco_bot_right.height // 6)
 
         await self._paste_image(
@@ -286,6 +212,7 @@ class StarRailSimulatedUniverseCard(StarRailDrawing):
         # Bottom middle
         deco_bot_mid = await self._async_open(self._assets_folder / "icon" / "deco" / "NewSystemDecoLine.png")
         deco_bot_mid = await self._tint_image(deco_bot_mid, self._foreground)
+        deco_bot_mid = await AsyncImageEnhance.process(deco_bot_mid, 0.6, subclass=ImageEnhance.Brightness)
         # 360 x 48, put in the middle with 25 padding
 
         deco_bot_mid_vert_box = self._canvas.height - deco_bot_mid.height - 35

@@ -162,7 +162,7 @@ class ChronicleRogueCharacter(Struct):
     """:class:`int`: The rarity of the character."""
     icon_url: str = field(name="icon")
     """:class:`str`: The URL of the icon of the character."""
-    eidolons: int = field(name="rank")
+    eidolon: int = field(name="rank")
     """:class:`int`: The number of activated eidolons of the character."""
     element: HYElementType
     """:class:`HYElementType`: The element of the character."""
