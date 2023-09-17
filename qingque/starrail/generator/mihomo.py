@@ -747,6 +747,21 @@ class StarRailMihomoCard(StarRailDrawing):
             if relic_index.type in (SRSRelicType.PlanarOrb, SRSRelicType.PlanarRope):
                 planar_relics.append(relic)
 
+        for _ in range(2 - len(planar_relics)):
+            planar_relics.append(
+                Relic(
+                    id="-1",
+                    name="Unknown",
+                    set_id="-1",
+                    set_name="Unknown Set",
+                    rarity=0,
+                    icon_url="icon/character/None.png",
+                    level=0,
+                    main_stats=StatsProperties("None", StatsField.Unknown, "???", ""),
+                    sub_stats=[],
+                ),
+            )
+
         RELIC_LEFT = self.RELIC_LEFT + 138 + 28 + 254 + 60
         if self._character.light_cone is None:
             await self._create_placeholder_slot(1, RELIC_LEFT, text=self._i18n.t("mihomo.no_weapon"))
@@ -777,7 +792,11 @@ class StarRailMihomoCard(StarRailDrawing):
 
         for idx, relic in enumerate(planar_relics, 2):
             if relic.id == "-1":
-                await self._create_placeholder_slot(idx, RELIC_LEFT, text=self._i18n.t("mihomo.no_relic"))
+                await self._create_placeholder_slot(
+                    idx,
+                    RELIC_LEFT,
+                    text=self._i18n.t("mihomo.no_relic"),
+                )
             else:
                 relic_score = relic_scores.scores.get(relic.id)
                 await self._create_stats_box(
