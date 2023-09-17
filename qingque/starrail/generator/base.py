@@ -680,6 +680,45 @@ class StarRailDrawing:
 
         return await self._loop.run_in_executor(None, img.resize, size, resampling)
 
+    async def _resize_image_side(
+        self,
+        img: Image.Image,
+        target: int,
+        side: Literal["h", "w", "height", "width"] = "w",
+        resampling: Image.Resampling | None = None,
+    ):
+        """Resize an image side according to the target size.
+
+        Parameters
+        ----------
+        img: :class:`PIL.Image.Image`
+            The image to resize.
+        target: :class:`int`
+            The target size.
+        side: :class:`Literal["h", "w"]`, optional
+            Width or height, by default "w".
+            This will be used to determine which side to resize, the unprovided side will be resized
+            according to the aspect ratio of the image.
+        resampling: :class:`PIL.Image.Resampling`, optional
+            The resampling method to use when resizing the mask.
+            If not provided, will use the default resampling method
+
+        Returns
+        -------
+        :class:`PIL.Image.Image`
+            The cropped image.
+        """
+
+        match side.lower()[0]:
+            case "h":
+                height = target
+                width = round(height / img.height * img.width)
+            case _:
+                width = target
+                height = round(width / img.width * img.height)
+
+        return await self._loop.run_in_executor(None, img.resize, (width, height), resampling)
+
     async def _async_open(self, img_path: AsyncPath) -> Image.Image:
         """Open an image asynchronously.
 

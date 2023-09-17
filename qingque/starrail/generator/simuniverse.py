@@ -24,9 +24,10 @@ SOFTWARE.
 
 from __future__ import annotations
 
+import functools
 from typing import TYPE_CHECKING, cast
 
-from PIL import ImageEnhance
+from PIL import Image, ImageEnhance
 
 from qingque.hylab.models.simuniverse import (
     ChronicleRogueBlessingItem,
@@ -471,34 +472,140 @@ class StarRailSimulatedUniverseCard(StarRailDrawGradientMixin, StarRailDrawChara
             anchor="ls",
         )
 
-        inbetween_margin = 100
+        default_block_bg = await self._async_open(
+            self._assets_folder / "icon" / "rogue" / "room" / "BgRogueDlcChessmanGridUse1.png"
+        )
+
+        inbetween_margin = 95
         for idx, strider in enumerate(self._swarm_striders):
-            text_len = await self._calc_text(str(strider.level).zfill(2), font_size=20)
-            # Create box
-            await self._create_box(
-                (
-                    (margin_left + (inbetween_margin * idx), MARGIN_TOP + 30),
-                    (margin_left + (inbetween_margin * idx) + 50 + text_len, MARGIN_TOP + 30 + 30),
-                ),
-                color=(189, 172, 255, round(0.25 * 255)),
+            # Icon block
+            block_grid_icon = await self._create_swarm_dlc_default_grid(
+                default_block_bg,
+                strider.type.icon_url,
+                offset=-3,
+            )
+            block_grid_icon = await self._resize_image_side(
+                block_grid_icon,
+                target=46,
+                side="height",
+            )
+            await self._paste_image(
+                block_grid_icon,
+                (margin_left + (inbetween_margin * idx), MARGIN_TOP + 30),
+                block_grid_icon,
+            )
+            await self._async_close(block_grid_icon)
+
+            # Create the text box
+            draw = await self._get_draw()
+            calc_length = await self._calc_text(str(strider.level).zfill(2), font_size=19)
+            rounded_rect = functools.partial(
+                draw.rounded_rectangle,
+                radius=5,
+                corners=(False, True, True, False),
+                fill=(7, 51, 71),
             )
 
-            icon_destiny = await self._async_open(self._assets_folder / strider.type.icon_url)
-            icon_destiny = await self._resize_image(icon_destiny, (25, 25))
-            await self._paste_image(
-                icon_destiny,
-                (margin_left + (inbetween_margin * idx) + 4, MARGIN_TOP + 33),
-                icon_destiny,
+            await self._loop.run_in_executor(
+                None,
+                rounded_rect,
+                (
+                    (
+                        margin_left + (inbetween_margin * idx) + block_grid_icon.width,
+                        MARGIN_TOP + 41,
+                    ),
+                    (
+                        margin_left + (inbetween_margin * idx) + block_grid_icon.width + 14 + calc_length,
+                        MARGIN_TOP + 61,
+                    ),
+                ),
             )
-            await self._async_close(icon_destiny)
+
+            # Write the level count
             await self._write_text(
                 str(strider.level).zfill(2),
-                (margin_left + (inbetween_margin * idx) + 50, MARGIN_TOP + 46),
-                font_size=20,
-                anchor="mm",
+                (margin_left + (inbetween_margin * idx) + block_grid_icon.width + 6, MARGIN_TOP + 58),
+                font_size=19,
+                anchor="ls",
                 color=(255, 255, 255),
-                alpha=round(0.75 * 255),
             )
+
+    async def _create_boss_icon(self):
+        # Composite boss icon
+        boss_block_bg = await self._async_open(
+            self._assets_folder / "icon" / "rogue" / "room" / "BgRogueDlcChessmanGridBoss.png"
+        )
+        boss_block_overlay = await self._async_open(
+            self._assets_folder / "icon" / "rogue" / "room" / "BgRogueDlcChessmanGridBoss1.png"
+        )
+        boss_icon = await self._async_open(
+            self._assets_folder / "icon" / "rogue" / "room" / "BossIconWhite.png",
+        )
+        boss_icon = await self._resize_image(boss_icon, (65, 65))
+
+        # Merge them
+        boss_width = max(boss_block_bg.width, boss_block_overlay.width)
+        boss_height = max(boss_block_bg.height, boss_block_overlay.height)
+        boss_canvas = Image.new("RGBA", (boss_width, boss_height), (0, 0, 0, 0))
+        await self._paste_image(boss_block_bg, (0, 0), boss_block_bg, canvas=boss_canvas)
+        await self._paste_image(boss_block_overlay, (0, 0), boss_block_overlay, canvas=boss_canvas)
+        boss_icon_x = (boss_width - boss_icon.width) // 2
+        boss_icon_y = ((boss_height - boss_icon.height) // 2) - 5
+        await self._paste_image(boss_icon, (boss_icon_x, boss_icon_y), boss_icon, canvas=boss_canvas)
+
+        await self._async_close(boss_block_overlay)
+        await self._async_close(boss_icon)
+
+        # Composite boss: swarm icon
+        boss_swarm_overlay = await self._async_open(
+            self._assets_folder / "icon" / "rogue" / "room" / "BgRogueDlcChessmanGridInSectBoss1.png"
+        )
+        boss_swarm_icon = await self._async_open(
+            self._assets_folder / "icon" / "rogue" / "room" / "BossSwarmIconWhite.png",
+        )
+        boss_swarm_icon = await self._resize_image(boss_swarm_icon, (75, 75))
+
+        # Merge them
+        boss_swarm_width = max(boss_block_bg.width, boss_swarm_overlay.width)
+        boss_swarm_height = max(boss_block_bg.height, boss_swarm_overlay.height)
+        boss_swarm_canvas = Image.new("RGBA", (boss_swarm_width, boss_swarm_height), (0, 0, 0, 0))
+        await self._paste_image(boss_block_bg, (0, 0), boss_block_bg, canvas=boss_swarm_canvas)
+        await self._paste_image(boss_swarm_overlay, (0, 0), boss_swarm_overlay, canvas=boss_swarm_canvas)
+        boss_swarm_icon_x = (boss_swarm_width - boss_swarm_icon.width) // 2
+        boss_swarm_icon_y = (boss_swarm_height - boss_swarm_icon.height) // 2
+        await self._paste_image(
+            boss_swarm_icon, (boss_swarm_icon_x, boss_swarm_icon_y), boss_swarm_icon, canvas=boss_swarm_canvas
+        )
+
+        await self._async_close(boss_block_bg)
+        await self._async_close(boss_swarm_overlay)
+        await self._async_close(boss_swarm_icon)
+
+        return boss_canvas, boss_swarm_canvas
+
+    async def _create_swarm_dlc_default_grid(
+        self,
+        block_bg: Image.Image,
+        block_icon_path: str,
+        block_color: str = "#FFFFFF",
+        offset: int = 0,
+    ):
+        icon_block_path = self._assets_folder / block_icon_path
+        block_icon = await self._async_open(self._assets_folder / icon_block_path)
+        icon_block_col = hex_to_rgb(block_color)
+        if icon_block_col and icon_block_col != (255, 255, 255):
+            # Tint if needed
+            block_icon = await self._tint_image(block_icon, icon_block_col)
+
+        canvas = Image.new("RGBA", (block_bg.width, block_bg.height), (0, 0, 0, 0))
+        await self._paste_image(block_bg, (0, 0), block_bg, canvas=canvas)
+
+        block_icon = await self._resize_image(block_icon, (70, 70))
+        icon_x = (block_bg.width - block_icon.width) // 2
+        icon_y = ((block_bg.height - block_icon.height) // 2) + offset
+        await self._paste_image(block_icon, (icon_x, icon_y), block_icon, canvas=canvas)
+        await self._async_close(block_icon)
+        return canvas
 
     async def _create_swarm_domain_type(self, margin_left: int):
         if not isinstance(self._record, ChronicleRogueLocustDetailRecord):
@@ -516,43 +623,76 @@ class StarRailSimulatedUniverseCard(StarRailDrawGradientMixin, StarRailDrawChara
         )
 
         inbetween_margin = 90
-        boss_color = (61, 21, 29, round(0.8 * 255))
-        default_color = (189, 172, 255, round(0.25 * 255))
         boss_blocks = [11, 12]
-        for idx, block in enumerate(self._record.blocks):
-            block_info = self._index_data.swarmdlc_blocks[str(block.id)]
-            text_len = await self._calc_text(str(block.count).zfill(2), font_size=20)
-            # Create box
-            await self._create_box(
-                (
-                    (margin_left + (inbetween_margin * idx), MARGIN_TOP + 30),
-                    (margin_left + (inbetween_margin * idx) + 50 + text_len, MARGIN_TOP + 30 + 30),
-                ),
-                color=boss_color if block_info.id in boss_blocks else default_color,
-            )
+        has_boss_blocks = any(x.id in boss_blocks for x in self._record.blocks if x.count > 0)
 
-            # Icon block
-            icon_block_path = self._assets_folder / block_info.icon_url
-            icon_blocks = await self._async_open(icon_block_path.with_stem(icon_block_path.stem + "White"))
-            icon_block_col = hex_to_rgb(block_info.color)
-            if icon_block_col and icon_block_col != (255, 255, 255):
-                # Tint if needed
-                icon_blocks = await self._tint_image(icon_blocks, icon_block_col)
-            icon_blocks = await self._resize_image(icon_blocks, (25, 25))
-            await self._paste_image(
-                icon_blocks,
-                (margin_left + (inbetween_margin * idx) + 4, MARGIN_TOP + 33),
-                icon_blocks,
-            )
-            await self._async_close(icon_blocks)
-            await self._write_text(
-                str(block.count).zfill(2),
-                (margin_left + (inbetween_margin * idx) + 50, MARGIN_TOP + 46),
-                font_size=20,
-                anchor="mm",
-                color=(255, 255, 255),
-                alpha=round(0.75 * 255),
-            )
+        default_block_bg = await self._async_open(
+            self._assets_folder / "icon" / "rogue" / "room" / "BgRogueDlcChessmanGridMove1.png"
+        )
+
+        grid_chess_icons: dict[int, Image.Image] = {}
+        if has_boss_blocks:
+            boss_canvas, boss_swarm_canvas = await self._create_boss_icon()
+            grid_chess_icons[11] = boss_canvas
+            grid_chess_icons[12] = boss_swarm_canvas
+
+        # Split block into 7 and 7
+        block_splits = [self._record.blocks[x : x + 7] for x in range(0, len(self._record.blocks), 7)]
+
+        for block_split in block_splits:
+            for idx, block in enumerate(block_split):
+                block_info = self._index_data.swarmdlc_blocks[str(block.id)]
+                # Icon block
+                block_grid_icon = grid_chess_icons.get(block.id) or await self._create_swarm_dlc_default_grid(
+                    default_block_bg, block_info.icon_url.replace(".png", "White.png"), block_info.color
+                )
+                block_grid_icon = await self._resize_image_side(
+                    block_grid_icon,
+                    target=46,
+                    side="height",
+                )
+                await self._paste_image(
+                    block_grid_icon,
+                    (margin_left + (inbetween_margin * idx), MARGIN_TOP + 30),
+                    block_grid_icon,
+                )
+                await self._async_close(block_grid_icon)
+
+                # Create the text box
+                draw = await self._get_draw()
+                calc_length = await self._calc_text(str(block.count).zfill(2), font_size=19)
+                rounded_rect = functools.partial(
+                    draw.rounded_rectangle,
+                    radius=5,
+                    corners=(False, True, True, False),
+                    fill=(71, 59, 155) if block_info.id not in boss_blocks else (102, 33, 46),
+                )
+
+                await self._loop.run_in_executor(
+                    None,
+                    rounded_rect,
+                    (
+                        (
+                            margin_left + (inbetween_margin * idx) + block_grid_icon.width,
+                            MARGIN_TOP + 41,
+                        ),
+                        (
+                            margin_left + (inbetween_margin * idx) + block_grid_icon.width + 14 + calc_length,
+                            MARGIN_TOP + 61,
+                        ),
+                    ),
+                )
+
+                # Write the visit count
+                await self._write_text(
+                    str(block.count).zfill(2),
+                    (margin_left + (inbetween_margin * idx) + block_grid_icon.width + 6, MARGIN_TOP + 58),
+                    font_size=19,
+                    anchor="ls",
+                    color=(255, 255, 255),
+                )
+            MARGIN_TOP += 50
+        await self._async_close(default_block_bg)
 
     async def create(self, *, hide_credits: bool = False, hide_timestamp: bool = False):
         self._assets_folder = await self._assets_folder.absolute()
