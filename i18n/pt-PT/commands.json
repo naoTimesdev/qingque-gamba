@@ -6,6 +6,9 @@
     "srchronicle": {
         "desc": "See your profile chronicle from HoyoLab."
     },
+    "srcharacters": {
+        "desc": "See your characters data from HoyoLab."
+    },
     "srsimuniverse": {
         "desc": "See your simulated universe progress from HoyoLab."
     },
