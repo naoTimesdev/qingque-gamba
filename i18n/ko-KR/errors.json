@@ -1,7 +1,7 @@
 {
     "bind_uid": "You haven't binded your UID yet.",
-    "bind_hoyolab": "You haven't binded your HoyoLab account yet.",
-    "bind_hoyolab_token": "You binded your HoyoLab account, but haven't binded your HoyoLab token yet.",
+    "bind_hoyolab": "You haven't binded your HoyoLab account yet.\nSee `/srhelp bind` for more information.",
+    "bind_hoyolab_token": "You binded your HoyoLab account, but haven't binded your HoyoLab token yet.\nSee `/srhelp bind` for more information.",
     "hoyolab_public": "Your HoyoLab data is not public, please make it public!",
     "hoyolab_unavailable": "Your HoyoLab data is not available, please make it public if you haven't!",
     "exception": "Something went wrong, please try again later.\n{0}",

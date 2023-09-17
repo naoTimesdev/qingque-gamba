@@ -1,7 +1,7 @@
 {
     "bind_uid": "Anda belum binding UID akun anda.",
-    "bind_hoyolab": "Anda belum binding akun HoyoLab.",
-    "bind_hoyolab_token": "You binded your HoyoLab account, but haven't binded your HoyoLab token yet.",
+    "bind_hoyolab": "You haven't binded your HoyoLab account yet.\nSee `/srhelp bind` for more information.",
+    "bind_hoyolab_token": "You binded your HoyoLab account, but haven't binded your HoyoLab token yet.\nSee `/srhelp bind` for more information.",
     "hoyolab_public": "Informasi akun anda tidak publik di HoyoLab, tolong jadikan publik!",
     "hoyolab_unavailable": "Informasi akun anda tidak dapat ditemukan, mohon jadikan publik jika belum!",
     "exception": "Terjadi kesalahan, mohon coba lagi nanti\n{0}",

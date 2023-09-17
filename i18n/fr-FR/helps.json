@@ -12,7 +12,9 @@
             "desc": "See your profiles card",
             "short_desc": "See your profiles card",
             "srprofile": "See your profile card, you can also see other people by providing their UID.\nThis will show the same four characters you set on your Trailblaze Profile",
-            "srchronicle": "See your battle chronicle overview data. Make sure you bind both your UID and HoyoLab account for this."
+            "srchronicle": "See your battle chronicle overview data. Make sure you bind both your UID and HoyoLab account for this.",
+            "srmoc": "See your Memory of Chaos data. Make sure you bind both your UID and HoyoLab account for this.",
+            "srsimuniverse": "See your Simulated Universe data.\nAlso include the new Swarm Disaster DLC.\nMake sure you bind both your UID and HoyoLab account for this."
         },
         "rewards": {
             "title": "Rewards",
