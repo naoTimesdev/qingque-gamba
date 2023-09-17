@@ -1,0 +1,13 @@
+bot_id = 0000000000000000000  # Discord Bot ID
+bot_token = "AAAAAAAAAAAAAAAAAAAAAAAAAA.bbbbbb.cccccccccccccccccccccccccccccccccccccc"  # Discord bot token
+
+# Redis database configuration, needed for persistent data storage
+[redis]
+host = "127.0.0.1"
+port = 6379
+# password = ""  # Uncomment if Redis db has password
+
+# HoyoLab account configuration, needed for Battle Chronicles data.
+[hoyolab]
+ltuid = 123456789  # v1 uid (not uid_v2)
+ltoken = ""  # v1 ltoken (not ltoken_v2)
