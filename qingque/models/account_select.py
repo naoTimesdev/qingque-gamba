@@ -147,6 +147,7 @@ class AccountSelectView(discord.ui.View):
 
     def set_response(self, account: QingqueProfileV2Game | None) -> None:
         self._response = account
+        self.stop()
 
     async def on_timeout(self) -> None:
         self.set_response(None)
