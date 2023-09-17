@@ -84,3 +84,33 @@ class AsyncImageEnhance:
 
         enhanced = await self._loop.run_in_executor(None, self._enhancer.enhance, factor)
         return enhanced
+
+    @classmethod
+    async def process(
+        cls: type[AsyncImageEnhance],
+        image: Image.Image,
+        factor: float,
+        *,
+        subclass: type[_SyncEnhance],
+        loop: asyncio.AbstractEventLoop | None = None,
+    ) -> Image.Image:
+        """Asynchronously process the image.
+
+        Parameters
+        ----------
+        image: :class:`PIL.Image.Image`
+            The image to enhance.
+        factor: :class:`float`
+            The factor to enhance the image.
+        subclass: :class:`type[PIL.ImageEnhance._Enhance]`
+            The subclass of :class:`PIL.ImageEnhance._Enhance` to use.
+        loop: :class:`asyncio.AbstractEventLoop | None`, optional
+            The event loop to use, by default None
+
+        Returns
+        -------
+        :class:`PIL.Image.Image`
+            The enhanced image.
+        """
+
+        return await cls(image, subclass=subclass, loop=loop).enhance(factor)
