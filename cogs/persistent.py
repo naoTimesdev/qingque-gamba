@@ -227,7 +227,7 @@ async def qqpersist_srhoyobind(
     except Exception as exc:
         logger.error(f"Error getting profile overview for UID {first_uid}: {exc}")
         error_message = str(exc)
-        await response.edit(content=t("exception", [f"`{error_message}`"]))
+        await response.edit(content=t("exception", [f"```{error_message}```"]))
         return
 
     await inter.client.redis.set(f"qqgamba:profilev2:{discord_id}", profile)

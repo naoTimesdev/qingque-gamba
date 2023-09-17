@@ -153,7 +153,7 @@ async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: in
             if (error := select_account.error) is not None:
                 logger.error(f"Error getting profile info for Discord ID {inter.user.id}: {error}")
                 error_message = str(error)
-                await original_message.edit(content=t("exception", [f"`{error_message}`"]))
+                await original_message.edit(content=t("exception", [f"```{error_message}```"]))
                 return
 
             if select_account.account is None:
@@ -167,7 +167,7 @@ async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: in
     except Exception as e:
         logger.error(f"Error getting profile info for UID {uid}: {e}")
         error_message = str(e)
-        await original_message.edit(content=t("exception", [f"`{error_message}`"]))
+        await original_message.edit(content=t("exception", [f"```{error_message}```"]))
         return
     logger.info(f"Getting profile card for UID {uid}")
 
@@ -230,7 +230,7 @@ async def qqprofile_srchronicle(inter: discord.Interaction[QingqueClient]):
         if (error := select_account.error) is not None:
             logger.error(f"Error getting profile info for Discord ID {inter.user.id}: {error}")
             error_message = str(error)
-            await original_message.edit(content=t("exception", [f"`{error_message}`"]))
+            await original_message.edit(content=t("exception", [f"```{error_message}```"]))
             return
 
         if select_account.account is None:
@@ -256,7 +256,7 @@ async def qqprofile_srchronicle(inter: discord.Interaction[QingqueClient]):
     except Exception as e:
         logger.error(f"Error getting profile info for UID {sel_uid}: {e}")
         error_message = str(e)
-        await original_message.edit(content=t("exception", [f"`{error_message}`"]))
+        await original_message.edit(content=t("exception", [f"```{error_message}```"]))
         return
     logger.info(f"Getting profile real-time notes for UID {sel_uid}")
     try:
@@ -274,7 +274,7 @@ async def qqprofile_srchronicle(inter: discord.Interaction[QingqueClient]):
     except Exception as e:
         logger.error(f"Error getting profile info for UID {sel_uid}: {e}")
         error_message = str(e)
-        await original_message.edit(content=t("exception", [f"`{error_message}`"]))
+        await original_message.edit(content=t("exception", [f"```{error_message}```"]))
         return
 
     if hoyo_realtime is None:
@@ -485,7 +485,7 @@ async def qqprofile_srrogue(inter: discord.Interaction[QingqueClient]):
     except Exception as e:
         logger.error(f"Error getting profile info for UID {sel_uid}: {e}")
         error_message = str(e)
-        await original_message.edit(content=t("exception", [f"`{error_message}`"]))
+        await original_message.edit(content=t("exception", [f"```{error_message}```"]))
         return
     logger.info(f"Getting profile simulated universe: swarm DLC for UID {sel_uid}")
     try:
@@ -502,7 +502,7 @@ async def qqprofile_srrogue(inter: discord.Interaction[QingqueClient]):
     except Exception as e:
         logger.error(f"Error getting profile info for UID {sel_uid}: {e}")
         error_message = str(e)
-        await original_message.edit(content=t("exception", [f"`{error_message}`"]))
+        await original_message.edit(content=t("exception", [f"```{error_message}```"]))
         return
 
     if hoyo_rogue is None:
@@ -694,7 +694,7 @@ async def qqprofile_moc(inter: discord.Interaction[QingqueClient], previous: boo
     except Exception as e:
         logger.error(f"Error getting profile info for UID {sel_uid}: {e}")
         error_message = str(e)
-        await original_message.edit(content=t("exception", [f"`{error_message}`"]))
+        await original_message.edit(content=t("exception", [f"```{error_message}```"]))
         return
 
     if hoyo_moc is None:
