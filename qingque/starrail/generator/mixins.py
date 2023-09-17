@@ -27,6 +27,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, ClassVar, TypeAlias, overload
 
+from PIL import ImageEnhance
+
+from qingque.starrail.imaging import AsyncImageEnhance
+
 from .base import RGB, RGBA, StarRailDrawing
 
 if TYPE_CHECKING:
@@ -152,6 +156,7 @@ class StarRailDrawCharacterMixin:
         drawing: :class:`StarRailDrawing`
             The drawing to use.
         """
+
         for idx, lineup in enumerate(characters):
             char_info = drawing._index_data.characters[lineup.id]
 
@@ -184,9 +189,12 @@ class StarRailDrawCharacterMixin:
             # Backdrop for the level
             await drawing._create_box(
                 (
-                    (margin_lr + (inbetween_margin * idx), margin_top + chara_icon.height),
                     (
-                        margin_lr + (inbetween_margin * idx) + chara_icon.height,
+                        margin_lr + (inbetween_margin * idx),
+                        margin_top + chara_icon.height,
+                    ),
+                    (
+                        margin_lr + (inbetween_margin * idx) + chara_icon.width,
                         margin_top + chara_icon.height + 30,
                     ),
                 ),
@@ -208,7 +216,7 @@ class StarRailDrawCharacterMixin:
             await drawing._create_box(
                 (
                     (margin_lr + (inbetween_margin * idx) + chara_icon.width - 31, margin_top),
-                    (margin_lr + (inbetween_margin * idx) + chara_icon.width - 1, margin_top + 30),
+                    (margin_lr + (inbetween_margin * idx) + chara_icon.width, margin_top + 30),
                 ),
                 color=box_color or (*drawing._foreground, round(0.8 * 255)),
             )
@@ -243,3 +251,98 @@ class StarRailDrawCharacterMixin:
                 element_icon,
             )
             await drawing._async_close(element_icon)
+
+
+class StarRailDrawDecoMixin:
+    async def _create_decoration(
+        self,
+        bump_middle: bool = False,
+        /,
+        *,
+        drawing: StarRailDrawing,
+        brightness: float = 0.6,
+    ) -> None:
+        """Create the decoration for the star rail card.
+
+        Parameters
+        ----------
+        bump_middle: :class:`bool`
+            Whether to bump the middle decoration.
+        drawing: :class:`StarRailDrawing`
+            The drawing to use.
+        brightness: :class:`float`
+            The brightness of the decoration.
+        """
+
+        # DialogFrameDeco1.png (orig 395x495)
+
+        deco_top_right = await drawing._async_open(
+            drawing._assets_folder / "icon" / "deco" / "DecoShortLineRing177R@3x.png",
+        )
+        deco_top_right = await drawing._tint_image(deco_top_right, drawing._foreground)
+        if brightness != 1.0:
+            deco_top_right = await AsyncImageEnhance.process(
+                deco_top_right, brightness, subclass=ImageEnhance.Brightness
+            )
+        await drawing._paste_image(
+            deco_top_right,
+            (drawing._canvas.width - deco_top_right.width, 0),
+            deco_top_right,
+        )
+
+        deco_bot_left = await drawing._async_open(
+            drawing._assets_folder / "icon" / "deco" / "DialogFrameDeco1.png",
+        )
+        deco_bot_left = await drawing._tint_image(deco_bot_left, drawing._foreground)
+        if brightness != 1.0:
+            deco_bot_left = await AsyncImageEnhance.process(deco_bot_left, brightness, subclass=ImageEnhance.Brightness)
+        deco_bot_left = await drawing._resize_image(deco_bot_left, (160, 200))
+        await drawing._paste_image(
+            deco_bot_left,
+            (0, drawing._canvas.height - deco_bot_left.height),
+            deco_bot_left,
+        )
+
+        deco_bot_right = await drawing._async_open(
+            drawing._assets_folder / "icon" / "deco" / "DialogFrameDeco1@3x.png",
+        )
+        deco_bot_right = await drawing._tint_image(deco_bot_right, drawing._foreground)
+        if brightness != 1.0:
+            deco_bot_right = await AsyncImageEnhance.process(
+                deco_bot_right, brightness, subclass=ImageEnhance.Brightness
+            )
+        deco_bot_right_mid = (deco_bot_right.height // 2) - (deco_bot_right.height // 6)
+
+        await drawing._paste_image(
+            deco_bot_right,
+            (
+                drawing._canvas.width - deco_bot_right.width + deco_bot_right_mid,
+                drawing._canvas.height - deco_bot_right.height + deco_bot_right_mid,
+            ),
+            deco_bot_right,
+        )
+
+        # Bottom middle
+        deco_bot_mid = await drawing._async_open(drawing._assets_folder / "icon" / "deco" / "NewSystemDecoLine.png")
+        deco_bot_mid = await drawing._tint_image(deco_bot_mid, drawing._foreground)
+        if brightness != 1.0:
+            deco_bot_mid = await AsyncImageEnhance.process(deco_bot_mid, brightness, subclass=ImageEnhance.Brightness)
+        # 360 x 48, put in the middle with 25 padding
+
+        deco_bot_mid_vert_box = drawing._canvas.height - deco_bot_mid.height - 35
+        if not bump_middle:
+            deco_bot_mid_vert_box -= 10
+        await drawing._paste_image(
+            deco_bot_mid,
+            (
+                (drawing._canvas.width // 2) - (deco_bot_mid.width // 2),
+                deco_bot_mid_vert_box,
+            ),
+            deco_bot_mid,
+        )
+
+        # Close all images
+        await drawing._async_close(deco_top_right)
+        await drawing._async_close(deco_bot_left)
+        await drawing._async_close(deco_bot_right)
+        await drawing._async_close(deco_bot_mid)

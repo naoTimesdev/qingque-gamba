@@ -449,8 +449,8 @@ class StarRailDrawing:
         square_verticies: list[tuple[float, float]] = [
             (box[0][0], box[0][1]),
             (box[0][0], box[1][1]),
-            (box[1][0], box[1][1]),
-            (box[1][0], box[0][1]),
+            (box[1][0] - 1, box[1][1]),
+            (box[1][0] - 1, box[0][1]),
         ]
         # Multiply the verticies by antialias
         square_verticies = [(x * antialias, y * antialias) for x, y in square_verticies]

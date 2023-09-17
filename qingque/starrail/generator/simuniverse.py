@@ -27,7 +27,7 @@ from __future__ import annotations
 import functools
 from typing import TYPE_CHECKING, cast
 
-from PIL import Image, ImageEnhance
+from PIL import Image
 
 from qingque.hylab.models.simuniverse import (
     ChronicleRogueBlessingItem,
@@ -39,12 +39,16 @@ from qingque.hylab.models.simuniverse import (
 )
 from qingque.i18n import get_roman_numeral
 from qingque.mihomo.models.constants import MihomoLanguage
-from qingque.starrail.imaging import AsyncImageEnhance
 from qingque.tooling import get_logger
 from qingque.utils import strip_unity_rich_text
 
 from .base import RGB, StarRailDrawing, StarRailDrawingLogger
-from .mixins import SRDrawCharacter, StarRailDrawCharacterMixin, StarRailDrawGradientMixin
+from .mixins import (
+    SRDrawCharacter,
+    StarRailDrawCharacterMixin,
+    StarRailDrawDecoMixin,
+    StarRailDrawGradientMixin,
+)
 
 if TYPE_CHECKING:
     from qingque.hylab.models.base import HYLanguage
@@ -69,7 +73,9 @@ def hex_to_rgb(hex_str: str) -> RGB | None:
     return cast(RGB, rgb)
 
 
-class StarRailSimulatedUniverseCard(StarRailDrawGradientMixin, StarRailDrawCharacterMixin, StarRailDrawing):
+class StarRailSimulatedUniverseCard(
+    StarRailDrawGradientMixin, StarRailDrawDecoMixin, StarRailDrawCharacterMixin, StarRailDrawing
+):
     MARGIN_LR = 75
     MARGIN_TP = 75
 
@@ -167,72 +173,6 @@ class StarRailSimulatedUniverseCard(StarRailDrawGradientMixin, StarRailDrawChara
         )
 
         return self.MARGIN_LR + (190 * len(self._record.final_lineups))
-
-    async def _create_decoration(self, hide_credits: bool = False) -> None:
-        # DialogFrameDeco1.png (orig 395x495)
-
-        deco_top_right = await self._async_open(
-            self._assets_folder / "icon" / "deco" / "DecoShortLineRing177R@3x.png",
-        )
-        deco_top_right = await self._tint_image(deco_top_right, self._foreground)
-        deco_top_right = await AsyncImageEnhance.process(deco_top_right, 0.6, subclass=ImageEnhance.Brightness)
-        await self._paste_image(
-            deco_top_right,
-            (self._canvas.width - deco_top_right.width, 0),
-            deco_top_right,
-        )
-
-        deco_bot_left = await self._async_open(
-            self._assets_folder / "icon" / "deco" / "DialogFrameDeco1.png",
-        )
-        deco_bot_left = await self._tint_image(deco_bot_left, self._foreground)
-        deco_bot_left = await AsyncImageEnhance.process(deco_bot_left, 0.6, subclass=ImageEnhance.Brightness)
-        deco_bot_left = await self._resize_image(deco_bot_left, (160, 200))
-        await self._paste_image(
-            deco_bot_left,
-            (0, self._canvas.height - deco_bot_left.height),
-            deco_bot_left,
-        )
-
-        deco_bot_right = await self._async_open(
-            self._assets_folder / "icon" / "deco" / "DialogFrameDeco1@3x.png",
-        )
-        deco_bot_right = await self._tint_image(deco_bot_right, self._foreground)
-        deco_bot_right = await AsyncImageEnhance.process(deco_bot_right, 0.6, subclass=ImageEnhance.Brightness)
-        deco_bot_right_mid = (deco_bot_right.height // 2) - (deco_bot_right.height // 6)
-
-        await self._paste_image(
-            deco_bot_right,
-            (
-                self._canvas.width - deco_bot_right.width + deco_bot_right_mid,
-                self._canvas.height - deco_bot_right.height + deco_bot_right_mid,
-            ),
-            deco_bot_right,
-        )
-
-        # Bottom middle
-        deco_bot_mid = await self._async_open(self._assets_folder / "icon" / "deco" / "NewSystemDecoLine.png")
-        deco_bot_mid = await self._tint_image(deco_bot_mid, self._foreground)
-        deco_bot_mid = await AsyncImageEnhance.process(deco_bot_mid, 0.6, subclass=ImageEnhance.Brightness)
-        # 360 x 48, put in the middle with 25 padding
-
-        deco_bot_mid_vert_box = self._canvas.height - deco_bot_mid.height - 35
-        if not hide_credits:
-            deco_bot_mid_vert_box -= 10
-        await self._paste_image(
-            deco_bot_mid,
-            (
-                (self._canvas.width // 2) - (deco_bot_mid.width // 2),
-                deco_bot_mid_vert_box,
-            ),
-            deco_bot_mid,
-        )
-
-        # Close all images
-        await self._async_close(deco_top_right)
-        await self._async_close(deco_bot_left)
-        await self._async_close(deco_bot_right)
-        await self._async_close(deco_bot_mid)
 
     async def _precalculate_blessings_and_curios(self):
         if len(self._record.blessings) > 0:
@@ -706,7 +646,7 @@ class StarRailSimulatedUniverseCard(StarRailDrawGradientMixin, StarRailDrawChara
 
         # Decoration
         self.logger.info("Creating decoration...")
-        await self._create_decoration(hide_credits=hide_credits)
+        await self._create_decoration(hide_credits, drawing=self)
 
         # Write the world header
         self.logger.info("Writing world header...")

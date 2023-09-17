@@ -33,6 +33,7 @@ from qingque.mihomo.models.constants import MihomoLanguage
 from qingque.tooling import get_logger
 
 from .base import StarRailDrawing, StarRailDrawingLogger
+from .mixins import StarRailDrawDecoMixin
 
 if TYPE_CHECKING:
     from qingque.hylab.models.base import HYLanguage
@@ -42,7 +43,7 @@ if TYPE_CHECKING:
 __all__ = ("StarRailChronicleNotesCard",)
 
 
-class StarRailChronicleNotesCard(StarRailDrawing):
+class StarRailChronicleNotesCard(StarRailDrawDecoMixin, StarRailDrawing):
     MARGIN_LR = 75
     MARGIN_IMGT = 10
 
@@ -327,68 +328,6 @@ class StarRailChronicleNotesCard(StarRailDrawing):
         await self._async_close(train_icon)
         await self._async_close(echo_icon)
 
-    async def _create_decoration(self, hide_credits: bool = False) -> None:
-        # DialogFrameDeco1.png (orig 395x495)
-
-        deco_top_right = await self._async_open(
-            self._assets_folder / "icon" / "deco" / "DecoShortLineRing177R@3x.png",
-        )
-        deco_top_right = await self._tint_image(deco_top_right, self._foreground)
-        await self._paste_image(
-            deco_top_right,
-            (self._canvas.width - deco_top_right.width, 0),
-            deco_top_right,
-        )
-
-        deco_bot_left = await self._async_open(
-            self._assets_folder / "icon" / "deco" / "DialogFrameDeco1.png",
-        )
-        deco_bot_left = await self._tint_image(deco_bot_left, self._foreground)
-        deco_bot_left = await self._resize_image(deco_bot_left, (160, 200))
-        await self._paste_image(
-            deco_bot_left,
-            (0, self._canvas.height - deco_bot_left.height),
-            deco_bot_left,
-        )
-
-        deco_bot_right = await self._async_open(
-            self._assets_folder / "icon" / "deco" / "DialogFrameDeco1@3x.png",
-        )
-        deco_bot_right = await self._tint_image(deco_bot_right, self._foreground)
-        deco_bot_right_mid = (deco_bot_right.height // 2) - (deco_bot_right.height // 6)
-
-        await self._paste_image(
-            deco_bot_right,
-            (
-                self._canvas.width - deco_bot_right.width + deco_bot_right_mid,
-                self._canvas.height - deco_bot_right.height + deco_bot_right_mid,
-            ),
-            deco_bot_right,
-        )
-
-        # Bottom middle
-        deco_bot_mid = await self._async_open(self._assets_folder / "icon" / "deco" / "NewSystemDecoLine.png")
-        deco_bot_mid = await self._tint_image(deco_bot_mid, self._foreground)
-        # 360 x 48, put in the middle with 25 padding
-
-        deco_bot_mid_vert_box = self._canvas.height - deco_bot_mid.height - 35
-        if not hide_credits:
-            deco_bot_mid_vert_box -= 10
-        await self._paste_image(
-            deco_bot_mid,
-            (
-                (self._canvas.width // 2) - (deco_bot_mid.width // 2),
-                deco_bot_mid_vert_box,
-            ),
-            deco_bot_mid,
-        )
-
-        # Close all images
-        await self._async_close(deco_top_right)
-        await self._async_close(deco_bot_left)
-        await self._async_close(deco_bot_right)
-        await self._async_close(deco_bot_mid)
-
     async def create(self, *, hide_credits: bool = False, hide_timestamp: bool = False) -> bytes:
         self._assets_folder = await self._assets_folder.absolute()
         if not await self._assets_folder.exists():
@@ -413,7 +352,7 @@ class StarRailChronicleNotesCard(StarRailDrawing):
 
         # Create the decoration.
         self.logger.info("Creating decoration...")
-        await self._create_decoration()
+        await self._create_decoration(hide_credits, drawing=self)
 
         # Write the username.
         self.logger.info("Writing username...")
