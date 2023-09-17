@@ -54,6 +54,7 @@ from qingque.models.embed_paging import EmbedPaginatedView, EmbedPagingSelectVie
 from qingque.models.persistence import QingqueProfile, QingqueProfileV2
 from qingque.redisdb import RedisDatabase
 from qingque.starrail.generator import StarRailMihomoCard
+from qingque.starrail.generator.characters import StarRailCharactersCard
 from qingque.starrail.generator.chronicles import StarRailChronicleNotesCard
 from qingque.starrail.generator.moc import StarRailMoCCard
 from qingque.starrail.generator.simuniverse import StarRailSimulatedUniverseCard
@@ -343,6 +344,109 @@ async def qqprofile_srchronicle(inter: discord.Interaction[QingqueClient]):
 
     logger.info("Sending to Discord...")
     await original_message.edit(content=None, embed=embed, attachments=[card_file])
+
+
+@app_commands.command(name="srcharacters", description=locale_str("srcharacters.desc"))
+async def qqprofile_srcharacters(inter: discord.Interaction[QingqueClient]):
+    lang = QingqueLanguage.from_discord(inter.locale)
+    t = functools.partial(get_i18n().t, language=lang)
+
+    try:
+        hoyoapi = inter.client.hoyoapi
+    except RuntimeError:
+        logger.warning("HYLab API is not enabled.")
+        await inter.response.send_message(t("api_not_enabled"), ephemeral=True)
+        return
+
+    await inter.response.defer(ephemeral=False, thinking=True)
+
+    original_message = await inter.original_response()
+    profile = await get_profile_from_persistent(inter.user.id, inter.client.redis)
+    if profile is None:
+        return await original_message.edit(content=t("bind_uid"))
+    if len(profile.games) == 0:
+        return await original_message.edit(content=t("bind_uid"))
+
+    if profile.hylab_id is None:
+        logger.warning(f"Discord ID {inter.user.id} haven't binded their HoyoLab account yet.")
+        return await original_message.edit(content=t("bind_hoyolab"))
+
+    if len(profile.games) > 1:
+        select_account = AccountSelectView(profile.games, inter.locale, timeout=30)
+        original_message = await original_message.edit(content=t("srchoices.ask_account"), view=select_account)
+        await select_account.wait()
+
+        if (error := select_account.error) is not None:
+            logger.error(f"Error getting profile info for Discord ID {inter.user.id}: {error}")
+            error_message = str(error)
+            await original_message.edit(content=t("exception", [f"```{error_message}```"]))
+            return
+
+        if select_account.account is None:
+            return await original_message.edit(content=t("srchoices.timeout"))
+
+        sel_uid = select_account.account.uid
+    else:
+        sel_uid = profile.games[0].uid
+
+    logger.info(f"Getting profile info for UID {sel_uid}")
+    try:
+        hoyo_user_info = await hoyoapi.get_battle_chronicles_basic_info(
+            sel_uid,
+            hylab_id=profile.hylab_id,
+            hylab_token=profile.hylab_token,
+            hylab_mid_token=profile.hylab_mid_token,
+            lang=HYLanguage(lang.value.lower()),
+        )
+    except HYDataNotPublic:
+        logger.warning(f"UID {sel_uid} data is not public.")
+        await original_message.edit(content=t("hoyolab_public"))
+        return
+    except Exception as e:
+        logger.error(f"Error getting profile info for UID {sel_uid}: {e}")
+        error_message = str(e)
+        await original_message.edit(content=t("exception", [f"```{error_message}```"]))
+        return
+    logger.info(f"Getting profile characters for UID {sel_uid}")
+    try:
+        hoyo_characters = await hoyoapi.get_battle_chronicles_characters(
+            sel_uid,
+            hylab_id=profile.hylab_id,
+            hylab_token=profile.hylab_token,
+            hylab_mid_token=profile.hylab_mid_token,
+            lang=HYLanguage(lang.value.lower()),
+        )
+    except HYDataNotPublic:
+        logger.warning(f"UID {sel_uid} data is not public.")
+        await original_message.edit(content=t("hoyolab_public"))
+        return
+    except Exception as e:
+        logger.error(f"Error getting profile characters for UID {sel_uid}: {e}")
+        error_message = str(e)
+        await original_message.edit(content=t("exception", [f"```{error_message}```"]))
+        return
+
+    if hoyo_user_info is None:
+        logger.warning(f"UID {sel_uid} data is not available.")
+        await original_message.edit(content=t("hoyolab_unavailable"))
+        return
+
+    if hoyo_characters is None:
+        logger.warning(f"UID {sel_uid} data is not available. (Characters)")
+        await original_message.edit(content=t("hoyolab_unavailable"))
+        return
+
+    logger.info(f"Generating profile characters card for {sel_uid}...")
+    chara_gen = StarRailCharactersCard(
+        hoyo_user_info, hoyo_characters, language=lang, loader=inter.client.get_srs(lang)
+    )
+    chara_bytes = await chara_gen.create()
+
+    chara_io = BytesIO(chara_bytes)
+    chara_io.seek(0)
+    chara_file = discord.File(chara_io, filename=f"{sel_uid}_Characters.png")
+
+    await original_message.edit(attachments=[chara_file])
 
 
 async def _make_rogue_card(

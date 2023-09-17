@@ -55,6 +55,7 @@ def _help_profiles(t: PartialTranslate) -> discord.Embed:
     embed = discord.Embed(title=t("help.profiles.title"), description=t("help.profiles.desc"), color=_EMBED_COLOR)
     embed.add_field(name="/srprofile", value=t("help.profiles.srprofile"), inline=False)
     embed.add_field(name="/srchronicle", value=t("help.profiles.srchronicle"), inline=False)
+    embed.add_field(name="/srcharacters", value=t("help.profiles.srcharacters"), inline=False)
     embed.add_field(name="/srsimuniverse", value=t("help.profiles.srsimuniverse"), inline=False)
     embed.add_field(name="/srmoc", value=t("help.profiles.srmoc"), inline=False)
     embed.set_author(name="Qingque", icon_url=_EMBED_ICON, url=_EMBED_URL)
