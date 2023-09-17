@@ -553,7 +553,7 @@ class StarRailSimulatedUniverseCard(
 
         MARGIN_TOP = self.MARGIN_TP + 240
         if self._swarm_striders:
-            MARGIN_TOP += 80
+            MARGIN_TOP += 90
 
         await self._write_text(
             self._i18n.t("chronicles.rogue.locust_domain"),
