@@ -96,10 +96,10 @@ async def _batch_gen_player_card(
 ) -> tuple[FileBytes, discord.Embed, int]:
     logger.info(f"Generating character {character.name} profile card for UID {player.id}")
     card_char = StarRailMihomoCard(character, player, language=language, loader=loader)
-    card_data = await card_char.create()
+    card_data = await card_char.create(hide_credits=True)
 
     logger.info(f"Adding character {character.name} profile card for UID {player.id}")
-    filename = f"{player.id}_{idx:02d}_{character.id}.png"
+    filename = f"{player.id}_{idx:02d}_{character.id}.QingqueBot.png"
     file = FileBytes(card_data, filename=filename)
     embed = discord.Embed(title=t("character_header", [character.name, f"{character.level:02d}"]))
     description = []
@@ -323,10 +323,10 @@ async def qqprofile_srchronicle(inter: discord.Interaction[QingqueClient]):
         language=lang,
         loader=loader,
     )
-    card_data = await card_char.create()
+    card_data = await card_char.create(hide_credits=True)
 
     card_io = BytesIO(card_data)
-    card_file = discord.File(card_io, f"{sel_uid}_ChroniclesOverview.png")
+    card_file = discord.File(card_io, f"{sel_uid}_ChroniclesOverview.QingqueBot.png")
     embed.set_image(url=f"attachment://{card_file.filename}")
 
     for idx, assignment in enumerate(hoyo_realtime.assignments, 1):
@@ -440,11 +440,11 @@ async def qqprofile_srcharacters(inter: discord.Interaction[QingqueClient]):
     chara_gen = StarRailCharactersCard(
         hoyo_user_info, hoyo_characters, language=lang, loader=inter.client.get_srs(lang)
     )
-    chara_bytes = await chara_gen.create()
+    chara_bytes = await chara_gen.create(hide_credits=True)
 
     chara_io = BytesIO(chara_bytes)
     chara_io.seek(0)
-    chara_file = discord.File(chara_io, filename=f"{sel_uid}_Characters.png")
+    chara_file = discord.File(chara_io, filename=f"{sel_uid}_Characters.QingqueBot.png")
 
     await original_message.edit(attachments=[chara_file])
 
@@ -503,8 +503,8 @@ async def _make_rogue_card(
     end_time_gmt8 = end_time.replace(tzinfo=timezone.utc).astimezone(tz=timezone(timedelta(hours=8)))
     end_time_fmt = end_time_gmt8.strftime("%a, %b %d %Y %H:%M")
 
-    card_bytes = await gen_card.create()
-    card_fn = f"SimulatedUniverse_Run{filename_pre}.png"
+    card_bytes = await gen_card.create(hide_credits=True)
+    card_fn = f"SimulatedUniverse_Run{filename_pre}.QingqueBot.png"
     card_io = FileBytes(card_bytes, filename=card_fn)
     title = t("chronicles.rogue.title")
     if isinstance(rogue, ChronicleRogueLocustDetailRecord):
@@ -724,8 +724,8 @@ async def _make_moc_card(
 
     challenge_time_fmt = challenge_time.strftime("%a, %b %d %Y %H:%M")
 
-    card_bytes = await gen_card.create()
-    card_fn = f"MemoryOfChaos_{sorter}.png"
+    card_bytes = await gen_card.create(hide_credits=True)
+    card_fn = f"MemoryOfChaos_{sorter}.QingqueBot.png"
     card_io = FileBytes(card_bytes, filename=card_fn)
     title = strip_unity_rich_text(floor.name) + " | " + challenge_time_fmt
     embed.description = "\n".join(descriptions)
