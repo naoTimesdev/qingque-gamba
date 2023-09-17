@@ -51,6 +51,7 @@
         "claimed": "Successfully claimed daily rewards."
     },
     "srhelp": {
-        "desc": "See the list of commands."
+        "desc": "See the list of commands.",
+        "initial_help_desc": "The initial help menu that you want to see."
     }
 }

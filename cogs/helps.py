@@ -24,6 +24,7 @@ SOFTWARE.
 
 from __future__ import annotations
 
+from enum import Enum
 from typing import Any, Final
 
 import discord
@@ -53,7 +54,9 @@ def _help_bind(t: PartialTranslate) -> discord.Embed:
 def _help_profiles(t: PartialTranslate) -> discord.Embed:
     embed = discord.Embed(title=t("help.profiles.title"), description=t("help.profiles.desc"), color=_EMBED_COLOR)
     embed.add_field(name="/srprofile", value=t("help.profiles.srprofile"), inline=False)
-    embed.add_field(name="/srchronicles", value=t("help.profiles.srchronicle"), inline=False)
+    embed.add_field(name="/srchronicle", value=t("help.profiles.srchronicle"), inline=False)
+    embed.add_field(name="/srsimuniverse", value=t("help.profiles.srsimuniverse"), inline=False)
+    embed.add_field(name="/srmoc", value=t("help.profiles.srmoc"), inline=False)
     embed.set_author(name="Qingque", icon_url=_EMBED_ICON, url=_EMBED_URL)
     embed.set_footer(text=t("help.footer"))
     return embed
@@ -61,7 +64,7 @@ def _help_profiles(t: PartialTranslate) -> discord.Embed:
 
 def _help_rewards(t: PartialTranslate) -> discord.Embed:
     embed = discord.Embed(title=t("help.rewards.title"), description=t("help.rewards.desc"), color=_EMBED_COLOR)
-    embed.add_field(name="/srclaim", value=t("help.rewards.srclaim"), inline=False)
+    embed.add_field(name="/srdaily", value=t("help.rewards.srclaim"), inline=False)
     embed.set_author(name="Qingque", icon_url=_EMBED_ICON, url=_EMBED_URL)
     embed.set_footer(text=t("help.footer"))
     return embed
@@ -108,15 +111,28 @@ class HelpView(discord.ui.View):
         self._dropdown.disabled = True
         await self._message.edit(view=self)
 
-    async def start(self, inter: discord.InteractionMessage):
+    async def start(self, initial: discord.Embed, inter: discord.InteractionMessage):
         self._message = inter
-        await self._message.edit(view=self)
+        await self._message.edit(embed=initial, view=self)
+
+
+class HelpMenu(int, Enum):
+    bind = 0
+    profiles = 1
+    rewards = 2
 
 
 @app_commands.command(name="srhelp", description=locale_str("srhelp.desc"))
-async def qqhelps_main(inter: discord.Interaction):
+@app_commands.describe(help=locale_str("srhelp.initial_help_desc"))
+async def qqhelps_main(inter: discord.Interaction, help: HelpMenu = HelpMenu.bind):
     t = get_i18n_discord(inter.locale)
-    await inter.response.defer(ephemeral=False, thinking=True)
+    await inter.response.defer(ephemeral=True, thinking=True)
     view = HelpView(t)
     original_resp = await inter.original_response()
-    await view.start(original_resp)
+    match help:
+        case HelpMenu.bind:
+            await view.start(_help_bind(t), original_resp)
+        case HelpMenu.profiles:
+            await view.start(_help_profiles(t), original_resp)
+        case HelpMenu.rewards:
+            await view.start(_help_rewards(t), original_resp)
