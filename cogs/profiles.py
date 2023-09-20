@@ -185,7 +185,12 @@ async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: in
         )
         for idx, character in enumerate(data_player.characters)
     ]
-    task_executor: list[tuple[FileBytes, discord.Embed, int]] = await asyncio.gather(*task_creation)
+    try:
+        task_executor: list[tuple[FileBytes, discord.Embed, int]] = await asyncio.gather(*task_creation)
+    except Exception as e:
+        logger.error(f"Error generating profile card for UID {uid}: {e}", exc_info=e)
+        await original_message.edit(content=t("exception", [f"```{e!s}```"]))
+        return
     # Sort by idx
     task_executor.sort(key=lambda x: x[2])
 

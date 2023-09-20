@@ -38,7 +38,7 @@ from qingque.mihomo.models.relics import Relic, RelicSet
 from qingque.mihomo.models.stats import StatsAtrributes, StatsField, StatsProperties
 from qingque.models.region import HYVServer
 from qingque.starrail.models.relics import SRSRelicType
-from qingque.starrail.scoring import RelicScores, RelicScoring
+from qingque.starrail.scoring import RelicScores, RelicScoring, RelicScoringNoSuchCharacterException
 from qingque.tooling import get_logger
 
 from .base import RGB, StarRailDrawing, StarRailDrawingLogger
@@ -633,7 +633,7 @@ class StarRailMihomoCard(StarRailDrawing):
         await self._async_close(relic_img)
         await self._async_close(stars_icon)
 
-    async def _create_main_relics(self, relic_scores: RelicScores) -> None:
+    async def _create_main_relics(self, relic_scores: RelicScores | None = None) -> None:
         sorted_relics = sorted(
             self._character.relics,
             key=lambda r: self._index_data.relics[r.id].type.order,
@@ -674,7 +674,9 @@ class StarRailMihomoCard(StarRailDrawing):
                     text=self._i18n.t("mihomo.no_relic"),
                 )
             else:
-                relic_score = relic_scores.scores.get(relic.id)
+                relic_score = None
+                if relic_scores is not None:
+                    relic_score = relic_scores.scores.get(relic.id)
                 await self._create_stats_box(
                     position=idx,
                     left=self.RELIC_LEFT,
@@ -735,7 +737,7 @@ class StarRailMihomoCard(StarRailDrawing):
                 align="left",
             )
 
-    async def _create_planar_and_light_cone(self, relic_scores: RelicScores) -> None:
+    async def _create_planar_and_light_cone(self, relic_scores: RelicScores | None = None) -> None:
         sorted_relics = sorted(
             self._character.relics,
             key=lambda r: self._index_data.relics[r.id].type.order,
@@ -798,7 +800,9 @@ class StarRailMihomoCard(StarRailDrawing):
                     text=self._i18n.t("mihomo.no_relic"),
                 )
             else:
-                relic_score = relic_scores.scores.get(relic.id)
+                relic_score = None
+                if relic_scores is not None:
+                    relic_score = relic_scores.scores.get(relic.id)
                 await self._create_stats_box(
                     position=idx,
                     left=RELIC_LEFT,
@@ -974,7 +978,11 @@ class StarRailMihomoCard(StarRailDrawing):
 
         # Create relics sets
         self.logger.info("Precalculating the relic scores...")
-        relic_scores = self._relic_scoring.calculate(self._character, loader=self._index_data)
+        try:
+            relic_scores = self._relic_scoring.calculate(self._character, loader=self._index_data)
+        except RelicScoringNoSuchCharacterException:
+            self.logger.warning("Cannot find the character in the relic scoring database.")
+            relic_scores = None
         self.logger.info("Creating the character relics...")
         await self._create_main_relics(relic_scores)
         self.logger.info("Creating the character planar and light cone...")

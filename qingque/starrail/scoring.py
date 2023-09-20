@@ -43,6 +43,7 @@ __all__ = (
     "RelicScoring",
     "RelicScores",
     "RelicScoreValue",
+    "RelicScoringNoSuchCharacterException",
 )
 StatType: TypeAlias = str
 CharId: TypeAlias = str
@@ -103,6 +104,14 @@ class RelicScores(Struct, frozen=True):
     """:class:`StatRank`: The overall rank of the character."""
 
 
+class RelicScoringException(Exception):
+    pass
+
+
+class RelicScoringNoSuchCharacterException(RelicScoringException):
+    pass
+
+
 class RelicScoring:
     def __init__(self, score_sheets: AsyncPath | Path, /) -> None:
         self._score_sheets = AsyncPath(score_sheets) if isinstance(score_sheets, Path) else score_sheets
@@ -157,7 +166,9 @@ class RelicScoring:
     def calculate(self, character: Character, /, *, loader: SRSDataLoader) -> RelicScores:
         scoring = self._score_meta.get(character.id)
         if scoring is None:
-            raise KeyError(f"Character <{character.name} {character.id}> is not found in the scoring system.")
+            raise RelicScoringNoSuchCharacterException(
+                f"Character <{character.id}: {character.name}> is not found in the scoring system."
+            )
 
         # Calcualte substats
         relic_score_all: dict[str, float] = {}
