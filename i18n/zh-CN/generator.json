@@ -82,7 +82,12 @@
             "difficulty": "难度",
             "num_clears": "通关次数",
             "locust_narrow": "行者之道",
-            "locust_domain": "区域类型"
+            "locust_domain": "区域类型",
+            "locust_disarray": {
+                "title": "Planar Disarray",
+                "countdown": "Countdown: {0}",
+                "disruption": "Disruption: Level {0}"
+            }
         },
         "challenged_on": "挑战时间{0}",
         "credits": "来自米有舍 | 由 @noaione 创建"

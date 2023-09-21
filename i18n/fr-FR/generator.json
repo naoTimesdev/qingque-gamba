@@ -82,7 +82,12 @@
             "difficulty": "Difficulté",
             "num_clears": "Nombre de fois terminées",
             "locust_narrow": "Sentier des Éclaireurs",
-            "locust_domain": "Type de la zone"
+            "locust_domain": "Type de la zone",
+            "locust_disarray": {
+                "title": "Planar Disarray",
+                "countdown": "Countdown: {0}",
+                "disruption": "Disruption: Level {0}"
+            }
         },
         "challenged_on": "Date du défi le {0}",
         "credits": "Données de HoyoLab | Créé par @noaione"

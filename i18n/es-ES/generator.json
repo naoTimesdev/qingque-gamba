@@ -82,7 +82,12 @@
             "difficulty": "Dificultad",
             "num_clears": "Veces completadas",
             "locust_narrow": "Camino del Andavías",
-            "locust_domain": "Tipos de zonas"
+            "locust_domain": "Tipos de zonas",
+            "locust_disarray": {
+                "title": "Planar Disarray",
+                "countdown": "Countdown: {0}",
+                "disruption": "Disruption: Level {0}"
+            }
         },
         "challenged_on": "Fecha del desafío {0}",
         "credits": "Datos de HoyoLab | Creado por @noaione"

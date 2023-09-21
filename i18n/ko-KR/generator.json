@@ -82,7 +82,12 @@
             "difficulty": "난이도",
             "num_clears": "회차 클리어 횟수s",
             "locust_narrow": "행자의 길",
-            "locust_domain": "구역 유형"
+            "locust_domain": "구역 유형",
+            "locust_disarray": {
+                "title": "Planar Disarray",
+                "countdown": "Countdown: {0}",
+                "disruption": "Disruption: Level {0}"
+            }
         },
         "challenged_on": "도전 시간 {0}",
         "credits": "HoyoLab의 데이터 | 생성자 @noaione"

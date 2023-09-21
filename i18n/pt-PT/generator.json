@@ -82,7 +82,12 @@
             "difficulty": "Difficulty",
             "num_clears": "Number of Clears",
             "locust_narrow": "Trail of Pathstrider",
-            "locust_domain": "Domain Type"
+            "locust_domain": "Domain Type",
+            "locust_disarray": {
+                "title": "Planar Disarray",
+                "countdown": "Countdown: {0}",
+                "disruption": "Disruption: Level {0}"
+            }
         },
         "challenged_on": "Challenged on {0}",
         "credits": "Dados do HoyoLab | Criado por @noaione"

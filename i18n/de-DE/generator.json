@@ -82,7 +82,12 @@
             "difficulty": "Schwierigkeit",
             "num_clears": "Anzahl der Abschlüsse",
             "locust_narrow": "Weg des Pfadfinders",
-            "locust_domain": "Arten der Regionen"
+            "locust_domain": "Arten der Regionen",
+            "locust_disarray": {
+                "title": "Planar Disarray",
+                "countdown": "Countdown: {0}",
+                "disruption": "Disruption: Level {0}"
+            }
         },
         "challenged_on": "Herausforderungszeit {0}",
         "credits": "Daten aus HoyoLab | Erstellt von @noaione"

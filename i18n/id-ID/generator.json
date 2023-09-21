@@ -82,7 +82,12 @@
             "difficulty": "Tingkat Kesulitan",
             "num_clears": "Jumlah penyelesaian",
             "locust_narrow": "Jalan Pathstrider",
-            "locust_domain": "Jenis Zona"
+            "locust_domain": "Jenis Zona",
+            "locust_disarray": {
+                "title": "Planar Disarray",
+                "countdown": "Countdown: {0}",
+                "disruption": "Disruption: Level {0}"
+            }
         },
         "challenged_on": "Ditantang pada {0}",
         "credits": "Data dari HoyoLab | Dibuat oleh @noaione"
