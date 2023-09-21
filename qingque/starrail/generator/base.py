@@ -30,7 +30,7 @@ import math
 from collections.abc import MutableMapping
 from io import BytesIO
 from logging import Logger, LoggerAdapter
-from typing import Any, Literal, TypeAlias, cast
+from typing import Any, Callable, Literal, TypeAlias, cast
 
 from aiopath import AsyncPath
 from PIL import Image, ImageDraw, ImageFont, ImageOps
@@ -239,7 +239,7 @@ class StarRailDrawing:
         box: tuple[float, float] | tuple[float, float, float, float],
         font_size: int = 20,
         font_path: AsyncPath | None = None,
-        color: RGB | None = None,
+        color: RGB | int | None = None,
         no_elipsis: bool = False,
         alpha: int = 255,
         *,
@@ -301,7 +301,7 @@ class StarRailDrawing:
         font_path = font_path or self._font_path
         font = await self._create_font(font_path, font_size)
         composite: Image.Image | None = None
-        if alpha < 255:
+        if not isinstance(color, int) and alpha < 255:
             composite = Image.new("RGBA", self._canvas.size, (255, 255, 255, 0))
             draw = await self._get_draw(canvas=composite)
         else:
@@ -326,7 +326,10 @@ class StarRailDrawing:
                 content += " ..."
 
         fill = color or self._foreground
-        draw_text = functools.partial(draw.text, fill=(*fill, alpha), font=font, **kwargs)
+        fill_col = fill
+        if isinstance(fill, tuple):
+            fill_col = (*fill[:3], alpha)
+        draw_text = functools.partial(draw.text, fill=fill_col, font=font, **kwargs)
         await self._loop.run_in_executor(None, draw_text, box, content)
         length_width = await self._loop.run_in_executor(None, draw.textlength, content, font)
         if composite is not None:
@@ -742,6 +745,29 @@ class StarRailDrawing:
                 height = round(width / img.width * img.height)
 
         return await self._loop.run_in_executor(None, img.resize, (width, height), resampling)
+
+    async def _point_image(
+        self, img: Image.Image, handler: Image.ImagePointHandler | Callable[[int | float], int | float]
+    ) -> Image.Image:
+        """Point process an image.
+
+        Parameters
+        ----------
+        img: :class:`PIL.Image.Image`
+            The image to point process.
+        handler: :class:`PIL.Image.ImagePointHandler` | :class:`Callable[[int | float], int | float]`
+            The handler to use.
+
+        Returns
+        -------
+        :class:`PIL.Image.Image`
+            The point processed image.
+        """
+
+        def _process(img: Image.Image, handler: Image.ImagePointHandler | Callable[[int | float], int | float]):
+            return img.point(handler)
+
+        return await self._loop.run_in_executor(None, _process, img, handler)
 
     async def _async_open(self, img_path: AsyncPath) -> Image.Image:
         """Open an image asynchronously.

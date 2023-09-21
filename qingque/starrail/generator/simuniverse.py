@@ -27,18 +27,20 @@ from __future__ import annotations
 import functools
 from typing import TYPE_CHECKING, cast
 
-from PIL import Image
+from PIL import Image, ImageEnhance, ImageFilter
 
 from qingque.hylab.models.simuniverse import (
     ChronicleRogueBlessingItem,
     ChronicleRogueCurio,
     ChronicleRogueLocustDetailRecord,
+    ChronicleRogueLocustFuryType,
     ChronicleRogueLocustOverviewDestiny,
     ChronicleRoguePeriodRun,
     ChronicleRogueUserInfo,
 )
 from qingque.i18n import get_roman_numeral
 from qingque.mihomo.models.constants import MihomoLanguage
+from qingque.starrail.imaging import AsyncImageEnhance, AsyncImageFilter
 from qingque.tooling import get_logger
 from qingque.utils import strip_unity_rich_text
 
@@ -397,7 +399,7 @@ class StarRailSimulatedUniverseCard(
         MARGIN_TOP -= ICON_SIZE + ICON_MARGIN
         return MARGIN_TOP + EXTRA_MARGIN
 
-    async def _create_swarm_pathstrider(self, margin_left: int):
+    async def _create_swarm_pathstrider_and_fury(self, margin_left: int):
         if not isinstance(self._record, ChronicleRogueLocustDetailRecord):
             return
         if not self._swarm_striders:
@@ -469,6 +471,62 @@ class StarRailSimulatedUniverseCard(
                 anchor="ls",
                 color=(255, 255, 255),
             )
+
+        # Fury/Disruption level
+        FURY_LEFT = margin_left + (inbetween_margin * len(self._swarm_striders)) + 10
+        await self._write_text(
+            self._i18n.t("chronicles.rogue.locust_disarray.title"),
+            (FURY_LEFT, MARGIN_TOP + 16),
+            font_size=20,
+            anchor="ls",
+        )
+
+        fury_info = self._record.fury
+        fury_params = [f"{int(fury_info.point):,}"]
+        if fury_info.type is ChronicleRogueLocustFuryType.Countdown:
+            fury_txt = self._i18n.t("chronicles.rogue.locust_disarray.countdown", fury_params)
+        else:
+            fury_txt = self._i18n.t("chronicles.rogue.locust_disarray.disruption", fury_params)
+            # Create a backdrop blur for disruption
+            backdrop_canvas = Image.new("RGBA", (self._canvas.width, self._canvas.height), (178, 57, 80))
+            backdrop_mask = Image.new("L", (self._canvas.width, self._canvas.height), 0)
+            await self._write_text(
+                fury_txt,
+                (FURY_LEFT - 1, MARGIN_TOP + 30),
+                font_size=28,
+                color=255,
+                canvas=backdrop_mask,
+            )
+            # Expand the blur mask
+            backdrop_mask = await AsyncImageFilter.process(
+                backdrop_mask,
+                subclass=ImageFilter.MaxFilter(size=3),
+            )
+            # Blur it
+            backdrop_mask = await self._point_image(
+                await AsyncImageFilter.process(
+                    backdrop_mask,
+                    subclass=ImageFilter.GaussianBlur(radius=5),
+                ),
+                lambda x: x * 1.2,
+            )
+            backdrop_canvas = await AsyncImageEnhance.process(
+                backdrop_canvas,
+                0.75,
+                subclass=ImageEnhance.Brightness,
+            )
+            await self._paste_image(
+                backdrop_canvas,
+                (0, 0),
+                backdrop_mask,
+            )
+
+        await self._write_text(
+            fury_txt,
+            (FURY_LEFT - 1, MARGIN_TOP + 30),
+            font_size=28,
+            color=(178, 57, 80),
+        )
 
     async def _create_boss_icon(self):
         # Composite boss icon
@@ -666,7 +724,7 @@ class StarRailSimulatedUniverseCard(
 
         if isinstance(self._record, ChronicleRogueLocustDetailRecord):
             self.logger.info("Writing swarm pathstrider...")
-            await self._create_swarm_pathstrider(profile_right)
+            await self._create_swarm_pathstrider_and_fury(profile_right)
             self.logger.info("Writing swarm domain type...")
             await self._create_swarm_domain_type(profile_right)
 
