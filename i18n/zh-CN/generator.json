@@ -84,9 +84,9 @@
             "locust_narrow": "行者之道",
             "locust_domain": "区域类型",
             "locust_disarray": {
-                "title": "Planar Disarray",
-                "countdown": "Countdown: {0}",
-                "disruption": "Disruption: Level {0}"
+                "title": "位面紊乱倒",
+                "countdown": "计: {0}",
+                "disruption": "扰动: 等级{0}"
             }
         },
         "challenged_on": "挑战时间{0}",

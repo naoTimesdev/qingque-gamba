@@ -84,9 +84,9 @@
             "locust_narrow": "Weg des Pfadfinders",
             "locust_domain": "Arten der Regionen",
             "locust_disarray": {
-                "title": "Planar Disarray",
+                "title": "Planares Durcheinander",
                 "countdown": "Countdown: {0}",
-                "disruption": "Disruption: Level {0}"
+                "disruption": "Störung: St. {0}"
             }
         },
         "challenged_on": "Herausforderungszeit {0}",

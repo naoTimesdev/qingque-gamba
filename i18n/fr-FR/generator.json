@@ -84,9 +84,9 @@
             "locust_narrow": "Sentier des Éclaireurs",
             "locust_domain": "Type de la zone",
             "locust_disarray": {
-                "title": "Planar Disarray",
-                "countdown": "Countdown: {0}",
-                "disruption": "Disruption: Level {0}"
+                "title": "Rupture planaire",
+                "countdown": "Compte à rebours: {0}",
+                "disruption": "Perturbation: Niveau {0}"
             }
         },
         "challenged_on": "Date du défi le {0}",

@@ -84,9 +84,9 @@
             "locust_narrow": "행자의 길",
             "locust_domain": "구역 유형",
             "locust_disarray": {
-                "title": "Planar Disarray",
-                "countdown": "Countdown: {0}",
-                "disruption": "Disruption: Level {0}"
+                "title": "차원 혼란",
+                "countdown": "카운트다운: {0}",
+                "disruption": "소동: 레벨 {0}"
             }
         },
         "challenged_on": "도전 시간 {0}",
