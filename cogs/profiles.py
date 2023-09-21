@@ -70,6 +70,7 @@ __all__ = (
 )
 logger = get_logger("cogs.profiles")
 SRS_BASE = "https://raw.githubusercontent.com/Mar-7th/StarRailRes/master/"
+_COMMON_FOREGROUND = discord.Colour.from_rgb(219, 194, 145)
 
 
 async def get_profile_from_persistent(discord_id: int, redis: RedisDatabase) -> QingqueProfileV2 | None:
@@ -293,7 +294,7 @@ async def qqprofile_srchronicle(inter: discord.Interaction[QingqueClient]):
         await original_message.edit(content=t("hoyolab_unavailable"))
         return
 
-    embed = discord.Embed(title=t("chronicle_titles.overview"))
+    embed = discord.Embed(title=t("chronicle_titles.overview"), colour=_COMMON_FOREGROUND)
     embed.set_author(name=hoyo_overview.user_info.name, icon_url=hoyo_overview.overview.avatar_url)
 
     descriptions = []
@@ -464,7 +465,12 @@ async def _make_rogue_card(
     rogue_title = t("chronicle_titles.rogue")
     if isinstance(rogue, ChronicleRogueLocustDetailRecord):
         rogue_title = t("chronicle_titles.rogue_locust")
-    embed = discord.Embed(title=rogue_title)
+    embed = discord.Embed(
+        title=rogue_title,
+        colour=_COMMON_FOREGROUND
+        if isinstance(rogue, ChronicleRoguePeriodRun)
+        else discord.Colour.from_rgb(189, 172, 255),
+    )
     embed.set_author(name=user.name)
     descriptions = []
     if isinstance(rogue, ChronicleRoguePeriodRun):
@@ -694,7 +700,7 @@ async def _make_moc_card(
 ) -> PagingChoice:
     lang = QingqueLanguage.from_discord(inter.locale)
     t = get_i18n_discord(inter.locale)
-    embed = discord.Embed(title=t("chronicle_titles.abyss"))
+    embed = discord.Embed(title=t("chronicle_titles.abyss"), colour=discord.Colour.from_rgb(178, 57, 80))
     descriptions = []
 
     start_time = int(overall.start_time.datetime.astimezone(timezone.utc).timestamp())
