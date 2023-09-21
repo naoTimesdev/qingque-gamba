@@ -3,7 +3,7 @@
     "light_cones": "Cones de Luz",
     "rogue": "Universo Simulado",
     "rogue_world": "Mundo {0}",
-    "rogue_locust": "Swarm Disaster",
+    "rogue_locust": "O Desastre do Enxame",
     "abyss": "Salão Esquecido",
     "abyss_hard": "Memória do Caos",
     "character_header": "{0} (Nv. {1})",
@@ -26,6 +26,6 @@
         "overview": "Registro de Batalhas",
         "rogue": "Registro de Batalhas — Universo Simulado",
         "abyss": "Registro de Batalhas — Memória do Caos",
-        "rogue_locust": "Battle Chronicles — Simulated Universe: Swarm Disaster"
+        "rogue_locust": "Registro de Batalhas — Universo Simulado: O Desastre do Enxame"
     }
 }

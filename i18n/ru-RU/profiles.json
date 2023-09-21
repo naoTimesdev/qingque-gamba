@@ -3,7 +3,7 @@
     "light_cones": "Световые конусы",
     "rogue": "Виртуальная вселенная",
     "rogue_world": "Мир {0}",
-    "rogue_locust": "Swarm Disaster",
+    "rogue_locust": "Нашествие роя",
     "abyss": "Зал забвения",
     "abyss_hard": "Воспоминания хаоса",
     "character_header": "{0} (Ур. {1})",
@@ -26,6 +26,6 @@
         "overview": "Боевые заслуги",
         "rogue": "Боевые заслуги — Виртуальная вселенная",
         "abyss": "Боевые заслуги — Воспоминания хаоса",
-        "rogue_locust": "Battle Chronicles — Simulated Universe: Swarm Disaster"
+        "rogue_locust": "Боевые заслуги — Виртуальная вселенная: Нашествие роя"
     }
 }
