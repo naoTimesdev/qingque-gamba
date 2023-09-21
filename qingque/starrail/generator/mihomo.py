@@ -27,7 +27,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, TypeAlias, cast
 
 from aiopath import AsyncPath
-from PIL import Image
+from PIL import Image, ImageEnhance
 
 from qingque.mihomo.models.base import MihomoBase
 from qingque.mihomo.models.characters import Character
@@ -37,8 +37,8 @@ from qingque.mihomo.models.player import PlayerInfo
 from qingque.mihomo.models.relics import Relic, RelicSet
 from qingque.mihomo.models.stats import StatsAtrributes, StatsField, StatsProperties
 from qingque.models.region import HYVServer
+from qingque.starrail.imaging import AsyncImageEnhance
 from qingque.starrail.models.relics import SRSRelicType
-from qingque.starrail.scoring import RelicScores, RelicScoring, RelicScoringNoSuchCharacterException
 from qingque.tooling import get_logger
 
 from .base import RGB, StarRailDrawing, StarRailDrawingLogger
@@ -183,7 +183,6 @@ class StarRailMihomoCard(StarRailDrawing):
         # Inner canvas is 1568x910
         self._make_canvas(width=1568, height=910)
         self._stats_field_to_name: dict[StatsField, str] = {}
-        self._relic_scoring: RelicScoring = RelicScoring(self._assets_folder / ".." / "relic_scores.json")
 
     def is_trailblazer(self):
         return int(self._character.id) >= 8001
@@ -494,7 +493,6 @@ class StarRailMihomoCard(StarRailDrawing):
         rarity: int,
         box_icon: str,
         box_indicator: str | None = None,
-        score_indicator: str | None = None,
         box_size: int = 138,
         margin: int = 25,
     ) -> None:
@@ -537,23 +535,6 @@ class StarRailMihomoCard(StarRailDrawing):
                 (left + 4 + 20, top_margin + 4 + 10),
                 color=self._background,
                 font_size=16,
-                anchor="mm",
-            )
-
-        # Create box at top-right of the relic box for score indicator
-        if score_indicator is not None:
-            # Score indicator are 2 characters max, so make it smaller
-            await self._create_box(
-                (
-                    (left + box_size - 4 - 25, top_margin + 4),
-                    (left + box_size - 4, top_margin + 4 + 20),
-                ),
-            )
-            await self._write_text(
-                score_indicator,
-                (left + box_size - 4 - 11, top_margin + 4 + 9),
-                color=self._background,
-                font_size=15,
                 anchor="mm",
             )
 
@@ -645,7 +626,7 @@ class StarRailMihomoCard(StarRailDrawing):
         await self._async_close(relic_img)
         await self._async_close(stars_icon)
 
-    async def _create_main_relics(self, relic_scores: RelicScores | None = None) -> None:
+    async def _create_main_relics(self) -> None:
         sorted_relics = sorted(
             self._character.relics,
             key=lambda r: self._index_data.relics[r.id].type.order,
@@ -686,9 +667,6 @@ class StarRailMihomoCard(StarRailDrawing):
                     text=self._i18n.t("mihomo.no_relic"),
                 )
             else:
-                relic_score = None
-                if relic_scores is not None:
-                    relic_score = relic_scores.scores.get(relic.id)
                 await self._create_stats_box(
                     position=idx,
                     left=self.RELIC_LEFT,
@@ -698,7 +676,6 @@ class StarRailMihomoCard(StarRailDrawing):
                     box_icon=relic.icon_url,
                     box_size=relic_size,
                     box_indicator=f"+{relic.level}",
-                    score_indicator=relic_score.rank if relic_score is not None else None,
                     margin=margin_relic,
                 )
 
@@ -749,7 +726,7 @@ class StarRailMihomoCard(StarRailDrawing):
                 align="left",
             )
 
-    async def _create_planar_and_light_cone(self, relic_scores: RelicScores | None = None) -> None:
+    async def _create_planar_and_light_cone(self) -> None:
         sorted_relics = sorted(
             self._character.relics,
             key=lambda r: self._index_data.relics[r.id].type.order,
@@ -812,9 +789,6 @@ class StarRailMihomoCard(StarRailDrawing):
                     text=self._i18n.t("mihomo.no_relic"),
                 )
             else:
-                relic_score = None
-                if relic_scores is not None:
-                    relic_score = relic_scores.scores.get(relic.id)
                 await self._create_stats_box(
                     position=idx,
                     left=RELIC_LEFT,
@@ -822,7 +796,6 @@ class StarRailMihomoCard(StarRailDrawing):
                     sub_stats=[SRSCardStats.from_relic(sub, i18n=self._i18n) for sub in relic.sub_stats],
                     rarity=relic.rarity,
                     box_icon=relic.icon_url,
-                    score_indicator=relic_score.rank if relic_score is not None else None,
                     box_indicator=f"+{relic.level}",
                 )
 
@@ -848,26 +821,29 @@ class StarRailMihomoCard(StarRailDrawing):
         for idx, skill in enumerate(sorted_skills):
             skill_icon = await self._async_open(self._assets_folder / skill.icon_url)
             skill_icon = await self._tint_image(skill_icon, self._foreground)
+            if skill.type == SkillUsageType.Technique and skill.level == 0:
+                skill_icon = await AsyncImageEnhance.process(skill_icon, 0.75, subclass=ImageEnhance.Brightness)
             skill_icon = await self._resize_image(skill_icon, (box_size - 4, box_size - 4))
 
+            # Skill icon
             await self._paste_image(
                 skill_icon,
                 (LEFT + (idx * margin) + 2, TOP),
                 skill_icon,
             )
-            await self._create_box(
-                ((LEFT + (idx * margin) + 2, TOP), (LEFT + (idx * margin) + 36, TOP + 20)),
-            )
-            value_skill = f"{skill.level:02d}"
-            if skill.type == SkillUsageType.Technique:
-                value_skill = "YES" if skill.level > 0 else "NO"
-            await self._write_text(
-                value_skill,
-                (LEFT + (idx * margin) + 19, TOP + 11),
-                font_size=16,
-                anchor="mm",
-                color=self._background,
-            )
+            # Skill level
+            if skill.type != SkillUsageType.Technique:
+                value_skill = f"{skill.level:02d}"
+                await self._create_box(
+                    ((LEFT + (idx * margin) + 2, TOP), (LEFT + (idx * margin) + 36, TOP + 20)),
+                )
+                await self._write_text(
+                    value_skill,
+                    (LEFT + (idx * margin) + 19, TOP + 11),
+                    font_size=16,
+                    anchor="mm",
+                    color=self._background,
+                )
 
             match skill.type:
                 case SkillUsageType.Basic:
@@ -895,10 +871,10 @@ class StarRailMihomoCard(StarRailDrawing):
             # Close image
             await self._async_close(skill_icon)
 
-        enabled_traces: list[SkillTrace] = []
+        major_traces: list[SkillTrace] = []
         for trace in self._character.traces:
-            if "skilltree" in trace.icon_url and trace.level > 0:
-                enabled_traces.append(trace)
+            if "skilltree" in trace.icon_url:
+                major_traces.append(trace)
 
         # We want to autoscale the skills to fit the boundary
         LEFT = 648
@@ -909,11 +885,15 @@ class StarRailMihomoCard(StarRailDrawing):
         box_size = 48
         margin = 78
 
-        enabled_traces.sort(key=lambda t: t.icon_url)
+        major_traces.sort(key=lambda t: t.icon_url)
 
-        for idx, trace in enumerate(enabled_traces):
+        for idx, trace in enumerate(major_traces):
             trace_icon = await self._async_open(self._assets_folder / trace.icon_url)
             trace_icon = await self._tint_image(trace_icon, self._foreground)
+            trace_alpha = 1
+            if trace.level < 1:
+                trace_alpha = 0.5
+                trace_icon = await self._set_transparency(trace_icon, round(trace_alpha * 255))
             trace_icon = await self._resize_image(trace_icon, (box_size - 4, box_size - 4))
 
             await self._paste_image(
@@ -927,6 +907,7 @@ class StarRailMihomoCard(StarRailDrawing):
                 (LEFT + (idx * margin) + 2 + (trace_icon.width // 2), TOP + trace_icon.height + 10),
                 font_size=14,
                 anchor="mm",
+                alpha=round(trace_alpha * 255),
             )
 
             # Close image
@@ -937,7 +918,6 @@ class StarRailMihomoCard(StarRailDrawing):
         if not await self._assets_folder.exists():
             raise FileNotFoundError("The assets folder does not exist.")
         await self._index_data.async_loads()
-        await self._relic_scoring.async_load()
         await self._set_index_properties_name()
 
         t = self._i18n.t
@@ -989,16 +969,10 @@ class StarRailMihomoCard(StarRailDrawing):
         await self._create_character_stats()
 
         # Create relics sets
-        self.logger.info("Precalculating the relic scores...")
-        try:
-            relic_scores = self._relic_scoring.calculate(self._character, loader=self._index_data)
-        except RelicScoringNoSuchCharacterException:
-            self.logger.warning("Cannot find the character in the relic scoring database.")
-            relic_scores = None
         self.logger.info("Creating the character relics...")
-        await self._create_main_relics(relic_scores)
+        await self._create_main_relics()
         self.logger.info("Creating the character planar and light cone...")
-        await self._create_planar_and_light_cone(relic_scores)
+        await self._create_planar_and_light_cone()
         self.logger.info("Creating relic set bonus...")
         await self._create_relic_sets_bonus()
 

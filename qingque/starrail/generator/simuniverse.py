@@ -634,7 +634,7 @@ class StarRailSimulatedUniverseCard(
             MARGIN_TOP += 50
         await self._async_close(default_block_bg)
 
-    async def create(self, *, hide_credits: bool = False, hide_timestamp: bool = False):
+    async def create(self, *, hide_credits: bool = False, hide_timestamp: bool = False) -> bytes:
         self._assets_folder = await self._assets_folder.absolute()
         if not await self._assets_folder.exists():
             raise FileNotFoundError("The assets folder does not exist.")

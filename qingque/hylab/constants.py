@@ -36,6 +36,8 @@ __all__ = (
     "CHRONICLES_ROUTE",
     "CLAIM_ROUTE",
     "DAILY_ROUTE",
+    "CALENDAR_ROUTE",
+    "CALENDAR_DETAIL_ROUTE",
     "STARRAIL_SERVER",
     "SERVER_TO_STARRAIL_REGION",
     "STARRAIL_GAME_BIZ",
@@ -77,6 +79,14 @@ CLAIM_ROUTE = Route(
 DAILY_ROUTE = Route(
     overseas="https://sg-public-api.hoyolab.com/event/luna/os/sign",
     china="https://api-takumi.mihoyo.com/event/luna/sign",
+)
+CALENDAR_ROUTE = Route(
+    overseas="https://sg-public-api.hoyolab.com/event/srledger/month_info",
+    china="https://api-takumi.mihoyo.com/event/srledger/month_info",
+)
+CALENDAR_DETAIL_ROUTE = Route(
+    overseas="https://sg-public-api.hoyolab.com/event/srledger/month_detail",
+    china="https://api-takumi.mihoyo.com/event/srledger/month_detail",
 )
 STARRAIL_SERVER: dict[HYVServer, str] = {
     HYVServer.ChinaA: "prod_gf_cn",

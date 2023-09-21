@@ -250,6 +250,8 @@ class HYLabClient:
             cookies["cookie_token"] = hylab_cookie
         return cookies
 
+    # --> Battle Chronicles
+
     async def get_battle_chronicles_basic_info(
         self,
         uid: int,
@@ -669,6 +671,10 @@ class HYLabClient:
 
         return resp.data
 
+    # <-- Battle Chronicles
+
+    # --> Rewards
+
     async def claim_daily_reward(
         self,
         uid: int,
@@ -750,3 +756,5 @@ class HYLabClient:
             if resp.data.gt != "":
                 raise HYGeetestTriggered(resp, None)
             raise HYAlreadyClaimed(resp, None)
+
+    # <-- Rewards

@@ -606,6 +606,30 @@ class StarRailDrawing:
         await self._loop.run_in_executor(None, result.putalpha, alpha)
         return result
 
+    async def _set_transparency(self, im: Image.Image, factor: int) -> Image.Image:
+        """Add transparency to an image.
+
+        Parameters
+        ----------
+        im: :class:`PIL.Image.Image`
+            The image to add transparency to.
+        factor: :class:`int`
+            The alpha value to add to the image.
+        """
+
+        def _process(im: Image.Image, factor: int):
+            in_img = im.convert("RGBA")
+            out_img = Image.new("RGBA", in_img.size, (0, 0, 0, 0))
+            for x in range(in_img.width):
+                for y in range(in_img.height):
+                    r, g, b, a = in_img.getpixel((x, y))
+                    if a > 0:
+                        new_alpha = max(a - factor, 0)
+                        out_img.putpixel((x, y), (r, g, b, new_alpha))
+            return out_img
+
+        return await self._loop.run_in_executor(None, _process, im, factor)
+
     async def _paste_image(
         self,
         img: Image.Image | RGB | RGBA,
