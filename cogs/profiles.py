@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import asyncio
 import functools
-from datetime import timedelta, timezone
+from datetime import timezone
 from io import BytesIO
 from typing import Any, Coroutine
 
@@ -50,12 +50,13 @@ from qingque.i18n import PartialTranslate, QingqueLanguage, get_i18n, get_i18n_d
 from qingque.mihomo.models.characters import Character
 from qingque.mihomo.models.player import PlayerInfo
 from qingque.models.account_select import AccountSelectView
-from qingque.models.embed_paging import EmbedPaginatedView, EmbedPagingSelectView, PagingChoice
+from qingque.models.embed_paging import EmbedPagingSelectView, PagingChoice
 from qingque.models.persistence import QingqueProfile, QingqueProfileV2
 from qingque.redisdb import RedisDatabase
 from qingque.starrail.generator import StarRailMihomoCard
 from qingque.starrail.generator.characters import StarRailCharactersCard
 from qingque.starrail.generator.chronicles import StarRailChronicleNotesCard
+from qingque.starrail.generator.mihomo import get_mihomo_dominant_color
 from qingque.starrail.generator.moc import StarRailMoCCard
 from qingque.starrail.generator.simuniverse import StarRailSimulatedUniverseCard
 from qingque.starrail.loader import SRSDataLoader
@@ -93,7 +94,7 @@ async def _batch_gen_player_card(
     t: PartialTranslate,
     language: QingqueLanguage,
     loader: SRSDataLoader,
-) -> tuple[FileBytes, discord.Embed, int]:
+) -> PagingChoice:
     logger.info(f"Generating character {character.name} profile card for UID {player.id}")
     card_char = StarRailMihomoCard(character, player, language=language, loader=loader)
     card_data = await card_char.create(hide_credits=True)
@@ -101,7 +102,10 @@ async def _batch_gen_player_card(
     logger.info(f"Adding character {character.name} profile card for UID {player.id}")
     filename = f"{player.id}_{idx:02d}_{character.id}.QingqueBot.png"
     file = FileBytes(card_data, filename=filename)
-    embed = discord.Embed(title=t("character_header", [character.name, f"{character.level:02d}"]))
+    char_color = get_mihomo_dominant_color(character.id)
+    char_disc_color = discord.Colour.from_rgb(*char_color) if char_color is not None else None
+    char_header = t("character_header", [character.name, f"{character.level:02d}"])
+    embed = discord.Embed(title=char_header, colour=char_disc_color)
     description = []
     progression = player.progression
     if progression.achivements > 0:
@@ -125,7 +129,7 @@ async def _batch_gen_player_card(
         name=player.name,
         icon_url=f"{SRS_BASE}{player.avatar.icon_url}",
     )
-    return file, embed, idx
+    return PagingChoice(title=char_header, embed=embed, file=file)
 
 
 @app_commands.command(name="srprofile", description=locale_str("srprofile.desc"))
@@ -172,9 +176,7 @@ async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: in
         return
     logger.info(f"Getting profile card for UID {uid}")
 
-    embeds: list[discord.Embed] = []
-    files: list[discord.File] = []
-    task_creation: list[Coroutine[Any, Any, tuple[FileBytes, discord.Embed, int]]] = [
+    task_creation: list[Coroutine[Any, Any, PagingChoice]] = [
         _batch_gen_player_card(
             idx,
             data_player.player,
@@ -186,21 +188,15 @@ async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: in
         for idx, character in enumerate(data_player.characters)
     ]
     try:
-        task_executor: list[tuple[FileBytes, discord.Embed, int]] = await asyncio.gather(*task_creation)
+        profile_choices: list[PagingChoice] = await asyncio.gather(*task_creation)
     except Exception as e:
         logger.error(f"Error generating profile card for UID {uid}: {e}", exc_info=e)
         await original_message.edit(content=t("exception", [f"```{e!s}```"]))
         return
-    # Sort by idx
-    task_executor.sort(key=lambda x: x[2])
-
-    for file, embed, _ in task_executor:
-        embeds.append(embed)
-        files.append(file)
 
     logger.info("Sending to Discord...")
-    pagination_view = EmbedPaginatedView(embeds, inter.user.id, files)
-    await pagination_view.start(inter, message=original_message)
+    pagination_view = EmbedPagingSelectView(profile_choices, inter.locale, user_id=inter.user.id)
+    await pagination_view.start(original_message)
 
 
 @app_commands.command(name="srchronicle", description=locale_str("srchronicle.desc"))
@@ -493,7 +489,7 @@ async def _make_rogue_card(
     # Find REPLACEME
     replace_me_idx = challenged_tl.find("REPLACEME")
     # Add bold to the challenged on text but not the timestamp
-    challenged_tl = "**" + challenged_tl[:replace_me_idx] + "**: " + challenged_tl[replace_me_idx:]
+    challenged_tl = "**" + challenged_tl[:replace_me_idx].rstrip() + "**: " + challenged_tl[replace_me_idx:]
     challenged_tl = challenged_tl.replace("REPLACEME", challenged_on)
     descriptions.append(challenged_tl)
 
@@ -505,8 +501,7 @@ async def _make_rogue_card(
         loader=inter.client.get_srs(lang),
     )
 
-    end_time_gmt8 = end_time.replace(tzinfo=timezone.utc).astimezone(tz=timezone(timedelta(hours=8)))
-    end_time_fmt = end_time_gmt8.strftime("%a, %b %d %Y %H:%M")
+    end_time_fmt = end_time.strftime("%a, %b %d %Y %H:%M")
 
     card_bytes = await gen_card.create(hide_credits=True)
     card_fn = f"SimulatedUniverse_Run{filename_pre}.QingqueBot.png"
@@ -686,7 +681,7 @@ async def qqprofile_srrogue(inter: discord.Interaction[QingqueClient]):
     paging_choices: list[PagingChoice] = [x[0] for x in task_executor]
 
     logger.info("Sending to Discord...")
-    pagination_view = EmbedPagingSelectView(paging_choices, inter.locale)
+    pagination_view = EmbedPagingSelectView(paging_choices, inter.locale, user_id=inter.user.id)
     await pagination_view.start(original_message)
 
 
@@ -717,7 +712,7 @@ async def _make_moc_card(
     # Find REPLACEME
     replace_me_idx = challenged_tl.find("REPLACEME")
     # Add bold to the challenged on text but not the timestamp
-    challenged_tl = "**" + challenged_tl[:replace_me_idx] + "**: " + challenged_tl[replace_me_idx:]
+    challenged_tl = "**" + challenged_tl[:replace_me_idx].strip() + "**: " + challenged_tl[replace_me_idx:]
     challenged_tl = challenged_tl.replace("REPLACEME", challenged_on)
     descriptions.append(challenged_tl)
 
@@ -846,5 +841,5 @@ async def qqprofile_moc(inter: discord.Interaction[QingqueClient], previous: boo
     paging_choices: list[PagingChoice] = [x[0] for x in task_executor]
 
     logger.info("Sending to Discord...")
-    pagination_view = EmbedPagingSelectView(paging_choices, inter.locale)
+    pagination_view = EmbedPagingSelectView(paging_choices, inter.locale, user_id=inter.user.id)
     await pagination_view.start(original_message)

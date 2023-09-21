@@ -49,6 +49,7 @@ if TYPE_CHECKING:
     from qingque.starrail.loader import SRSDataLoader
 
 __all__ = (
+    "get_mihomo_dominant_color",
     "SRSCardStats",
     "StarRailMihomoCard",
 )
@@ -94,6 +95,15 @@ _COLOR_DOMINANT: dict[str, RGB | list[RGB]] = {
     "8004": [(234, 149, 56), (49, 42, 42)],
 }
 _MetaStats: TypeAlias = dict[StatsField, int | float]
+
+
+def get_mihomo_dominant_color(character_id: str | int) -> RGB | None:
+    color = _COLOR_DOMINANT.get(str(character_id))
+    if color is None:
+        return None
+    if isinstance(color, list):
+        return color[0]
+    return color
 
 
 def _get_player_server(server: HYVServer, i18n: PartialTranslate) -> str:

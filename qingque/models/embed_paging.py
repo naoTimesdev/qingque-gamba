@@ -45,23 +45,27 @@ __all__ = (
 )
 
 
+@dataclass
+class PagingChoice:
+    title: str
+    embed: discord.Embed
+    file: discord.File | None = None
+    emoji: str | discord.PartialEmoji | None = None
+    id: str = field(default_factory=lambda: str(uuid4()))
+
+
 class EmbedPaginatedView(discord.ui.View):
     def __init__(
         self,
-        embeds: list[discord.Embed],
+        choices: list[PagingChoice],
         user_id: int,
-        files: list[discord.File] | None = None,
         *,
         timeout: float | None = 180,
     ):
         super().__init__(timeout=timeout)
-        self._embeds: list[discord.Embed] = embeds
-        self._files: list[discord.File] | None = files
+        self._choices: list[PagingChoice] = choices
         self._user_id: int = user_id
         self._page = 1
-
-        if self._files is not None and len(self._files) != len(self._embeds):
-            raise ValueError("Embeds and files must have the same length.")
 
         self.update_buttons(1)
 
@@ -73,14 +77,14 @@ class EmbedPaginatedView(discord.ui.View):
         self.previous.disabled = True
         self.next.disabled = True
         if hasattr(self, "_message"):
-            embed = self._embeds[self.index]
-            await self._message.edit(view=None, embed=embed)
+            choice = self._choices[self.index]
+            await self._message.edit(view=None, embed=choice.embed)
 
     async def interaction_check(self, interaction: Interaction[QingqueClient]) -> bool:
         return interaction.user.id == self._user_id
 
     def update_buttons(self, current_page: int) -> None:
-        total_page = len(self._embeds)
+        total_page = len(self._choices)
         self._page = current_page
         self.count.label = f"Page {current_page}/{total_page}"
         if total_page == 1:
@@ -99,12 +103,13 @@ class EmbedPaginatedView(discord.ui.View):
             self.next.disabled = False
 
     async def _edit(self, interaction: discord.Interaction) -> None:
+        choice = self._choices[self.index]
         send_thing = {
-            "embed": self._embeds[self.index],
+            "embed": choice.embed,
             "view": self,
         }
-        if self._files is not None:
-            send_thing["attachments"] = [self._files[self.index]]
+        if choice.file is not None:
+            send_thing["attachments"] = [choice.file]
         await interaction.response.edit_message(**send_thing)
 
     @discord.ui.button(label="Previous", style=discord.ButtonStyle.blurple, disabled=True)
@@ -128,35 +133,29 @@ class EmbedPaginatedView(discord.ui.View):
         message: discord.InteractionMessage | None = None,
     ) -> None:
         self._interaction = interaction
+        choice = self._choices[self.index]
         send_thing = {
-            "embed": self._embeds[self.index],
+            "embed": choice.embed,
             "view": self,
         }
-        if self._files is not None:
-            send_thing["attachments"] = [self._files[self.index]]
+        if len(self._choices) == 1:
+            send_thing.pop("view", None)
+        if choice.file is not None:
+            send_thing["attachments"] = [choice.file]
         if message is None:
             if interaction.response.is_done():
                 original = await interaction.original_response()
                 self._message = original
             else:
-                if "attachments" in send_thing and self._files is not None:
+                if "attachments" in send_thing and choice.file is not None:
                     # Remove the attachments from the original message, and use "file" instead
                     del send_thing["attachments"]
-                    send_thing["file"] = self._files[self.index]
+                    send_thing["file"] = choice.file
                 await interaction.response.send_message(**send_thing)
                 self._message = await interaction.original_response()
         else:
             self._message = message
             await message.edit(**send_thing)
-
-
-@dataclass
-class PagingChoice:
-    title: str
-    embed: discord.Embed
-    file: discord.File | None = None
-    emoji: str | discord.PartialEmoji | None = None
-    id: str = field(default_factory=lambda: str(uuid4()))
 
 
 class EmbedPagingSelection(discord.ui.Select):
@@ -194,7 +193,9 @@ class EmbedPagingSelection(discord.ui.Select):
 class EmbedPagingSelectView(discord.ui.View):
     _message: discord.InteractionMessage
 
-    def __init__(self, choices: list[PagingChoice], locale: discord.Locale, *, timeout: float | None = 180):
+    def __init__(
+        self, choices: list[PagingChoice], locale: discord.Locale, *, user_id: int, timeout: float | None = 180
+    ):
         super().__init__(timeout=timeout)
         t = get_i18n_discord(locale)
         placeholder = t("srchoices.placeholder")
@@ -202,6 +203,7 @@ class EmbedPagingSelectView(discord.ui.View):
         item = EmbedPagingSelection(self, choices, placeholder=placeholder)
         self._choices: list[PagingChoice] = choices
         self._selection = item
+        self._user_id: int = user_id
         self.add_item(item)
 
     async def set_response(self, inter: discord.Interaction[QingqueClient], choice: PagingChoice):
@@ -215,6 +217,9 @@ class EmbedPagingSelectView(discord.ui.View):
         self._selection.disabled = True
         if hasattr(self, "_message"):
             await self._message.edit(view=None)
+
+    async def interaction_check(self, interaction: Interaction[QingqueClient]) -> bool:
+        return interaction.user.id == self._user_id
 
     async def start(self, inter: discord.InteractionMessage):
         self._message = inter
