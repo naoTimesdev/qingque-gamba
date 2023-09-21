@@ -27,7 +27,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, TypeAlias, cast
 
 from aiopath import AsyncPath
-from PIL import Image, ImageEnhance
+from PIL import Image
 
 from qingque.mihomo.models.base import MihomoBase
 from qingque.mihomo.models.characters import Character
@@ -37,7 +37,6 @@ from qingque.mihomo.models.player import PlayerInfo
 from qingque.mihomo.models.relics import Relic, RelicSet
 from qingque.mihomo.models.stats import StatsAtrributes, StatsField, StatsProperties
 from qingque.models.region import HYVServer
-from qingque.starrail.imaging import AsyncImageEnhance
 from qingque.starrail.models.relics import SRSRelicType
 from qingque.tooling import get_logger
 
@@ -703,7 +702,7 @@ class StarRailMihomoCard(StarRailDrawing):
             )
             await self._write_text(
                 f"{select_relic.need}",
-                (self.RELIC_LEFT + 10.5, TOP + (idx * 26) + 10.5),
+                (self.RELIC_LEFT + 10, TOP + (idx * 26) + 11),
                 font_size=16,
                 color=self._background,
                 anchor="mm",
@@ -821,8 +820,10 @@ class StarRailMihomoCard(StarRailDrawing):
         for idx, skill in enumerate(sorted_skills):
             skill_icon = await self._async_open(self._assets_folder / skill.icon_url)
             skill_icon = await self._tint_image(skill_icon, self._foreground)
+            skill_alpha = 1
             if skill.type == SkillUsageType.Technique and skill.level == 0:
-                skill_icon = await AsyncImageEnhance.process(skill_icon, 0.75, subclass=ImageEnhance.Brightness)
+                skill_alpha = 0.5
+                skill_icon = await self._set_transparency(skill_icon, round(skill_alpha * 255))
             skill_icon = await self._resize_image(skill_icon, (box_size - 4, box_size - 4))
 
             # Skill icon
@@ -866,6 +867,7 @@ class StarRailMihomoCard(StarRailDrawing):
                 (LEFT + (idx * margin) + 2 + (skill_icon.width // 2), TOP + skill_icon.height + 8),
                 font_size=14,
                 anchor="mm",
+                alpha=round(skill_alpha * 255),
             )
 
             # Close image
@@ -905,7 +907,7 @@ class StarRailMihomoCard(StarRailDrawing):
             await self._write_text(
                 f"A{(idx + 1) * 2}",
                 (LEFT + (idx * margin) + 2 + (trace_icon.width // 2), TOP + trace_icon.height + 10),
-                font_size=14,
+                font_size=13,
                 anchor="mm",
                 alpha=round(trace_alpha * 255),
             )
