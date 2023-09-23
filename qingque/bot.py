@@ -48,10 +48,11 @@ from qingque.mihomo.client import MihomoAPI
 from qingque.models.config import QingqueConfig
 from qingque.redisdb import RedisDatabase
 from qingque.starrail.loader import SRSDataLoader
+from qingque.starrail.scoring import RelicScoring
 from qingque.tooling import get_logger
 
 __all__ = ("QingqueClient",)
-ROOT_DIR = Path(__file__).parent.absolute().parent
+ROOT_DIR = Path(__file__).absolute().parent.parent
 
 
 class QingqueClientI18n(Translator):
@@ -85,6 +86,7 @@ class QingqueClient(discord.Client):
         self._hoyoapi: HYLabClient | None = None
         self._redis: RedisDatabase | None = None
         self._srs_datas = {}
+        self._relic_scorer = RelicScoring(ROOT_DIR / "qingque" / "assets" / "relic_scores.json")
 
         self._custom_emojis = CustomEmoji()
 
@@ -117,6 +119,10 @@ class QingqueClient(discord.Client):
     def get_srs(self, lang: QingqueLanguage) -> SRSDataLoader:
         return self._srs_datas[lang]
 
+    @property
+    def relic_scorer(self) -> RelicScoring:
+        return self._relic_scorer
+
     async def setup_hook(self) -> None:
         self.logger.info("Setting up the bot...")
         await self.tree.set_translator(QingqueClientI18n())
@@ -142,6 +148,9 @@ class QingqueClient(discord.Client):
         logger.info("Setting up SRS data...")
         await self.load_srs_data()
         await self.load_extensions()
+        logger.info("Setting up relic scorer...")
+        await self._relic_scorer.async_load()
+        self._relic_scorer.persist = True
         self.logger.info("Syncing commands...")
         await self.tree.sync()
         self.logger.info("Bot is ready to go")
@@ -211,6 +220,10 @@ class QingqueClient(discord.Client):
         for loader in self._srs_datas.values():
             loader.unloads()
         self.logger.info("SRS data unloaded.")
+
+        self.logger.info("Unloading relic scorer...")
+        self._relic_scorer.unload()
+        self.logger.info("Relic scorer unloaded.")
 
         return await super().close()
 

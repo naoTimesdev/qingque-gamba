@@ -39,6 +39,7 @@ from qingque.mihomo.models.stats import StatsAtrributes, StatsField, StatsProper
 from qingque.models.region import HYVServer
 from qingque.starrail.models.relics import SRSRelicType
 from qingque.starrail.models.stats import SRSProperties
+from qingque.starrail.scoring import RelicScores, RelicScoring, RelicScoringNoSuchCharacterException
 from qingque.tooling import get_logger
 
 from .base import RGB, StarRailDrawing, StarRailDrawingLogger
@@ -170,6 +171,7 @@ class StarRailMihomoCard(StarRailDrawing):
         *,
         language: MihomoLanguage | QingqueLanguage | HYLanguage = MihomoLanguage.EN,
         loader: SRSDataLoader | None = None,
+        relic_scorer: RelicScoring | None = None,
     ) -> None:
         super().__init__(language=language, loader=loader)
         self.logger = get_logger(
@@ -183,6 +185,9 @@ class StarRailMihomoCard(StarRailDrawing):
         # Inner canvas is 1568x910
         self._make_canvas(width=1568, height=910)
         self._stats_fields_to_props: dict[StatsField, SRSProperties] = {}
+        self._relic_scorer: RelicScoring = relic_scorer or RelicScoring(
+            self._assets_folder / ".." / "relic_scores.json"
+        )
 
     def is_trailblazer(self):
         return int(self._character.id) >= 8001
@@ -461,6 +466,7 @@ class StarRailMihomoCard(StarRailDrawing):
         rarity: int,
         box_icon: str,
         box_indicator: str | None = None,
+        score_indicator: str | None = None,
         box_size: int = 138,
         margin: int = 25,
     ) -> None:
@@ -503,6 +509,25 @@ class StarRailMihomoCard(StarRailDrawing):
                 (left + 4 + 20, top_margin + 4 + 10),
                 color=self._background,
                 font_size=16,
+                anchor="mm",
+            )
+        # Create box at top-right of the relic box for score indicator
+        if score_indicator is not None:
+            # Score indicator are 3 max, so make it smaller
+            score_calc = await self._calc_text(score_indicator, 15)
+            # Add 2px padding on the left and right
+            await self._create_box(
+                (
+                    (left + box_size - 4 - score_calc - 12, top_margin + 4),
+                    (left + box_size - 4, top_margin + 4 + 20),
+                ),
+            )
+            # Center text
+            await self._write_text(
+                score_indicator,
+                (left + box_size - 4 - score_calc - 4 + (score_calc // 2), top_margin + 4 + 10),
+                color=self._background,
+                font_size=15,
                 anchor="mm",
             )
 
@@ -594,7 +619,7 @@ class StarRailMihomoCard(StarRailDrawing):
         await self._async_close(relic_img)
         await self._async_close(stars_icon)
 
-    async def _create_main_relics(self) -> None:
+    async def _create_main_relics(self, relic_scores: RelicScores | None = None) -> None:
         sorted_relics = sorted(
             self._character.relics,
             key=lambda r: self._index_data.relics[r.id].type.order,
@@ -635,6 +660,7 @@ class StarRailMihomoCard(StarRailDrawing):
                     text=self._i18n.t("mihomo.no_relic"),
                 )
             else:
+                relic_score = relic_scores.scores.get(relic.id) if relic_scores is not None else None
                 await self._create_stats_box(
                     position=idx,
                     left=self.RELIC_LEFT,
@@ -644,57 +670,11 @@ class StarRailMihomoCard(StarRailDrawing):
                     box_icon=relic.icon_url,
                     box_size=relic_size,
                     box_indicator=f"+{relic.level}",
+                    score_indicator=relic_score.rank if relic_score is not None else None,
                     margin=margin_relic,
                 )
 
-    async def _create_relic_sets_bonus(self) -> None:
-        # Put after all the above relics
-        TOP = 4 * (138 + 25) + 132
-
-        grouped_sets: dict[str, list[RelicSet]] = {}
-        for relic_set in self._character.relic_sets:
-            grouped_sets.setdefault(relic_set.id, []).append(relic_set)
-
-        # Extend if has more than 2 sets
-        if len(grouped_sets) > 2:
-            extend_by = (len(grouped_sets) - 2) * (26 + 2)
-            delta_extend = extend_by - self._extend_down_by
-            if delta_extend > 0:
-                await self._extend_canvas_down(delta_extend)
-
-        for idx, relic_sets in enumerate(grouped_sets.values(), 1):
-            select_relic = sorted(relic_sets, key=lambda r: r.need, reverse=True)[0]
-
-            # Create 1:1 box for text
-            await self._create_box(
-                ((self.RELIC_LEFT, TOP + (idx * 26)), (self.RELIC_LEFT + 20, TOP + (idx * 26) + 20)),
-            )
-            await self._write_text(
-                f"{select_relic.need}",
-                (self.RELIC_LEFT + 10, TOP + (idx * 26) + 11),
-                font_size=16,
-                color=self._background,
-                anchor="mm",
-                align="center",
-            )
-            # Create the set name
-            properties_joined = []
-            for prop in select_relic.properties:
-                prop_info = self._index_data.properties[prop.type]
-                prop_fmt = "{:.1%}" if prop.percent else "{:.0f}"
-                properties_joined.append(f"{prop_info.name} {prop_fmt.format(prop.value)}")
-            relic_set_name = self._index_data.relics_sets[select_relic.id].name
-            if properties_joined:
-                relic_set_name += " (" + ", ".join(properties_joined) + ")"
-            await self._write_text(
-                relic_set_name,
-                (self.RELIC_LEFT + 21 + 8, TOP + (idx * 26 + 10.5)),
-                font_size=16,
-                anchor="lm",
-                align="left",
-            )
-
-    async def _create_planar_and_light_cone(self) -> None:
+    async def _create_planar_and_light_cone(self, relic_scores: RelicScores | None = None) -> None:
         sorted_relics = sorted(
             self._character.relics,
             key=lambda r: self._index_data.relics[r.id].type.order,
@@ -757,6 +737,7 @@ class StarRailMihomoCard(StarRailDrawing):
                     text=self._i18n.t("mihomo.no_relic"),
                 )
             else:
+                relic_score = relic_scores.scores.get(relic.id) if relic_scores is not None else None
                 await self._create_stats_box(
                     position=idx,
                     left=RELIC_LEFT,
@@ -765,7 +746,64 @@ class StarRailMihomoCard(StarRailDrawing):
                     rarity=relic.rarity,
                     box_icon=relic.icon_url,
                     box_indicator=f"+{relic.level}",
+                    score_indicator=relic_score.rank if relic_score is not None else None,
                 )
+
+    async def _create_relic_sets_bonus(self) -> None:
+        # Put after all the above relics
+        TOP = 4 * (138 + 25) + 132 + 26
+
+        grouped_sets: dict[str, list[RelicSet]] = {}
+        for relic_set in self._character.relic_sets:
+            grouped_sets.setdefault(relic_set.id, []).append(relic_set)
+
+        # Extend if has more than 2 sets
+        if len(grouped_sets) > 2:
+            extend_by = (len(grouped_sets) - 2) * (26 + 2)
+            delta_extend = extend_by - self._extend_down_by
+            if delta_extend > 0:
+                await self._extend_canvas_down(delta_extend)
+
+        for relic_sets in grouped_sets.values():
+            select_relic = sorted(relic_sets, key=lambda r: r.need, reverse=True)[0]
+
+            # Create 1:1 box for text
+            await self._create_box(
+                ((self.RELIC_LEFT, TOP), (self.RELIC_LEFT + 20, TOP + 20)),
+            )
+            await self._write_text(
+                f"{select_relic.need}",
+                (self.RELIC_LEFT + 10, TOP + 10.5),
+                font_size=16,
+                color=self._background,
+                anchor="mm",
+                align="center",
+            )
+            # Create the set name
+            properties_joined = []
+            for prop in select_relic.properties:
+                prop_info = self._index_data.properties[prop.type]
+                prop_fmt = "{:.1%}" if prop.percent else "{:.0f}"
+                properties_joined.append(f"{prop_info.name} {prop_fmt.format(prop.value)}")
+            relic_set_name = self._index_data.relics_sets[select_relic.id].name
+            await self._write_text(
+                relic_set_name,
+                (self.RELIC_LEFT + 21 + 8, TOP + 10.5),
+                font_size=16,
+                anchor="lm",
+                align="left",
+            )
+            if properties_joined:
+                # Create after the set name
+                await self._write_text(
+                    "(" + ", ".join(properties_joined) + ")",
+                    (self.RELIC_LEFT + 21 + 8, TOP + 10.5 + 26),
+                    font_size=16,
+                    anchor="lm",
+                    align="left",
+                )
+                TOP += 26
+            TOP += 26
 
     async def _create_eidolons(self) -> None:
         MARGIN_TOP = 670
@@ -951,6 +989,7 @@ class StarRailMihomoCard(StarRailDrawing):
         if not await self._assets_folder.exists():
             raise FileNotFoundError("The assets folder does not exist.")
         await self._index_data.async_loads()
+        await self._relic_scorer.async_load()
         await self._set_index_prop_stats_info()
 
         t = self._i18n.t
@@ -1002,10 +1041,15 @@ class StarRailMihomoCard(StarRailDrawing):
         await self._create_character_stats()
 
         # Create relics sets
+        try:
+            self.logger.info("Trying to get relic scores...")
+            relic_scores = self._relic_scorer.calculate(self._character, loader=self._index_data)
+        except RelicScoringNoSuchCharacterException:
+            relic_scores = None
         self.logger.info("Creating the character relics...")
-        await self._create_main_relics()
+        await self._create_main_relics(relic_scores=relic_scores)
         self.logger.info("Creating the character planar and light cone...")
-        await self._create_planar_and_light_cone()
+        await self._create_planar_and_light_cone(relic_scores=relic_scores)
         self.logger.info("Creating relic set bonus...")
         await self._create_relic_sets_bonus()
 
