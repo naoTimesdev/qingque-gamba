@@ -28,7 +28,7 @@ import asyncio
 import functools
 from datetime import timezone
 from io import BytesIO
-from typing import Any, Coroutine
+from typing import Any, Coroutine, Final
 
 import discord
 from discord import app_commands
@@ -70,7 +70,8 @@ __all__ = (
 )
 logger = get_logger("cogs.profiles")
 SRS_BASE = "https://raw.githubusercontent.com/Mar-7th/StarRailRes/master/"
-_COMMON_FOREGROUND = discord.Colour.from_rgb(219, 194, 145)
+_COMMON_FOREGROUND: Final[discord.Colour] = discord.Colour.from_rgb(219, 194, 145)
+_CHAR_EMOTES: Final[list[str]] = ["🌟", "1️⃣", "2️⃣", "3️⃣"]
 
 
 async def get_profile_from_persistent(discord_id: int, redis: RedisDatabase) -> QingqueProfileV2 | None:
@@ -124,13 +125,18 @@ async def _batch_gen_player_card(
         abyss_moc_floor = t("moc_floor", [str(forgotten_hall.moc_finished_floor)])
         description.append(f"**{t('abyss_hard')}**: {abyss_moc_floor}")
 
+    try:
+        em_emote = _CHAR_EMOTES[idx]
+    except IndexError:
+        em_emote = None
+
     embed.description = "\n".join(description)
     embed.set_image(url=f"attachment://{filename}")
     embed.set_author(
         name=player.name,
         icon_url=f"{SRS_BASE}{player.avatar.icon_url}",
     )
-    return PagingChoice(title=char_header, embed=embed, file=file)
+    return PagingChoice(title=char_header, embed=embed, file=file, emoji=em_emote)
 
 
 @app_commands.command(name="srprofile", description=locale_str("srprofile.desc"))
