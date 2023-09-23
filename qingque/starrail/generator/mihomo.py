@@ -276,20 +276,17 @@ class StarRailMihomoCard(StarRailDrawing):
         # Write text at top-right of the rectangle for Element / Path
         element_name = self._index_data.elements[self._character.element.id].name
         path_name = self._index_data.paths[self._character.path.id].name
-        elem_path_width = await self._write_text(
+        elem_path_width = await self._calc_text(
             f"{element_name} / {path_name}",
-            (self.CHARACTER_RIGHT - 4, self.CHARACTER_TOP + 22),
             font_size=20,
-            color=self._background,
-            anchor="rs",
-            align="right",
         )
         # Create a box for the text
         await self._create_box(
             (
-                (self.CHARACTER_RIGHT - elem_path_width - 8, self.CHARACTER_TOP),
+                (self.CHARACTER_RIGHT - elem_path_width - 6, self.CHARACTER_TOP),
                 (self.CHARACTER_RIGHT, self.CHARACTER_TOP + 32),
             ),
+            color=(*self._foreground, round(0.75 * 255)),
         )
         await self._write_text(
             f"{element_name} / {path_name}",
