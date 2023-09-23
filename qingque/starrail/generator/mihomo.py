@@ -382,6 +382,8 @@ class StarRailMihomoCard(StarRailDrawing):
                 (left_start, top_margin),
                 img_icon,
             )
+            # Close image
+            await self._async_close(img_icon)
 
             # Add stats name
             await self._write_text(
