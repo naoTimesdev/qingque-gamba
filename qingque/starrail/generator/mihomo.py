@@ -820,11 +820,11 @@ class StarRailMihomoCard(StarRailDrawing):
         DEMARGIN = 28
 
         await self._create_box(
-            ((MARGIN_LEFT, MARGIN_TOP - DEMARGIN - 1), (MARGIN_LEFT + eidolon_len + 4, MARGIN_TOP - DEMARGIN + 21)),
+            ((MARGIN_LEFT, MARGIN_TOP - DEMARGIN - 1), (MARGIN_LEFT + eidolon_len + 10, MARGIN_TOP - DEMARGIN + 21)),
         )
         await self._write_text(
             self._i18n.t("mihomo.eidolons"),
-            (MARGIN_LEFT + 2, MARGIN_TOP - DEMARGIN + 17),
+            (MARGIN_LEFT + 5, MARGIN_TOP - DEMARGIN + 17),
             font_size=18,
             color=self._background,
             anchor="ls",
