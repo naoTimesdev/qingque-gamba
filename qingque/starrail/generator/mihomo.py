@@ -38,6 +38,7 @@ from qingque.mihomo.models.relics import Relic, RelicSet
 from qingque.mihomo.models.stats import StatsAtrributes, StatsField, StatsProperties
 from qingque.models.region import HYVServer
 from qingque.starrail.models.relics import SRSRelicType
+from qingque.starrail.models.stats import SRSProperties
 from qingque.tooling import get_logger
 
 from .base import RGB, StarRailDrawing, StarRailDrawingLogger
@@ -181,7 +182,7 @@ class StarRailMihomoCard(StarRailDrawing):
         # Initialize the card canvas.
         # Inner canvas is 1568x910
         self._make_canvas(width=1568, height=910)
-        self._stats_field_to_name: dict[StatsField, str] = {}
+        self._stats_fields_to_props: dict[StatsField, SRSProperties] = {}
 
     def is_trailblazer(self):
         return int(self._character.id) >= 8001
@@ -251,22 +252,6 @@ class StarRailMihomoCard(StarRailDrawing):
             align="right",
         )
 
-        # Starting in top-left of the rectangle, we want to write the character eidolons level
-        await self._create_box(
-            (
-                (self.CHARACTER_LEFT, self.CHARACTER_TOP),
-                (self.CHARACTER_LEFT + 40, self.CHARACTER_TOP + 32),
-            ),
-        )
-        await self._write_text(
-            f"E{self._character.eidolon}",
-            (self.CHARACTER_LEFT + 8, self.CHARACTER_TOP + 8),
-            font_size=19,
-            color=self._background,
-            anchor="lt",
-            align="left",
-        )
-
         # Element image
         element_img = await self._async_open(self._get_element(self._character.element.id))
         element_img = await self._tint_image(element_img, self._background)
@@ -330,7 +315,7 @@ class StarRailMihomoCard(StarRailDrawing):
         await self._async_close(path_img)
         await self._async_close(stars_icon)
 
-    async def _combine_character_stats(self) -> tuple[_MetaStats, _MetaStats, dict[StatsField, Image.Image]]:
+    async def _combine_character_stats(self) -> _MetaStats:
         stats_meta: dict[StatsField, int | float] = {
             StatsField.HP: 1,
             StatsField.ATK: 1,
@@ -359,22 +344,12 @@ class StarRailMihomoCard(StarRailDrawing):
             StatsField.QuantumResist: 0.0,
             StatsField.ImaginaryResist: 0.0,
         }
-        percentage_stats: dict[StatsField, int | float] = {}
-        icon_sets: dict[StatsField, Image.Image] = {}
         # Do the stats calculation here.
         for stats in self._character.attributes:
             stats_meta[stats.field] += stats.value
-            percentage_stats[stats.field] = stats.percent
-            has_icon = icon_sets.get(stats.field)
-            if not has_icon:
-                icon_sets[stats.field] = await self._async_open(self._assets_folder / stats.icon_url)
         for stats in self._character.additions:
             stats_meta[stats.field] += stats.value
-            percentage_stats[stats.field] = stats.percent
-            has_icon = icon_sets.get(stats.field)
-            if not has_icon:
-                icon_sets[stats.field] = await self._async_open(self._assets_folder / stats.icon_url)
-        return stats_meta, percentage_stats, icon_sets
+        return stats_meta
 
     async def _create_character_stats(self) -> None:
         size = 32
@@ -382,44 +357,42 @@ class StarRailMihomoCard(StarRailDrawing):
         left_start = 1006
         right_start = 1506
         index_icon = 1
-        stats_meta, percentage_stats, icon_sets = await self._combine_character_stats()
+        stats_meta = await self._combine_character_stats()
         valid_meta_entries = {k: v for k, v in stats_meta.items() if v > 0.0}
         # Check if it's more than 10 entries, if it's extend the canvas.
         if len(valid_meta_entries) > 10:
             await self._extend_canvas_down((len(valid_meta_entries) - 10) * (size + 2))
+        non_percentage = [StatsField.HP, StatsField.ATK, StatsField.DEF, StatsField.Speed]
         for stats_field, stats_value in valid_meta_entries.items():
             if stats_value <= 0.0:
                 continue
-            percentage_mode = percentage_stats.get(stats_field, False)
-            img_icon = icon_sets.get(stats_field)
-            if img_icon is None:
-                raise ValueError(f"Cannot find icon for {stats_field.name}")
+            stats_info = self._stats_fields_to_props[stats_field]
 
+            # Stats icon
+            img_icon = await self._async_open(self._assets_folder / stats_info.icon_url)
             # Tint icon
-            tinted_icon = await self._tint_image(img_icon, self._foreground)
+            img_icon = await self._tint_image(img_icon, self._foreground)
             # Resize icon
-            tinted_icon = await self._resize_image(tinted_icon, (size, size))
+            img_icon = await self._resize_image(img_icon, (size, size))
 
             # Put icon
             top_margin = starting_top + (index_icon * size)
             await self._paste_image(
-                tinted_icon,
+                img_icon,
                 (left_start, top_margin),
-                tinted_icon,
+                img_icon,
             )
 
-            # Add text
-            stats_name = self._stats_field_to_name.get(stats_field)
-            if stats_name is None:
-                raise ValueError(f"Cannot find stats name for {stats_field.name}")
+            # Add stats name
             await self._write_text(
-                stats_name,
+                stats_info.name,
                 (left_start + size + 4, top_margin + (size // 2) + 2),
                 20,
                 anchor="lm",
                 align="left",
             )
-            stats_format = "{:.1%}" if percentage_mode else "{:.0f}"
+            is_percentage = stats_field not in non_percentage
+            stats_format = "{:.1%}" if is_percentage else "{:.0f}"
             await self._write_text(
                 stats_format.format(stats_value),
                 (right_start, top_margin + (size // 2) + 2),
@@ -430,13 +403,9 @@ class StarRailMihomoCard(StarRailDrawing):
 
             index_icon += 1
 
-        # Close all images
-        for _, img_icon in icon_sets.items():
-            await self._async_close(img_icon)
-
-    async def _set_index_properties_name(self) -> None:
+    async def _set_index_prop_stats_info(self) -> None:
         for _, fields in self._index_data.properties.items():
-            self._stats_field_to_name[fields.kind] = fields.name
+            self._stats_fields_to_props[fields.kind] = fields
 
     async def _create_placeholder_slot(
         self,
@@ -796,6 +765,52 @@ class StarRailMihomoCard(StarRailDrawing):
                     box_indicator=f"+{relic.level}",
                 )
 
+    async def _create_eidolons(self) -> None:
+        MARGIN_TOP = 670
+        ICON_SIZE = 65
+        MARGIN_LEFT = self.RELIC_LEFT + 138 + 28 + 254 + 60
+        ICON_MARGIN = 6
+
+        if self._character.eidolon == 0:
+            # We do not need to create eidolons icons because of waste of space.
+            return
+
+        eidolon_len = await self._calc_text(self._i18n.t("mihomo.eidolons"), font_size=18)
+
+        DEMARGIN = 28
+
+        await self._create_box(
+            ((MARGIN_LEFT, MARGIN_TOP - DEMARGIN - 1), (MARGIN_LEFT + eidolon_len + 4, MARGIN_TOP - DEMARGIN + 21)),
+        )
+        await self._write_text(
+            self._i18n.t("mihomo.eidolons"),
+            (MARGIN_LEFT + 2, MARGIN_TOP - DEMARGIN + 17),
+            font_size=18,
+            color=self._background,
+            anchor="ls",
+            align="left",
+        )
+
+        character_info = self._index_data.characters[self._character.id]
+        eidolons_data = [self._index_data.characters_eidolons[eidolon_id] for eidolon_id in character_info.eidolon_ids]
+        eidolons_data.sort(key=lambda e: e.rank)
+
+        for idx, eidolon in enumerate(eidolons_data):
+            active = eidolon.rank <= self._character.eidolon
+
+            eidolon_icon = await self._async_open(self._assets_folder / eidolon.icon_url)
+            eidolon_icon = await self._tint_image(eidolon_icon, self._foreground)
+            eidolon_icon = await self._resize_image(eidolon_icon, (ICON_SIZE, ICON_SIZE))
+            if not active:
+                eidolon_icon = await self._set_transparency(eidolon_icon, 128)
+
+            await self._paste_image(
+                eidolon_icon,
+                (MARGIN_LEFT + ((eidolon_icon.width + ICON_MARGIN) * idx), MARGIN_TOP),
+                eidolon_icon,
+            )
+            await self._async_close(eidolon_icon)
+
     async def _create_skills_and_traces(self) -> None:
         sorted_skills = sorted(
             self._character.skills,
@@ -805,10 +820,24 @@ class StarRailMihomoCard(StarRailDrawing):
         sorted_skills = [skill for skill in sorted_skills if skill.type != SkillUsageType.TechniqueAttack]
         # Remove duplicates skill
         sorted_skills = list({skill.type: skill for skill in sorted_skills}.values())
+        ADD_MARGIN = 65 + 40
 
         # We want to autoscale the skills to fit the boundary
         LEFT = 552
         TOP = 658
+        if self._character.eidolon > 0:
+            TOP += ADD_MARGIN
+
+            EXTEND_BY = 55
+            delta_extend = EXTEND_BY - self._extend_down_by
+            if delta_extend > 0:
+                await self._extend_canvas_down(delta_extend)
+            line_left = self.RELIC_LEFT + 138 + 28 + 254 + 60
+            line_right = line_left + (65 + 5) * 6
+            await self._create_line(
+                (line_left - 2, TOP - 18, line_right - 2, TOP - 18),
+                width=2,
+            )
         SIZE_W = 448
 
         # Check margin and 1:1 ratio of image size that we need to use
@@ -879,6 +908,8 @@ class StarRailMihomoCard(StarRailDrawing):
         # We want to autoscale the skills to fit the boundary
         LEFT = 648
         TOP = 760
+        if self._character.eidolon > 0:
+            TOP += ADD_MARGIN
         SIZE_W = 200
 
         # Check margin and 1:1 ratio of image size that we need to use
@@ -918,7 +949,7 @@ class StarRailMihomoCard(StarRailDrawing):
         if not await self._assets_folder.exists():
             raise FileNotFoundError("The assets folder does not exist.")
         await self._index_data.async_loads()
-        await self._set_index_properties_name()
+        await self._set_index_prop_stats_info()
 
         t = self._i18n.t
 
@@ -975,6 +1006,10 @@ class StarRailMihomoCard(StarRailDrawing):
         await self._create_planar_and_light_cone()
         self.logger.info("Creating relic set bonus...")
         await self._create_relic_sets_bonus()
+
+        # Create eidolons
+        self.logger.info("Creating the character eidolons...")
+        await self._create_eidolons()
 
         # Create skills
         self.logger.info("Creating the character skills...")

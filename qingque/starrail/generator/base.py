@@ -602,6 +602,66 @@ class StarRailDrawing:
         # Paste the overlay onto the canvas
         await self._loop.run_in_executor(None, canvas.alpha_composite, overlay)
 
+    async def _create_line(
+        self,
+        points: tuple[float, float, float, float],
+        width: int = 1,
+        color: RGB | RGBA | None = None,
+        antialias: int = 4,
+        *,
+        canvas: Image.Image | None = None,
+    ) -> None:
+        """Draw a line on the canvas.
+
+        Parameters
+        ----------
+        points: :class:`tuple[float, float, float, float]`
+            The points to draw the line. (x1, y1, x2, y2)
+        width: :class:`int`, optional
+            The width of the line, by default 1
+        color: :class:`RGB | RGBA | None`, optional
+            The color of the line, by default the foreground color.
+        antialias: :class:`int`, optional
+            The antialiasing level to use when drawing the box, by default 4
+        canvas: :class:`PIL.Image.Image`
+            The canvas to draw on, defaults to the current canvas.
+
+        Raises
+        ------
+        :class:`RuntimeError`
+            Canvas is not initialized, and no canvas is provided.
+        """
+
+        if not self.has_canvas() and canvas is None:
+            raise RuntimeError("Canvas is not initialized, and no canvas is provided.")
+
+        canvas = canvas or self._canvas
+        color = color or self._foreground
+
+        # Use a single channel image (mode='L') as mask.
+        # The size of the mask can be increased relative to the imput image
+        # to get smoother looking results.
+        mask = Image.new(size=[int(dim * antialias) for dim in canvas.size], mode="L", color="black")  # type: ignore
+        draw = await self._get_draw(canvas=mask)
+
+        line_draw = functools.partial(draw.line, fill="white", width=width * antialias)
+        act_points = tuple(point * antialias for point in points)
+        await self._loop.run_in_executor(None, line_draw, act_points)
+
+        # downsample the mask using PIL.Image.LANCZOS
+        # (a high-quality downsampling filter).
+        mask = await self._resize_image(mask, canvas.size, resampling=Image.Resampling.LANCZOS)
+        # paste color to input image through the mask
+        fill_overlay = color
+        if len(color) == 3:
+            fill_overlay += (0,)
+        else:
+            fill_overlay = fill_overlay[:3] + (0,)
+        overlay = Image.new("RGBA", canvas.size, cast(RGBA, fill_overlay))
+        await self._paste_image(color, mask=mask, canvas=overlay)
+        # Paste the overlay onto the canvas
+        await self._loop.run_in_executor(None, canvas.alpha_composite, overlay)
+
     async def _tint_image(self, im: Image.Image, color: RGB) -> Image.Image:
         alpha = im.split()[3]
         gray = await self._loop.run_in_executor(None, ImageOps.grayscale, im)
