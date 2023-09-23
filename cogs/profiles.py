@@ -28,7 +28,7 @@ import asyncio
 import functools
 from datetime import timezone
 from io import BytesIO
-from typing import Any, Coroutine, Final
+from typing import TYPE_CHECKING, Any, Coroutine, Final
 
 import discord
 from discord import app_commands
@@ -63,6 +63,9 @@ from qingque.starrail.loader import SRSDataLoader
 from qingque.tooling import get_logger
 from qingque.utils import strip_unity_rich_text
 
+if TYPE_CHECKING:
+    from qingque.starrail.scoring import RelicScoring
+
 __all__ = (
     "qqprofile_srprofile",
     "qqprofile_srchronicle",
@@ -96,9 +99,16 @@ async def _batch_gen_player_card(
     t: PartialTranslate,
     language: QingqueLanguage,
     loader: SRSDataLoader,
+    scorer: RelicScoring,
 ) -> PagingChoice:
     logger.info(f"Generating character {character.name} profile card for UID {player.id}")
-    card_char = StarRailMihomoCard(character, player, language=language, loader=loader)
+    card_char = StarRailMihomoCard(
+        character,
+        player,
+        language=language,
+        loader=loader,
+        relic_scorer=scorer,
+    )
     card_data = await card_char.create(hide_credits=True)
 
     logger.info(f"Adding character {character.name} profile card for UID {player.id}")
@@ -191,6 +201,7 @@ async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: in
             t,
             lang,
             inter.client.get_srs(lang),
+            inter.client.relic_scorer,
         )
         for idx, character in enumerate(data_player.characters)
     ]
