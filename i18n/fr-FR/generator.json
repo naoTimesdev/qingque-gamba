@@ -42,7 +42,8 @@
         "skill": "Compétence",
         "talent": "Talent",
         "ultimate": "Ultime",
-        "technique": "Technique"
+        "technique": "Technique",
+        "eidolons": "Eidolons"
     },
     "chronicles": {
         "days_active": "Jours de connexion",

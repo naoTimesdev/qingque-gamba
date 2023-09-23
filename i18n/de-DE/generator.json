@@ -42,7 +42,8 @@
         "skill": "Fertigkeit",
         "talent": "Talent",
         "ultimate": "Ultimate",
-        "technique": "Technik"
+        "technique": "Technik",
+        "eidolons": "Eidolons"
     },
     "chronicles": {
         "days_active": "Aktivität",

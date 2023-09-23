@@ -42,7 +42,8 @@
         "skill": "Skill",
         "talent": "Talent",
         "ultimate": "Ultimate",
-        "technique": "Technique"
+        "technique": "Technique",
+        "eidolons": "Eidolons"
     },
     "chronicles": {
         "days_active": "Hari aktif",

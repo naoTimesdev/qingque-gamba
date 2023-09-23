@@ -42,7 +42,8 @@
         "skill": "전투 스킬",
         "talent": "특성",
         "ultimate": "필살기",
-        "technique": "비술"
+        "technique": "비술",
+        "eidolons": "Eidolons"
     },
     "chronicles": {
         "days_active": "활동 일수",

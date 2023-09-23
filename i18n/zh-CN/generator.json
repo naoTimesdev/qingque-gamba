@@ -42,7 +42,8 @@
         "skill": "战技",
         "talent": "天赋",
         "ultimate": "终结技",
-        "technique": "秘技"
+        "technique": "秘技",
+        "eidolons": "Eidolons"
     },
     "chronicles": {
         "days_active": "活跃天数",

@@ -42,7 +42,8 @@
         "skill": "Навык",
         "talent": "Талант",
         "ultimate": "конечный",
-        "technique": "Техника"
+        "technique": "Техника",
+        "eidolons": "Eidolons"
     },
     "chronicles": {
         "days_active": "Дни активности",

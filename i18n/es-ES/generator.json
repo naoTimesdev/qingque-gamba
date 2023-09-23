@@ -42,7 +42,8 @@
         "skill": "Habilidad",
         "talent": "Talento",
         "ultimate": "Última",
-        "technique": "Técnica"
+        "technique": "Técnica",
+        "eidolons": "Eidolons"
     },
     "chronicles": {
         "days_active": "Días de actividad",
