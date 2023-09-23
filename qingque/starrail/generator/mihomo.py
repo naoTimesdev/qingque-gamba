@@ -752,17 +752,22 @@ class StarRailMihomoCard(StarRailDrawing):
     async def _create_relic_sets_bonus(self) -> None:
         # Put after all the above relics
         TOP = 4 * (138 + 25) + 132 + 26
+        MAX_HEIGHT = self._canvas.height - 30
 
         grouped_sets: dict[str, list[RelicSet]] = {}
         for relic_set in self._character.relic_sets:
             grouped_sets.setdefault(relic_set.id, []).append(relic_set)
 
         # Extend if has more than 2 sets
-        if len(grouped_sets) > 2:
-            extend_by = (len(grouped_sets) - 2) * (26 + 2)
-            delta_extend = extend_by - self._extend_down_by
-            if delta_extend > 0:
-                await self._extend_canvas_down(delta_extend)
+        extend_by = 0
+        for relic_sets in grouped_sets.values():
+            extend_by += 26 + 8
+            select_relic = sorted(relic_sets, key=lambda r: r.need, reverse=True)[0]
+            if select_relic.properties:
+                extend_by += 26 + 2
+        delta_extend = TOP + extend_by - MAX_HEIGHT
+        if delta_extend > 0:
+            await self._extend_canvas_down(delta_extend)
 
         for relic_sets in grouped_sets.values():
             select_relic = sorted(relic_sets, key=lambda r: r.need, reverse=True)[0]
