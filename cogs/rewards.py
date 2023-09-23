@@ -66,7 +66,7 @@ async def qqrewards_daily(inter: discord.Interaction[QingqueClient]):
         await inter.response.send_message(t("api_not_enabled"), ephemeral=True)
         return
 
-    await inter.response.defer(ephemeral=False, thinking=True)
+    await inter.response.defer(ephemeral=True, thinking=True)
 
     original_message = await inter.original_response()
     profile = await get_profile_from_persistent(inter.user.id, inter.client.redis)
