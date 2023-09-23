@@ -340,7 +340,7 @@ class StarRailMihomoCard(StarRailDrawing):
             StatsField.CritDamage: 0.0,
             StatsField.BreakEffect: 0.0,
             StatsField.HealingRate: 0.0,
-            StatsField.EnergyRegenRate: 0.0,
+            StatsField.EnergyRegenRate: 1.0,
             StatsField.EffectHitRate: 0.0,
             StatsField.EffectResist: 0.0,
             StatsField.PhysicalBoost: 0.0,
@@ -390,8 +390,6 @@ class StarRailMihomoCard(StarRailDrawing):
         for stats_field, stats_value in valid_meta_entries.items():
             if stats_value <= 0.0:
                 continue
-            if stats_field == StatsField.EnergyRegenRate:
-                stats_value += 1.0  # Add 1.0 to the value since ERR need to be 100% at minimum.
             percentage_mode = percentage_stats.get(stats_field, False)
             img_icon = icon_sets.get(stats_field)
             if img_icon is None:
