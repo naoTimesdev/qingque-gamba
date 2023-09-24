@@ -483,7 +483,8 @@ class StarRailSimulatedUniverseCard(
 
         fury_info = self._record.fury
         fury_params = [f"{int(fury_info.point):,}"]
-        if fury_info.type is ChronicleRogueLocustFuryType.Countdown:
+        is_fury_countdown = fury_info.type is ChronicleRogueLocustFuryType.Countdown
+        if is_fury_countdown:
             fury_txt = self._i18n.t("chronicles.rogue.locust_disarray.countdown", fury_params)
         else:
             fury_txt = self._i18n.t("chronicles.rogue.locust_disarray.disruption", fury_params)
@@ -525,7 +526,7 @@ class StarRailSimulatedUniverseCard(
             fury_txt,
             (FURY_LEFT - 1, MARGIN_TOP + 30),
             font_size=28,
-            color=(178, 57, 80),
+            color=self._foreground if is_fury_countdown else (178, 57, 80),
         )
 
     async def _create_boss_icon(self):
