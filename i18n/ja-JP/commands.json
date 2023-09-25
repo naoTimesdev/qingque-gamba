@@ -1,7 +1,8 @@
 {
     "srprofile": {
         "desc": "プロフィールカードをご覧ください。",
-        "uid_desc": "あなたのゲーム内UIDが提供されていない場合は、バインドされたUIDが使用されます。"
+        "uid_desc": "あなたのゲーム内UIDが提供されていない場合は、バインドされたUIDが使用されます。",
+        "no_characters": "No characters are set as support or starfaring companions."
     },
     "srchronicle": {
         "desc": "HoyoLabの戦績をご覧ください。"

@@ -193,6 +193,9 @@ async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: in
         return
     logger.info(f"Getting profile card for UID {uid}")
 
+    if not data_player.characters:
+        return await original_message.edit(content=t("srprofile.no_characters"))
+
     task_creation: list[Coroutine[Any, Any, PagingChoice]] = [
         _batch_gen_player_card(
             idx,

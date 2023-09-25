@@ -1,7 +1,8 @@
 {
     "srprofile": {
         "desc": "See your profile card.",
-        "uid_desc": "Your in-game UID, if not provided will use the binded UID."
+        "uid_desc": "Your in-game UID, if not provided will use the binded UID.",
+        "no_characters": "No characters are set as support or starfaring companions."
     },
     "srchronicle": {
         "desc": "See your profile chronicle from HoyoLab."

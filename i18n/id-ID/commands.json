@@ -1,7 +1,8 @@
 {
     "srprofile": {
         "desc": "Lihat profil kartu anda.",
-        "uid_desc": "UID gim anda, jika tidak diberikan akan menggunakan UID yang dibind."
+        "uid_desc": "UID gim anda, jika tidak diberikan akan menggunakan UID yang dibind.",
+        "no_characters": "No characters are set as support or starfaring companions."
     },
     "srchronicle": {
         "desc": "Lihat profil chronicle anda dari HoyoLab."

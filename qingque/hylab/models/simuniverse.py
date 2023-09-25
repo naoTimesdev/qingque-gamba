@@ -209,7 +209,7 @@ class ChronicleRoguePeriod(Struct):
     """:class:`ChronicleRoguePeriodOverview`: The overview of the period record."""
     records: list[ChronicleRoguePeriodRun]
     """:class:`list[ChronicleRoguePeriodRun]`: The list of runs in the period."""
-    best_record: ChronicleRoguePeriodRun
+    best_record: ChronicleRoguePeriodRun | None
     """:class:`ChronicleRoguePeriodRun`: The best run in the period."""
 
 
