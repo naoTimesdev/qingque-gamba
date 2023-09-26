@@ -1,8 +1,12 @@
 {
     "srprofile": {
-        "desc": "プロフィールカードをご覧ください。",
+        "desc": "See your profile characters card.",
         "uid_desc": "あなたのゲーム内UIDが提供されていない場合は、バインドされたUIDが使用されます。",
         "no_characters": "No characters are set as support or starfaring companions."
+    },
+    "srplayer": {
+        "desc": "See your player card.",
+        "uid_desc": "Your in-game UID, if not provided will use the binded UID."
     },
     "srchronicle": {
         "desc": "HoyoLabの戦績をご覧ください。"
