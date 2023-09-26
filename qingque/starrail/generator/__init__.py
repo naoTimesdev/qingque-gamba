@@ -13,4 +13,5 @@ from .chronicles import *
 from .mihomo import *
 from .mixins import *
 from .moc import *
+from .player import *
 from .simuniverse import *
