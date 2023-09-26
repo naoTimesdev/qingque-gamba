@@ -33,6 +33,7 @@
         "credits": "ข้อมูลจาก Mihomo | สร้างโดย @noaione | ไอเดียจาก StarDB",
         "region": "ภูมิภาค",
         "level": "เลเวล",
+        "eq_level": "ระดับความสมดุล",
         "moc": "MoC",
         "tb_name": "ผู้บุกเบิก ({0})",
         "tb_name_female": "ผู้บุกเบิก ({0})",

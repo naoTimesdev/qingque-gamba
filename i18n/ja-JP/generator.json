@@ -33,6 +33,7 @@
         "credits": "Mihomo からのデータ | @noaione 作成 | アイデアをStarDB",
         "region": "地域",
         "level": "レベル",
+        "eq_level": "均衡レベル",
         "moc": "MoC",
         "tb_name": "開拓者 ({0})",
         "tb_name_female": "開拓者 ({0})",

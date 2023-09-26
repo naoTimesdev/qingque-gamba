@@ -33,6 +33,7 @@
         "credits": "Dados do Mihomo | Criado por @noaione | Ideia a partir de StarDB",
         "region": "Região",
         "level": "Nível",
+        "eq_level": "Nível de Equilíbrio",
         "moc": "MoC",
         "tb_name": "Desbravador ({0})",
         "tb_name_female": "Desbravadora ({0})",

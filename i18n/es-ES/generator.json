@@ -33,6 +33,7 @@
         "credits": "Datos de Mihomo | Creado por @noaione | Idea de StarDB",
         "region": "Región",
         "level": "Nivel",
+        "eq_level": "Nivel de Equilibrio",
         "moc": "MoC",
         "tb_name": "Trazacaminos ({0})",
         "tb_name_female": "Trazacaminos ({0})",

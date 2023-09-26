@@ -33,6 +33,7 @@
         "credits": "Dữ liệu từ Mihomo | Tạo bởi @noaione | Ý tưởng từ StarDB",
         "region": "Quốc gia",
         "level": "Cấp",
+        "eq_level": "Cấp Cân Bằng",
         "moc": "MoC",
         "tb_name": "Nhà Khai Phá ({0})",
         "tb_name_female": "Nhà Khai Phá ({0})",

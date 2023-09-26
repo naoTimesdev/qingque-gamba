@@ -33,6 +33,7 @@
         "credits": "Mihomo의 데이터 | 생성자 @noaione | StarDB의 아이디어",
         "region": "지역",
         "level": "레벨",
+        "eq_level": "균형 레벨",
         "moc": "MoC",
         "tb_name": "개척자 ({0})",
         "tb_name_female": "개척자 ({0})",

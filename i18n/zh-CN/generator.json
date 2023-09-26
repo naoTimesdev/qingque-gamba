@@ -33,6 +33,7 @@
         "credits": "来自 Mihomo | 由 @noaione 创建 | StarDB 的意见",
         "region": "地区",
         "level": "级",
+        "eq_level": "均衡等级",
         "moc": "MoC",
         "tb_name": "开拓者 ({0})",
         "tb_name_female": "开拓者 ({0})",

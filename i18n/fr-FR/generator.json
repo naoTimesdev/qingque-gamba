@@ -33,6 +33,7 @@
         "credits": "Données de Mihomo | Créé par @noaione | Idée de StarDB",
         "region": "Région",
         "level": "Niveau",
+        "eq_level": "Niveau d'équilibre",
         "moc": "MoC",
         "tb_name": "Pionnier ({0})",
         "tb_name_female": "Pionnière ({0})",

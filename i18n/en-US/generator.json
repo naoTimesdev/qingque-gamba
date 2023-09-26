@@ -33,6 +33,7 @@
         "credits": "Data from Mihomo | Created by @noaione | Idea from StarDB",
         "region": "Region",
         "level": "Level",
+        "eq_level": "Equilibrium Level",
         "moc": "MoC",
         "tb_name": "Trailblazer ({0})",
         "tb_name_female": "Trailblazer ({0})", 

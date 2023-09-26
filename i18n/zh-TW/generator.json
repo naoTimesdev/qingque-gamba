@@ -33,6 +33,7 @@
         "credits": "數據來自Mihomo | 創建者 @noaione | 來自 StarDB 的想法",
         "region": "地域",
         "level": "級",
+        "eq_level": "均衡等級",
         "moc": "MoC",
         "tb_name": "開拓者 ({0})",
         "tb_name_female": "開拓者 ({0})",

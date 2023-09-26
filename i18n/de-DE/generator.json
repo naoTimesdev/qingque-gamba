@@ -33,6 +33,7 @@
         "credits": "Daten aus Mihomo | Erstellt von @noaione | Idee von StarDB",
         "region": "Region",
         "level": "Level",
+        "eq_level": "Balance-Stufe",
         "moc": "MoC",
         "tb_name": "Trailblazer ({0})",
         "tb_name_female": "Trailblazer ({0})",
