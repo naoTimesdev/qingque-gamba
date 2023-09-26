@@ -247,7 +247,7 @@ class StarRailPlayerCard(StarRailDrawing):
                 self._i18n.t("mihomo.eidolons") + f": {main_char.eidolon}",
                 (MARGIN_LEFT, MARGIN_TOP + 135),
                 anchor="ls",
-                font_size=30,
+                font_size=28,
                 stroke=2,
                 stroke_color=self._background,
             )
