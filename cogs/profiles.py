@@ -58,6 +58,7 @@ from qingque.starrail.generator.characters import StarRailCharactersCard
 from qingque.starrail.generator.chronicles import StarRailChronicleNotesCard
 from qingque.starrail.generator.mihomo import get_mihomo_dominant_color
 from qingque.starrail.generator.moc import StarRailMoCCard
+from qingque.starrail.generator.player import StarRailPlayerCard
 from qingque.starrail.generator.simuniverse import StarRailSimulatedUniverseCard
 from qingque.starrail.loader import SRSDataLoader
 from qingque.tooling import get_logger
@@ -218,6 +219,61 @@ async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: in
     logger.info("Sending to Discord...")
     pagination_view = EmbedPagingSelectView(profile_choices, inter.locale, user_id=inter.user.id)
     await pagination_view.start(original_message)
+
+
+@app_commands.command(name="srplayer", description=locale_str("srplayer.desc"))
+@app_commands.describe(uid=locale_str("srplayer.uid_desc"))
+async def qqprofile_srplayer(inter: discord.Interaction[QingqueClient], uid: int | None = None):
+    mihomo = inter.client.mihomo
+    lang = QingqueLanguage.from_discord(inter.locale)
+    t = functools.partial(get_i18n().t, language=lang)
+
+    await inter.response.defer(ephemeral=False, thinking=True)
+
+    original_message = await inter.original_response()
+    if uid is None:
+        profile = await get_profile_from_persistent(inter.user.id, inter.client.redis)
+        if profile is None:
+            return await original_message.edit(content=t("bind_uid"))
+        if len(profile.games) == 1:
+            uid = profile.games[0].uid
+        elif len(profile.games) == 0:
+            return await original_message.edit(content=t("bind_uid"))
+        else:
+            select_account = AccountSelectView(profile.games, inter.locale, timeout=30)
+            original_message = await original_message.edit(content=t("srchoices.ask_account"), view=select_account)
+            await select_account.wait()
+
+            if (error := select_account.error) is not None:
+                logger.error(f"Error getting profile info for Discord ID {inter.user.id}: {error}")
+                error_message = str(error)
+                await original_message.edit(content=t("exception", [f"```{error_message}```"]))
+                return
+
+            if select_account.account is None:
+                return await original_message.edit(content=t("srchoices.timeout"))
+
+            uid = select_account.account.uid
+
+    logger.info(f"Getting profile info for UID {uid}")
+    try:
+        data_player, _ = await mihomo.get_player(uid)
+    except Exception as e:
+        logger.error(f"Error getting profile info for UID {uid}: {e}")
+        error_message = str(e)
+        await original_message.edit(content=t("exception", [f"```{error_message}```"]))
+        return
+    logger.info(f"Getting profile card for UID {uid}")
+
+    generator = StarRailPlayerCard(data_player, language=lang, loader=inter.client.get_srs(lang))
+    card_bytes = await generator.create()
+
+    player_io = BytesIO(card_bytes)
+    player_io.seek(0)
+    player_file = discord.File(player_io, filename=f"{uid}.QingqueBot.png")
+
+    logger.info("Sending to Discord...")
+    await original_message.edit(attachments=[player_file])
 
 
 @app_commands.command(name="srchronicle", description=locale_str("srchronicle.desc"))

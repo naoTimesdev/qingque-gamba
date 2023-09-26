@@ -25,7 +25,6 @@ SOFTWARE.
 from __future__ import annotations
 
 import asyncio
-from typing import Any
 
 from PIL import Image, ImageFilter
 
@@ -613,7 +612,7 @@ class StarRailPlayerCard(StarRailDrawing):
             )
             MARGIN_TOP += 250
 
-    async def create(self, **kwargs: Any) -> bytes:
+    async def create(self) -> bytes:
         self._assets_folder = await self._assets_folder.absolute()
         if not await self._assets_folder.exists():
             raise FileNotFoundError("The assets folder does not exist.")
