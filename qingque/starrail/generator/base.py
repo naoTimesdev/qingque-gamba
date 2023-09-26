@@ -131,7 +131,7 @@ class StarRailDrawing:
         self._extend_down_by: int = 0
         self._extend_right_by: int = 0
 
-    def _make_canvas(self, *, width: int, height: int, color: int | RGB = (255, 255, 255)) -> None:
+    def _make_canvas(self, *, width: int, height: int, color: int | RGB | RGBA = (255, 255, 255)) -> None:
         """Create the base canvas.
 
         Parameters

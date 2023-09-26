@@ -8,4 +8,6 @@ The internal module for StarRail.
 """
 
 from . import generator, models
+from .imaging import *
 from .loader import *
+from .scoring import *
