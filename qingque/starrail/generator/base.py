@@ -242,6 +242,8 @@ class StarRailDrawing:
         color: RGB | int | None = None,
         no_elipsis: bool = False,
         alpha: int = 255,
+        stroke: int = 0,
+        stroke_color: RGB | int | None = None,
         *,
         canvas: Image.Image | None = None,
         **kwargs: Any,
@@ -287,6 +289,8 @@ class StarRailDrawing:
         kwargs.pop("font", None)
         kwargs.pop("xy", None)
         kwargs.pop("text", None)
+        kwargs.pop("stroke_width", None)
+        kwargs.pop("stroke_fill", None)
         canvas = canvas or self._canvas
 
         if len(box) != 2 and len(box) != 4:
@@ -329,7 +333,9 @@ class StarRailDrawing:
         fill_col = fill
         if isinstance(fill, tuple):
             fill_col = (*fill[:3], alpha)
-        draw_text = functools.partial(draw.text, fill=fill_col, font=font, **kwargs)
+        draw_text = functools.partial(
+            draw.text, fill=fill_col, font=font, stroke_width=stroke, stroke_fill=stroke_color, **kwargs
+        )
         await self._loop.run_in_executor(None, draw_text, box, content)
         length_width = await self._loop.run_in_executor(None, draw.textlength, content, font)
         if composite is not None:
@@ -451,8 +457,8 @@ class StarRailDrawing:
 
         square_verticies: list[tuple[float, float]] = [
             (box[0][0], box[0][1]),
-            (box[0][0], box[1][1]),
-            (box[1][0] - 1, box[1][1]),
+            (box[0][0], box[1][1] - 1),
+            (box[1][0] - 1, box[1][1] - 1),
             (box[1][0] - 1, box[0][1]),
         ]
         # Multiply the verticies by antialias

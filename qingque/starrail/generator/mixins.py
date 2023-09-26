@@ -223,7 +223,7 @@ class StarRailDrawCharacterMixin:
             # Write the eidolon
             await drawing._write_text(
                 f"E{lineup.eidolons}",
-                (margin_lr + (inbetween_margin * idx) + chara_icon.width - 16, margin_top + 22),
+                (margin_lr + (inbetween_margin * idx) + chara_icon.width - 15, margin_top + 22),
                 font_size=20,
                 anchor="ms",
                 color=box_text_color or drawing._background,
