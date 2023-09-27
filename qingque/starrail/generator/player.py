@@ -90,7 +90,7 @@ class StarRailPlayerCard(StarRailDrawing):
         frost_mask = await self._async_open(self._images_dir / "MihomoCardFrostMask.png")
 
         if len(self._characters) > 0:
-            self.logger.info("Creating the main support character.")
+            self.logger.info("Creating the main support character...")
             main_char = self._characters[0]
             chara_mask = await self._async_open(self._images_dir / "MihomoCardCharMask.png")
             chara_potrait = await self._async_open(self._assets_folder / main_char.portrait_url)
@@ -264,7 +264,6 @@ class StarRailPlayerCard(StarRailDrawing):
             )
 
             # Stars icon (after chara name, left-align)
-
             star_icon = await self._async_open(self._assets_folder / "icon" / "deco" / "StarBig.png")
             star_icon = await self._resize_image(star_icon, (30, 30))
             for rarity in range(main_char.rarity):
@@ -559,7 +558,7 @@ class StarRailPlayerCard(StarRailDrawing):
                     margin_top + chara_canvas.height - 6,
                 ),
             ),
-            color=(*self._background, round(0.25 * 255)),
+            color=(*self._background, round(0.35 * 255)),
         )
         for idx in range(chara.rarity):
             await self._paste_image(
@@ -579,7 +578,7 @@ class StarRailPlayerCard(StarRailDrawing):
             font_size=18,
             stroke=2,
             stroke_color=self._background,
-            anchor="ls",
+            anchor="lt",
             spacing=10,
         )
 

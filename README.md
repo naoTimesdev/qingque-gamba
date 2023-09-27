@@ -1,6 +1,6 @@
 # Qingque Gamba
 
-![Player Card](https://p.ihateani.me/dfxejrhg.png "Player Card")
+![Player Card](https://p.ihateani.me/iylxzdhs.png "Player Card")
 ![Qingque my beloved](https://p.ihateani.me/atnckjih.png "Qingque my Beloved")
 ![Hoyolab Profile](https://p.ihateani.me/uorvphjy.png "Hoyolab Profile")
 
