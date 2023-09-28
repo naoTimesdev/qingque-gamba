@@ -35,7 +35,7 @@ from qingque.mihomo.models.combats import ElementType, SkillTrace, SkillUsageTyp
 from qingque.mihomo.models.constants import MihomoLanguage
 from qingque.mihomo.models.player import PlayerInfo
 from qingque.mihomo.models.relics import Relic, RelicSet
-from qingque.mihomo.models.stats import StatsAtrributes, StatsField, StatsProperties
+from qingque.mihomo.models.stats import StatsAtrributes, StatsField, StatsProperties, StatsPropertiesAffix
 from qingque.models.region import HYVServer
 from qingque.starrail.models.relics import SRSRelicType
 from qingque.starrail.models.stats import SRSProperties
@@ -141,11 +141,19 @@ class SRSCardStats(MihomoBase, frozen=True):
     value: int | float | None = None
     percent: bool = False
     cut_off: bool = False
+    count: int = -1
 
     @classmethod
     def from_relic(
-        cls: type[SRSCardStats], relic: StatsProperties | StatsAtrributes, cut_off: bool = False, *, i18n: QingqueI18n
+        cls: type[SRSCardStats],
+        relic: StatsProperties | StatsAtrributes | StatsPropertiesAffix,
+        cut_off: bool = False,
+        *,
+        i18n: QingqueI18n,
     ) -> "SRSCardStats":
+        roll_count = -1
+        if isinstance(relic, StatsPropertiesAffix):
+            roll_count = relic.count
         relic_name = i18n.t(f"mihomo.stats_simple.{relic.field.value}")
         return cls(
             name=relic_name,
@@ -153,6 +161,7 @@ class SRSCardStats(MihomoBase, frozen=True):
             value=relic.value,
             percent=relic.percent,
             cut_off=cut_off,
+            count=roll_count,
         )
 
 
@@ -466,6 +475,8 @@ class StarRailMihomoCard(StarRailDrawing):
         score_indicator: str | None = None,
         box_size: int = 138,
         margin: int = 25,
+        *,
+        detailed: bool = False,
     ) -> None:
         top_margin = position * (box_size + margin)
         await self._create_box(
@@ -602,7 +613,7 @@ class StarRailMihomoCard(StarRailDrawing):
 
             if sub_stat.value is not None:
                 stats_format = "{:.1%}" if sub_stat.percent else "{:.0f}"
-                await self._write_text(
+                val_length = await self._write_text(
                     stats_format.format(sub_stat.value),
                     (
                         left + box_size + 25 + 254,
@@ -611,12 +622,39 @@ class StarRailMihomoCard(StarRailDrawing):
                     anchor="rt",
                     align="right",
                 )
+                # Roll count for detailed
+                if detailed and sub_stat.count >= 0:
+                    # The maximum possible roll count for each sub stat is:
+                    # - Rarity 5: 4
+                    # - Rarity 4: 3
+                    # - Rarity 3: 2
+                    # - Rarity 2: 1
+                    # We want to adjust the alpha based on the roll count
+                    # and the rarity. So each rarity will have different alpha scaling
+                    # from 0.5 to 1.0
+                    ALPHA_MAP = {
+                        2: {1: 1.0},
+                        3: {1: 0.5, 2: 1},
+                        4: {1: 0.5, 2: 0.75, 3: 1},
+                        5: {1: 0.5, 2: 0.67, 3: 0.84, 4: 1},
+                    }
+                    await self._write_text(
+                        f"+{sub_stat.count} |",
+                        (
+                            left + box_size + 25 + 254 - val_length - 4,
+                            top_margin + 22 + (idx * 26),
+                        ),
+                        font_size=12,
+                        anchor="rm",
+                        align="right",
+                        alpha=round(ALPHA_MAP[rarity][sub_stat.count] * 255),
+                    )
 
         # Close images
         await self._async_close(relic_img)
         await self._async_close(stars_icon)
 
-    async def _create_main_relics(self, relic_scores: RelicScores | None = None) -> None:
+    async def _create_main_relics(self, relic_scores: RelicScores | None = None, *, detailed: bool = False) -> None:
         sorted_relics = sorted(
             self._character.relics,
             key=lambda r: self._index_data.relics[r.id].type.order,
@@ -669,9 +707,12 @@ class StarRailMihomoCard(StarRailDrawing):
                     box_indicator=f"+{relic.level}",
                     score_indicator=relic_score.rank if relic_score is not None else None,
                     margin=margin_relic,
+                    detailed=detailed,
                 )
 
-    async def _create_planar_and_light_cone(self, relic_scores: RelicScores | None = None) -> None:
+    async def _create_planar_and_light_cone(
+        self, relic_scores: RelicScores | None = None, *, detailed: bool = False
+    ) -> None:
         sorted_relics = sorted(
             self._character.relics,
             key=lambda r: self._index_data.relics[r.id].type.order,
@@ -744,6 +785,7 @@ class StarRailMihomoCard(StarRailDrawing):
                     box_icon=relic.icon_url,
                     box_indicator=f"+{relic.level}",
                     score_indicator=relic_score.rank if relic_score is not None else None,
+                    detailed=detailed,
                 )
 
     async def _create_relic_sets_bonus(self) -> None:
@@ -986,7 +1028,7 @@ class StarRailMihomoCard(StarRailDrawing):
             # Close image
             await self._async_close(trace_icon)
 
-    async def create(self, *, hide_uid: bool = False, hide_credits: bool = False) -> bytes:
+    async def create(self, *, hide_uid: bool = False, hide_credits: bool = False, detailed: bool = False) -> bytes:
         self._assets_folder = await self._assets_folder.absolute()
         if not await self._assets_folder.exists():
             raise FileNotFoundError("The assets folder does not exist.")
@@ -1049,9 +1091,9 @@ class StarRailMihomoCard(StarRailDrawing):
         except RelicScoringNoSuchCharacterException:
             relic_scores = None
         self.logger.info("Creating the character relics...")
-        await self._create_main_relics(relic_scores=relic_scores)
+        await self._create_main_relics(relic_scores=relic_scores, detailed=detailed)
         self.logger.info("Creating the character planar and light cone...")
-        await self._create_planar_and_light_cone(relic_scores=relic_scores)
+        await self._create_planar_and_light_cone(relic_scores=relic_scores, detailed=detailed)
         self.logger.info("Creating relic set bonus...")
         await self._create_relic_sets_bonus()
 
