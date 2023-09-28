@@ -64,7 +64,7 @@ class StarRailMoCCard(StarRailDrawGradientMixin, StarRailDrawCharacterMixin, Sta
 
         self._background = (0, 0, 0)
         self._foreground = (255, 255, 255)
-        self._make_canvas(width=1920, height=1080, color=self._background)
+        self._make_canvas(width=1920, height=665, color=self._background)
 
     async def _create_backdrops(self):
         backdrops = self._assets_folder / "image" / "backdrops" / "BackdropAbyss.png"
@@ -76,14 +76,15 @@ class StarRailMoCCard(StarRailDrawGradientMixin, StarRailDrawCharacterMixin, Sta
         # Paste the backdrop image to the canvas.
         await self._paste_image(backdrop_img, (0, 0))
 
-    async def _create_node(self, node: ChronicleFHNode, node_name: str, margin_top: int):
+    async def _create_node(self, node: ChronicleFHNode, node_name: str, margin_left: int):
         inbetween_margin = 180
+        INITIAL_TOP = self.MARGIN_TB + 260
 
         characters = [SRDrawCharacter.from_hylab(c) for c in node.characters]
 
         await self._write_text(
             node_name,
-            (self.MARGIN_LR, margin_top - 25),
+            (margin_left, INITIAL_TOP - 25),
             font_size=32,
             color=self._foreground,
             anchor="ls",
@@ -91,8 +92,8 @@ class StarRailMoCCard(StarRailDrawGradientMixin, StarRailDrawCharacterMixin, Sta
         )
         await self._create_character_card(
             characters,
-            margin_top=margin_top,
-            margin_lr=self.MARGIN_LR,
+            margin_top=INITIAL_TOP,
+            margin_lr=margin_left,
             inbetween_margin=inbetween_margin,
             icon_size=150,
             drawing=self,
@@ -102,17 +103,17 @@ class StarRailMoCCard(StarRailDrawGradientMixin, StarRailDrawCharacterMixin, Sta
 
     async def _create_nodes(self):
         # Create first node
-        INITIAL_TOP = self.MARGIN_TB + 260
         await self._create_node(
             self._floor.node_1,
             self._i18n.t("chronicles.moc_top"),
-            INITIAL_TOP,
+            self.MARGIN_LR,
         )
-        # Create first node
+        # Create second node (right to left)
+        second_node_margin = self._canvas.width - self.MARGIN_LR - (4 * (150 + 30)) + 30
         await self._create_node(
             self._floor.node_2,
             self._i18n.t("chronicles.moc_bottom"),
-            INITIAL_TOP + 275,
+            second_node_margin,
         )
 
     async def _create_stars_cycles(self):
@@ -211,12 +212,8 @@ class StarRailMoCCard(StarRailDrawGradientMixin, StarRailDrawCharacterMixin, Sta
 
         # Create a timestamp (bottom middle)
         if not hide_timestamp:
-            # DateTime are in UTC+8
-            dt = self._floor.node_1.challenge_time.datetime
-            # Format to Day, Month YYYY HH:MM
-            fmt_timestamp = dt.strftime("%a, %b %d %Y %H:%M")
             await self._write_text(
-                f"{fmt_timestamp} UTC+8",
+                f"{self.format_timestamp(self._floor.node_1.challenge_time.datetime)}",
                 (self._canvas.width // 2, self._canvas.height - 20),
                 font_size=20,
                 anchor="ms",

@@ -28,11 +28,15 @@ import asyncio
 import functools
 import math
 from collections.abc import MutableMapping
+from datetime import datetime, timezone
 from io import BytesIO
 from logging import Logger, LoggerAdapter
 from typing import Any, Callable, Literal, TypeAlias, cast
 
 from aiopath import AsyncPath
+from babel import Locale
+from babel.dates import format_date, format_time
+from babel.numbers import format_decimal, format_percent
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 from qingque.hylab.models.base import HYLanguage
@@ -76,6 +80,36 @@ class StarRailDrawingLogger(LoggerAdapter):
     @classmethod
     def create(cls: type[StarRailDrawingLogger], metadata: str) -> type[StarRailDrawingLogger]:
         return cast(type[StarRailDrawingLogger], functools.partial(cls, metadata=metadata))
+
+
+def get_babel_locale(language: MihomoLanguage):
+    match language:
+        case MihomoLanguage.CHS:
+            return Locale("zh_Hans")
+        case MihomoLanguage.CHT:
+            return Locale("zh_Hant")
+        case MihomoLanguage.DE:
+            return Locale("de")
+        case MihomoLanguage.EN:
+            return Locale("en", "US")
+        case MihomoLanguage.ES:
+            return Locale("es", "ES")
+        case MihomoLanguage.FR:
+            return Locale("fr")
+        case MihomoLanguage.ID:
+            return Locale("id")
+        case MihomoLanguage.JP:
+            return Locale("ja")
+        case MihomoLanguage.KR:
+            return Locale("ko")
+        case MihomoLanguage.PT:
+            return Locale("pt")
+        case MihomoLanguage.RU:
+            return Locale("ru")
+        case MihomoLanguage.TH:
+            return Locale("th")
+        case MihomoLanguage.VI:
+            return Locale("vi")
 
 
 class StarRailDrawing:
@@ -893,6 +927,56 @@ class StarRailDrawing:
         """
 
         await self._loop.run_in_executor(None, canvas.close)
+
+    def format_timestamp(self, timestamp: datetime) -> str:
+        """Format a timestamp.
+
+        Parameters
+        ----------
+        timestamp: :class:`datetime.datetime`
+            The timestamp to format.
+
+        Returns
+        -------
+        :class:`str`
+            The formatted timestamp.
+        """
+
+        # If Naive, assume UTC
+        if timestamp.tzinfo is None or timestamp.tzinfo.utcoffset(timestamp) is None:
+            timestamp = timestamp.replace(tzinfo=timezone.utc)
+
+        locale = get_babel_locale(self._language)
+        mdy = format_date(timestamp, locale=locale)
+        dow = format_date(timestamp, locale=locale, format="EE")
+        hm = format_time(timestamp, locale=locale, format="HH:mm:ss ZZZZ")
+
+        return f"{dow}, {mdy} {hm}"
+
+    def format_number(self, number: int | float, percent: bool = False, /, *, comma: bool = False) -> str:
+        """Format a number.
+
+        Parameters
+        ----------
+        number: :class:`int` | :class:`float`
+            The number to format.
+
+        Returns
+        -------
+        :class:`str`
+            The formatted number.
+        """
+
+        locale = get_babel_locale(self._language)
+
+        if not percent:
+            if comma:
+                return format_decimal(round(number), locale=locale, decimal_quantization=True)
+            return str(round(number))
+
+        # Percentage format
+        pct_fmt = "#,###.#%" if comma else "#.#%"
+        return format_percent(number, locale=locale, format=pct_fmt)
 
     async def create(self, **kwargs: Any) -> bytes:
         """

@@ -387,9 +387,8 @@ class StarRailChronicleNotesCard(StarRailDrawDecoMixin, StarRailDrawing):
             # Shift to UTC+8
             dt = dt.replace(tzinfo=timezone.utc).astimezone(tz=timezone(timedelta(hours=8)))
             # Format to Day, Month YYYY HH:MM
-            fmt_timestamp = dt.strftime("%a, %b %d %Y %H:%M")
             await self._write_text(
-                f"{fmt_timestamp} UTC+8",
+                self.format_timestamp(dt),
                 (20, 20),
                 font_size=20,
                 anchor="lt",

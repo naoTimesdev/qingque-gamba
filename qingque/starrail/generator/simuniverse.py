@@ -748,12 +748,9 @@ class StarRailSimulatedUniverseCard(
                 anchor="ms",
             )
         if not hide_timestamp:
-            # DateTime are in UTC+8
-            dt = self._record.end_time.datetime
             # Format to Day, Month YYYY HH:MM
-            fmt_timestamp = dt.strftime("%a, %b %d %Y %H:%M")
             await self._write_text(
-                f"{fmt_timestamp} UTC+8",
+                self.format_timestamp(self._record.end_time.datetime),
                 (20, 20),
                 font_size=20,
                 anchor="lt",
