@@ -51,6 +51,7 @@ __all__ = (
     "HYRedemptionClaimed",
     "HYAccountLoginFail",
     "HYAccountHasLocked",
+    "HYAccountUnsupported",
 )
 
 
@@ -197,6 +198,14 @@ class HYAccountHasLocked(HYLabException):
     """Account has logged incorrect over than 3 - 5 time(s). It's will be locked and wait 20 minute."""
 
     msg = "Account has been locked because exceeded password limit. Please wait 20 minute and try again"
+
+
+class HYAccountUnsupported(Exception):
+    """Account is not supported."""
+
+    def __init__(self, uid: int, message: str) -> None:
+        self.uid = uid
+        super().__init__(f"{uid}: {message}")
 
 
 _FAIL: TypeAlias = type[HYLabException]

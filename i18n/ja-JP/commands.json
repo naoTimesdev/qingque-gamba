@@ -58,6 +58,14 @@
         "already_claimed": "You have already claimed your daily check-in rewards.",
         "claimed": "Successfully claimed daily rewards."
     },
+    "srredeem": {
+        "desc": "Claim a redemption code.",
+        "code_desc": "The redemption code you want to claim.",
+        "already_claimed": "You have already claimed this redemption code.",
+        "claimed": "Successfully claimed redemption code.",
+        "invalid_code": "Invalid redemption code provided.",
+        "redeem_cooldown": "You claimed a redemption code too fast, please wait for a moment and try again."
+    },
     "srhelp": {
         "desc": "See the list of commands.",
         "initial_help_desc": "The initial help menu that you want to see."

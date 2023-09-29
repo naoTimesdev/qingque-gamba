@@ -67,6 +67,7 @@ def _help_profiles(t: PartialTranslate) -> discord.Embed:
 def _help_rewards(t: PartialTranslate) -> discord.Embed:
     embed = discord.Embed(title=t("help.rewards.title"), description=t("help.rewards.desc"), color=_EMBED_COLOR)
     embed.add_field(name="/srdaily", value=t("help.rewards.srclaim"), inline=False)
+    embed.add_field(name="/srredeem", value=t("help.rewards.srredeem"), inline=False)
     embed.set_author(name="Qingque", icon_url=_EMBED_ICON, url=_EMBED_URL)
     embed.set_footer(text=t("help.footer"))
     return embed

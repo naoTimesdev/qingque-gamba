@@ -74,7 +74,7 @@ CHRONICLES_ROUTE = Route(
     china="https://api-takumi-record.mihoyo.com/game_record/app/hkrpg/api",
 )
 CLAIM_ROUTE = Route(
-    overseas="https://sg-hkrpg-api.hoyoverse.com/common/apicdkey/api/webExchangeCdkey",
+    overseas="https://sg-hkrpg-api.hoyolab.com/common/apicdkey/api/webExchangeCdkeyHyl",
 )
 DAILY_ROUTE = Route(
     overseas="https://sg-public-api.hoyolab.com/event/luna/os/sign",

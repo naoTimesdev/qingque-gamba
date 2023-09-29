@@ -22,7 +22,8 @@
             "title": "Rewards",
             "desc": "Claim rewards and redemption",
             "short_desc": "Claim rewards and redemption",
-            "srclaim": "Claim your HoyoLab daily check-in rewards.\nYou will need to have your HoyoLab token binded, see [here](https://github.com/naoTimesdev/qingque-gamba/wiki/HoyoLab) for more info."
+            "srclaim": "Claim your HoyoLab daily check-in rewards.\nYou will need to have your HoyoLab token binded, see [here](https://github.com/naoTimesdev/qingque-gamba/wiki/HoyoLab) for more info.",
+            "srredeem": "Claim a redemption code.\nYou will need to have your HoyoLab token binded, see [here](https://github.com/naoTimesdev/qingque-gamba/wiki/HoyoLab) for more info."
         },
         "footer": "Supported by Interastral Peace Corporation",
         "placeholder": "Please select one of the help menu..."

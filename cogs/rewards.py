@@ -29,14 +29,24 @@ from discord import app_commands
 from discord.app_commands import locale_str
 
 from qingque.bot import QingqueClient
-from qingque.hylab.models.errors import HYAlreadyClaimed, HYGeetestTriggered, HYInvalidCookies
+from qingque.hylab.models.errors import (
+    HYAlreadyClaimed,
+    HYGeetestTriggered,
+    HYInvalidCookies,
+    HYRedemptionClaimed,
+    HYRedemptionCooldown,
+    HYRedemptionInvalid,
+)
 from qingque.i18n import get_i18n_discord
 from qingque.models.account_select import AccountSelectView
 from qingque.models.persistence import QingqueProfile, QingqueProfileV2
 from qingque.redisdb import RedisDatabase
 from qingque.tooling import get_logger
 
-__all__ = ("qqrewards_daily",)
+__all__ = (
+    "qqrewards_daily",
+    "qqrewards_redeem",
+)
 logger = get_logger("cogs.rewards")
 
 
@@ -119,3 +129,76 @@ async def qqrewards_daily(inter: discord.Interaction[QingqueClient]):
 
     logger.info(f"Discord ID {inter.user.id} claimed daily reward.")
     await original_message.edit(content=t("srdaily.claimed"))
+
+
+@app_commands.command(name="srredeem", description=locale_str("srredeem.desc"))
+@app_commands.describe(code=locale_str("srredeem.code_desc"))
+async def qqrewards_redeem(inter: discord.Interaction[QingqueClient], code: str):
+    t = get_i18n_discord(inter.locale)
+
+    try:
+        hoyoapi = inter.client.hoyoapi
+    except RuntimeError:
+        logger.warning("HYLab API is not enabled.")
+        await inter.response.send_message(t("api_not_enabled"), ephemeral=True)
+        return
+
+    await inter.response.defer(ephemeral=True, thinking=True)
+
+    original_message = await inter.original_response()
+    profile = await get_profile_from_persistent(inter.user.id, inter.client.redis)
+    if profile is None:
+        return await original_message.edit(content=t("bind_uid"))
+    if len(profile.games) == 0:
+        return await original_message.edit(content=t("bind_uid"))
+
+    if profile.hylab_id is None:
+        logger.warning(f"Discord ID {inter.user.id} haven't binded their HoyoLab account yet.")
+        return await original_message.edit(content=t("bind_hoyolab"))
+
+    if profile.hylab_token is None:
+        logger.warning(f"Discord ID {inter.user.id} binded their HoyoLab account but no token.")
+        return await original_message.edit(content=t("bind_hoyolab_token"))
+
+    if len(profile.games) > 1:
+        select_account = AccountSelectView(profile.games, inter.locale, timeout=30)
+        original_message = await original_message.edit(content=t("srchoices.ask_account"), view=select_account)
+        await select_account.wait()
+
+        if (error := select_account.error) is not None:
+            logger.error(f"Error getting profile info for Discord ID {inter.user.id}: {error}", exc_info=error)
+            error_message = str(error)
+            await original_message.edit(content=t("exception", [f"```{error_message}```"]))
+            return
+
+        if select_account.account is None:
+            return await original_message.edit(content=t("srchoices.timeout"))
+
+        sel_uid = select_account.account.uid
+    else:
+        sel_uid = profile.games[0].uid
+
+    try:
+        await hoyoapi.claim_redemption_code(sel_uid, code, hylab_id=profile.hylab_id, hylab_token=profile.hylab_token)
+    except HYGeetestTriggered:
+        logger.error(f"Discord ID {inter.user.id} triggered Geetest.")
+        return await original_message.edit(content=t("geetest_error"))
+    except HYRedemptionClaimed:
+        logger.warning(f"Discord ID {inter.user.id} already claimed daily reward.")
+        return await original_message.edit(content=t("srredeem.already_claimed"))
+    except HYRedemptionInvalid:
+        logger.warning(f"Discord ID {inter.user.id} has invalid redemption code.")
+        return await original_message.edit(content=t("srredeem.invalid_code"))
+    except HYRedemptionCooldown:
+        logger.warning(f"Discord ID {inter.user.id} on cooldown.")
+        return await original_message.edit(content=t("srredeem.redeem_cooldown"))
+    except HYInvalidCookies:
+        logger.error(f"Discord ID {inter.user.id} has invalid cookies.")
+        return await original_message.edit(content=t("invalid_token"))
+    except Exception as e:
+        logger.error(f"Error claiming daily reward for Discord ID {inter.user.id}: {e}", exc_info=e)
+        error_message = str(e)
+        return await original_message.edit(content=t("exception", [f"```\n{error_message}\n```"]))
+
+    logger.info(f"Discord ID {inter.user.id} claimed redemption code: {code}.")
+    await original_message.edit(content=t("srredeem.claimed"))

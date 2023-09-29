@@ -36,11 +36,19 @@ import orjson
 import yarl
 
 from qingque.hylab.interceptor import log_request
-from qingque.hylab.models.errors import HYAlreadyClaimed, HYGeetestTriggered
+from qingque.hylab.models.errors import HYAccountUnsupported, HYAlreadyClaimed, HYGeetestTriggered
 from qingque.models.region import HYVRegion, HYVServer
 from qingque.tooling import get_logger
 
-from .constants import CHRONICLES_ROUTE, DAILY_ROUTE, DS_SALT, STARRAIL_SERVER, USER_AGENT
+from .constants import (
+    CHRONICLES_ROUTE,
+    CLAIM_ROUTE,
+    DAILY_ROUTE,
+    DS_SALT,
+    STARRAIL_GAME_BIZ,
+    STARRAIL_SERVER,
+    USER_AGENT,
+)
 from .ds import generate_dynamic_salt, get_ds_headers
 from .models.base import HYGeeTestError, HYLanguage, HYResponse
 from .models.characters import ChronicleCharacters
@@ -756,5 +764,69 @@ class HYLabClient:
             if resp.data.gt != "":
                 raise HYGeetestTriggered(resp, None)
             raise HYAlreadyClaimed(resp, None)
+
+    async def claim_redemption_code(
+        self,
+        uid: int,
+        code: str,
+        *,
+        hylab_id: int | None = None,
+        hylab_token: str | None = None,
+        hylab_cookie: str | None = None,
+        hylab_mid_token: str | None = None,
+        lang: HYLanguage = HYLanguage.EN,
+    ) -> None:
+        """
+        Claim redemption coode for the given UID via HoyoLab API.
+
+        Parameters
+        ----------
+        uid: :class:`int`
+            The UID to get the battle chronicles for.
+        code: :class:`str`
+            The redemption code to claim.
+        hylab_id: :class:`int | None`
+            Override HoyoLab ID. (ltuid)
+        hylab_token: :class:`str | None`
+            Override HoyoLab token. (ltoken)
+        hylab_cookie: :class:`str | None`
+            Override HoyoLab cookie token. (cookie_token)
+        lang: :class:`HYLanguage`
+            The language to use.
+
+        Raises
+        ------
+        :exc:`.HYLabException`
+            An error occurred while claiming the redemption code.
+        :exc:`aiohttp.ClientResponseError`
+            An error occurred while requesting the code redemption.
+        """
+
+        server = HYVServer.from_uid(str(uid))
+        region = HYVRegion.from_server(server)
+
+        if region == HYVRegion.China:
+            raise HYAccountUnsupported(uid, "Unable to claim redemption code in China region yet.")
+
+        params = {
+            "cdkey": code,
+            "game_biz": STARRAIL_GAME_BIZ[region],
+            "lang": "en",
+            "region": STARRAIL_SERVER[server],
+            "uid": str(uid),
+        }
+
+        cookies = self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, hylab_mid_token, lang=lang)
+
+        resp = await self._request(
+            "GET",
+            CLAIM_ROUTE.get_route(region),
+            body=params,
+            headers=get_ds_headers(HYVRegion.from_server(server), lang=lang),
+            cookies=cookies,
+            type=HYGeeTestError,
+        )
+        if resp.data is None:
+            raise ValueError("Expected JSON response, got None")
 
     # <-- Rewards

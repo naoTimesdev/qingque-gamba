@@ -22,8 +22,8 @@ A simple Discord Interaction bot to see your Honkai: Star Rail profile
 - Simulated Universe (via HoyoLab)
 - Memory of Chaos (via HoyoLab)
 - Daily reward claim (HoyoLab)
-- Relic scoring (See: [Relic Scoring](https://github.com/naoTimesdev/qingque-gamba/wiki/Relic-Scoring))
-- **[TODO]** Redemption code claim
+- [Relic scoring](https://github.com/naoTimesdev/qingque-gamba/wiki/Relic-Scoring)
+- Redemption code claim (via HoyoLab)
 
 ## Running it Yourself
 
