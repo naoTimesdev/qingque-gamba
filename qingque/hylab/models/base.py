@@ -46,6 +46,7 @@ from .errors import (
 __all__ = (
     "HYLanguage",
     "HYResponse",
+    "HYBasicResponse",
     "HYGeeTestError",
     "HYGeeTestResponse",
     "RespT",
@@ -114,6 +115,11 @@ class HYResponse(
     @classmethod
     def default(cls: type[HYResponse[RespT]]) -> HYResponse[RespT]:
         return cls(code=0, message="OK", data=None)
+
+
+class HYBasicResponse(_BaseResponse):
+    msg: str = field(name="message", default="OK")
+    """:class:`str`: The response message."""
 
 
 class HYLanguage(str, Enum):

@@ -50,7 +50,7 @@ from .constants import (
     USER_AGENT,
 )
 from .ds import generate_dynamic_salt, get_ds_headers
-from .models.base import HYGeeTestError, HYLanguage, HYResponse
+from .models.base import HYBasicResponse, HYGeeTestError, HYLanguage, HYResponse
 from .models.characters import ChronicleCharacters
 from .models.forgotten_hall import ChronicleForgottenHall
 from .models.notes import ChronicleNotes
@@ -824,7 +824,7 @@ class HYLabClient:
             body=params,
             headers=get_ds_headers(HYVRegion.from_server(server), lang=lang),
             cookies=cookies,
-            type=HYGeeTestError,
+            type=HYBasicResponse,
         )
         if resp.data is None:
             raise ValueError("Expected JSON response, got None")
