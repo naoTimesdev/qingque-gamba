@@ -27,7 +27,8 @@ SOFTWARE.
 from __future__ import annotations
 
 import asyncio
-from typing import Protocol
+from colorsys import hsv_to_rgb, rgb_to_hsv
+from typing import Protocol, TypeAlias
 
 from PIL import Image
 from PIL.ImageFilter import Filter as _SyncFilter
@@ -35,7 +36,9 @@ from PIL.ImageFilter import Filter as _SyncFilter
 __all__ = (
     "AsyncImageEnhance",
     "AsyncImageFilter",
+    "interpolate_color",
 )
+RGB: TypeAlias = tuple[int, int, int]
 
 
 class _SyncEnhance(Protocol):
@@ -188,3 +191,32 @@ class AsyncImageFilter:
         """
 
         return await cls(subclass=subclass, loop=loop).filter(image)
+
+
+def interpolate_color(start_color: RGB, end_color: RGB, alpha: float) -> RGB:
+    """Interpolate a RGB color from one to another.
+
+    Parameters
+    ----------
+    start_color: :class:`RGB`
+        The start color in RGB format.
+    end_color: :class:`RGB`
+        The end color in RGB format.
+    alpha: :class:`float`
+        The alpha value to interpolate the color. Must be between 0 and 1.
+
+    Returns
+    -------
+    :class:`RGB`
+        The interpolated color in RGB format.
+    """
+
+    start_hsv = rgb_to_hsv(*start_color[0:3])
+    end_hsv = rgb_to_hsv(*end_color[0:3])
+
+    interp_h = start_hsv[0] + (end_hsv[0] - start_hsv[0]) * alpha
+    interp_s = start_hsv[1] + (end_hsv[1] - start_hsv[1]) * alpha
+    interp_v = start_hsv[2] + (end_hsv[2] - start_hsv[2]) * alpha
+
+    interp_rgb = hsv_to_rgb(interp_h, interp_s, interp_v)[0:3]
+    return (round(interp_rgb[0]), round(interp_rgb[1]), round(interp_rgb[2]))
