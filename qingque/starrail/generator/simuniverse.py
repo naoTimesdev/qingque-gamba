@@ -281,7 +281,6 @@ class StarRailSimulatedUniverseCard(
                 (self.MARGIN_LR, MARGIN_TOP),
                 bless_icon,
             )
-            await self._async_close(bless_icon)
             # Write path name
             await self._write_text(
                 bless_info.name,
@@ -394,7 +393,6 @@ class StarRailSimulatedUniverseCard(
                     (marg_length, MARGIN_TOP),
                     curio_icon,
                 )
-                await self._async_close(curio_icon)
             MARGIN_TOP += ICON_SIZE + ICON_MARGIN
         MARGIN_TOP -= ICON_SIZE + ICON_MARGIN
         return MARGIN_TOP + EXTRA_MARGIN
@@ -471,6 +469,8 @@ class StarRailSimulatedUniverseCard(
                 anchor="ls",
                 color=(255, 255, 255),
             )
+
+        await self._async_close(default_block_bg)
 
         # Fury/Disruption level
         FURY_LEFT = margin_left + (inbetween_margin * len(self._swarm_striders)) + 10
@@ -764,6 +764,7 @@ class StarRailSimulatedUniverseCard(
 
         self.logger.info("Cleaning up...")
         await self._async_close(self._canvas)
+        await self.close()
 
         # Return the bytes.
         bytes_io.seek(0)

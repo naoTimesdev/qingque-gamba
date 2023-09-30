@@ -175,6 +175,7 @@ class StarRailCharactersCard(StarRailDrawDecoMixin, StarRailDrawCharacterMixin, 
 
         self.logger.info("Cleaning up...")
         await self._async_close(self._canvas)
+        await self.close()
 
         # Return the bytes.
         bytes_io.seek(0)

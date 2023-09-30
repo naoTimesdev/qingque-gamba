@@ -26,18 +26,20 @@ from __future__ import annotations
 
 import asyncio
 import functools
+import gc
 import math
 from collections.abc import MutableMapping
 from datetime import datetime, timezone
 from io import BytesIO
 from logging import Logger, LoggerAdapter
-from typing import Any, Callable, Literal, TypeAlias, cast
+from typing import Any, Callable, Final, Literal, TypeAlias, cast
 
 from aiopath import AsyncPath
 from babel import Locale
 from babel.dates import format_date, format_time
 from babel.numbers import format_decimal, format_percent
 from PIL import Image, ImageDraw, ImageFont, ImageOps
+from PIL._util import DeferredError
 
 from qingque.hylab.models.base import HYLanguage
 from qingque.i18n import QingqueLanguage, get_i18n
@@ -53,6 +55,7 @@ __all__ = (
 RGBA: TypeAlias = tuple[int, int, int, int]
 RGB: TypeAlias = tuple[int, int, int]
 Number: TypeAlias = int | float
+CACHE_IMG_PATH: Final[str] = "_wrapped_path_"
 
 
 def euclidean_distance(ax: float, ay: float, bx: float, by: float) -> float:
@@ -164,6 +167,8 @@ class StarRailDrawing:
 
         self._extend_down_by: int = 0
         self._extend_right_by: int = 0
+
+        self._cached_images: dict[str, Image.Image] = {}
 
     def _make_canvas(self, *, width: int, height: int, color: int | RGB | RGBA = (255, 255, 255)) -> None:
         """Create the base canvas.
@@ -890,12 +895,26 @@ class StarRailDrawing:
             The file is not a valid image.
         """
 
+        abs_path = await img_path.absolute()
+        # Check cache, ensure it's not a DeferredError too.
+        if (cached_img := self._cached_images.get(str(abs_path))) is not None and not isinstance(
+            cached_img.im, DeferredError
+        ):
+            return cached_img
+
         io = BytesIO()
         read_data = await img_path.read_bytes()
         io.write(read_data)
         io.seek(0)
         # Open as RGBA in case the image is transparent.
         as_image = (await self._loop.run_in_executor(None, Image.open, io)).convert("RGBA")
+        self._cached_images[str(abs_path)] = as_image
+        setattr(as_image, CACHE_IMG_PATH, abs_path)
+        if not io.closed:
+            io.close()
+        del io
+        del read_data
+        gc.collect()
         return as_image
 
     async def _async_save_bytes(self, canvas: Image.Image) -> BytesIO:
@@ -926,7 +945,15 @@ class StarRailDrawing:
             The canvas to close.
         """
 
+        if (img_path := getattr(canvas, CACHE_IMG_PATH, None)) is not None:
+            try:
+                del self._cached_images[str(img_path)]
+            except KeyError:
+                pass
+
         await self._loop.run_in_executor(None, canvas.close)
+        del canvas
+        gc.collect()
 
     def format_timestamp(self, timestamp: datetime) -> str:
         """Format a timestamp.
@@ -984,3 +1011,13 @@ class StarRailDrawing:
         """
 
         raise NotImplementedError
+
+    async def close(self):
+        """Close all the images."""
+
+        if self._canvas is not None and not isinstance(self._canvas.im, DeferredError):
+            await self._async_close(self._canvas)
+        for img in self._cached_images.copy().values():
+            if isinstance(img.im, DeferredError):
+                continue
+            await self._async_close(img)

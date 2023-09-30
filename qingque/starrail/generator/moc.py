@@ -75,6 +75,7 @@ class StarRailMoCCard(StarRailDrawGradientMixin, StarRailDrawCharacterMixin, Sta
         backdrop_img = await enhancer.enhance(0.5)
         # Paste the backdrop image to the canvas.
         await self._paste_image(backdrop_img, (0, 0))
+        await self._async_close(backdrop_img)
 
     async def _create_node(self, node: ChronicleFHNode, node_name: str, margin_left: int):
         inbetween_margin = 180
@@ -133,6 +134,7 @@ class StarRailMoCCard(StarRailDrawGradientMixin, StarRailDrawCharacterMixin, Sta
                     ),
                     stars_icon,
                 )
+            await self._async_close(stars_icon)
         else:
             # Create a no star icon
             MARGINAL = 80
@@ -226,6 +228,7 @@ class StarRailMoCCard(StarRailDrawGradientMixin, StarRailDrawCharacterMixin, Sta
 
         self.logger.info("Cleaning up...")
         await self._async_close(self._canvas)
+        await self.close()
 
         # Return the bytes.
         bytes_io.seek(0)

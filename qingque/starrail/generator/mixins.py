@@ -184,7 +184,6 @@ class StarRailDrawCharacterMixin:
                 (margin_lr + (inbetween_margin * idx), margin_top),
                 chara_icon,
             )
-            await drawing._async_close(chara_icon)
 
             # Backdrop for the level
             await drawing._create_box(
@@ -250,7 +249,6 @@ class StarRailDrawCharacterMixin:
                 (margin_lr + (inbetween_margin * idx) + 3, margin_top + 3),
                 element_icon,
             )
-            await drawing._async_close(element_icon)
 
 
 class StarRailDrawDecoMixin:

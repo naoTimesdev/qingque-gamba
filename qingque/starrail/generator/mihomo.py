@@ -380,21 +380,19 @@ class StarRailMihomoCard(StarRailDrawing):
             stats_info = self._stats_fields_to_props[stats_field]
 
             # Stats icon
-            img_icon = await self._async_open(self._assets_folder / stats_info.icon_url)
+            stats_icon = await self._async_open(self._assets_folder / stats_info.icon_url)
             # Tint icon
-            img_icon = await self._tint_image(img_icon, self._foreground)
+            stats_icon = await self._tint_image(stats_icon, self._foreground)
             # Resize icon
-            img_icon = await self._resize_image(img_icon, (size, size))
+            stats_icon = await self._resize_image(stats_icon, (size, size))
 
             # Put icon
             top_margin = starting_top + (index_icon * size)
             await self._paste_image(
-                img_icon,
+                stats_icon,
                 (left_start, top_margin),
-                img_icon,
+                stats_icon,
             )
-            # Close image
-            await self._async_close(img_icon)
 
             # Add stats name
             await self._write_text(
@@ -434,14 +432,14 @@ class StarRailMihomoCard(StarRailDrawing):
             width=8,
             color=self._foreground,
         )
-        relic_img = await self._async_open(self._assets_folder / "icon/character/None.png")
-        relic_img = await self._resize_image(relic_img, (96, 96))
-        relic_img = await self._tint_image(relic_img, self._foreground)
+        unknown_img = await self._async_open(self._assets_folder / "icon/character/None.png")
+        unknown_img = await self._resize_image(unknown_img, (96, 96))
+        unknown_img = await self._tint_image(unknown_img, self._foreground)
 
         await self._paste_image(
-            relic_img,
+            unknown_img,
             (left + 21, top_margin + 21),
-            relic_img,
+            unknown_img,
         )
 
         # Create another box on the right of the relic box
@@ -459,9 +457,6 @@ class StarRailMihomoCard(StarRailDrawing):
             anchor="lt",
             align="left",
         )
-
-        # Close image
-        await self._async_close(relic_img)
 
     async def _create_stats_box(
         self,
@@ -563,6 +558,7 @@ class StarRailMihomoCard(StarRailDrawing):
                 align="right",
             )
 
+        # Rarity icon
         stars_icon = await self._async_open(self._assets_folder / "icon" / "deco" / "StarBig_WhiteGlow.png")
         stars_icon = await self._tint_image(stars_icon, self._foreground)
         stars_icon = await self._resize_image(stars_icon, (14, 14))
@@ -575,21 +571,22 @@ class StarRailMihomoCard(StarRailDrawing):
                 stars_icon,
             )
 
+        # Substats
         for idx, sub_stat in enumerate(sub_stats, 1):
             if sub_stat.icon_url is not None:
-                relic_icon = await self._async_open(self._assets_folder / sub_stat.icon_url)
+                sub_stat_icon = await self._async_open(self._assets_folder / sub_stat.icon_url)
                 # Tint icon
-                relic_icon = await self._tint_image(relic_icon, self._foreground)
+                sub_stat_icon = await self._tint_image(sub_stat_icon, self._foreground)
                 # Resize icon
-                relic_icon = await self._resize_image(relic_icon, (32, 32))
+                sub_stat_icon = await self._resize_image(sub_stat_icon, (32, 32))
 
                 await self._paste_image(
-                    relic_icon,
+                    sub_stat_icon,
                     (
                         left + box_size + 20,
                         top_margin + 6 + (idx * 26),
                     ),
-                    relic_icon,
+                    sub_stat_icon,
                 )
 
                 # Write the field name
@@ -600,10 +597,6 @@ class StarRailMihomoCard(StarRailDrawing):
                     align="left",
                     font_size=16,
                 )
-
-                # Close image
-                await self._async_close(relic_icon)
-
             else:
                 # Use name instead
                 await self._write_text(
@@ -652,7 +645,6 @@ class StarRailMihomoCard(StarRailDrawing):
 
         # Close images
         await self._async_close(relic_img)
-        await self._async_close(stars_icon)
 
     async def _create_main_relics(self, relic_scores: RelicScores | None = None, *, detailed: bool = False) -> None:
         sorted_relics = sorted(
@@ -1168,6 +1160,7 @@ class StarRailMihomoCard(StarRailDrawing):
         self.logger.info("Cleaning up...")
         await self._async_close(main_canvas)
         await self._async_close(self._canvas)
+        await self.close()
 
         # Return the bytes.
         bytes_io.seek(0)
