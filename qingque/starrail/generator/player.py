@@ -160,6 +160,15 @@ class StarRailPlayerCard(StarRailDrawing):
         await self._paste_image(deco1, (0, 0), deco1)
         await self._async_close(deco1)
 
+        # Deco 2 - PomPom ticket (top right with the padding)
+        deco2 = await self._async_open(self._images_dir / "PomPomDecoStamp.png")
+        await self._set_transparency_fast(deco2, 0.5)
+        EXTRA_MARGIN = 20
+        await self._paste_image(
+            deco2, (self._canvas.width - deco2.width - self.MARGIN - EXTRA_MARGIN, self.MARGIN + EXTRA_MARGIN), deco2
+        )
+        await self._async_close(deco2)
+
     async def _create_player_base_info(self) -> None:
         MARGIN_LEFT = 636
         MARGIN_TOP = self.MARGIN + 30

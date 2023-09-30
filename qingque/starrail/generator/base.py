@@ -38,12 +38,13 @@ from aiopath import AsyncPath
 from babel import Locale
 from babel.dates import format_date, format_time
 from babel.numbers import format_decimal, format_percent
-from PIL import Image, ImageDraw, ImageFont, ImageOps
+from PIL import Image, ImageDraw, ImageEnhance, ImageFont, ImageOps
 from PIL._util import DeferredError
 
 from qingque.hylab.models.base import HYLanguage
 from qingque.i18n import QingqueLanguage, get_i18n
 from qingque.mihomo.models.constants import MihomoLanguage
+from qingque.starrail.imaging import AsyncImageEnhance
 
 from ..loader import SRSDataLoader
 
@@ -738,6 +739,25 @@ class StarRailDrawing:
             return out_img
 
         return await self._loop.run_in_executor(None, _process, im, factor)
+
+    async def _set_transparency_fast(self, im: Image.Image, factor: float):
+        """(Fast) Add transparency to an image.
+
+        Parameters
+        ----------
+        im: :class:`PIL.Image.Image`
+            The image to add transparency to.
+        factor: :class:`float`
+            The brightness value to adjust the image by.
+        """
+
+        # Separate the alpha channel
+        alpha = im.split()[3]
+
+        # Adjust the alpha channel according to the factor, use brightness
+        alpha = await AsyncImageEnhance.process(alpha, factor, subclass=ImageEnhance.Brightness)
+        # Paste the alpha channel back into the image
+        await self._loop.run_in_executor(None, im.putalpha, alpha)
 
     async def _paste_image(
         self,
