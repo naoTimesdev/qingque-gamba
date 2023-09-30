@@ -87,10 +87,10 @@ class StarRailPlayerCard(StarRailDrawing):
             canvas=canvas,
         )
         self._canvas = canvas
-        frost_mask = await self._async_open(self._images_dir / "MihomoCardFrostMask.png")
 
         if len(self._characters) > 0:
             self.logger.info("Creating the main support character...")
+            frost_mask = await self._async_open(self._images_dir / "MihomoCardFrostMask.png")
             main_char = self._characters[0]
             chara_mask = await self._async_open(self._images_dir / "MihomoCardCharMask.png")
             chara_potrait = await self._async_open(self._assets_folder / main_char.portrait_url)
@@ -105,7 +105,6 @@ class StarRailPlayerCard(StarRailDrawing):
                 canvas=chara_canvas,
             )
             await self._paste_image(chara_potrait, (-200, 0), chara_potrait, canvas=chara_canvas)
-            chara_mask = await self._set_transparency(chara_mask, 0)
             await self._paste_image(chara_canvas, (0, 0), chara_mask)
 
             # Paste the character canvas to the main canvas.
@@ -115,19 +114,20 @@ class StarRailPlayerCard(StarRailDrawing):
             await self._async_close(chara_canvas)
             await self._async_close(chara_potrait)
             await self._async_close(chara_mask)
+            await self._async_close(frost_mask)
         else:
             star_rail = await AsyncImageFilter.process(star_rail, subclass=ImageFilter.GaussianBlur(20))
             await self._paste_image(star_rail, (0, 0), frost_mask)
 
         # Frost layer overlay
+        frost_maskb = await self._async_open(self._images_dir / "MihomoCardFrostMaskB.png")
         frost_layer = Image.new("RGBA", (canvas.width, canvas.height), (0, 0, 0))
-        frost_mask = await self._set_transparency(frost_mask, round(0.7 * 255))
-        await self._paste_image(frost_layer, (0, 0), frost_mask)
+        await self._paste_image(frost_layer, (0, 0), frost_maskb)
 
         await self._async_close(mask_data)
         await self._async_close(star_rail)
         await self._async_close(frost_layer)
-        await self._async_close(frost_mask)
+        await self._async_close(frost_maskb)
 
     async def _create_card_header(self) -> None:
         nickname = self._player.name
@@ -156,8 +156,7 @@ class StarRailPlayerCard(StarRailDrawing):
 
     async def _create_canvas_deco(self):
         # Deco 1 - Frost area
-        deco1 = await self._async_open(self._images_dir / "MihomoCardDeco.png")
-        deco1 = await self._set_transparency(deco1, round(0.5 * 255))
+        deco1 = await self._async_open(self._images_dir / "MihomoCardDeco50.png")
         await self._paste_image(deco1, (0, 0), deco1)
         await self._async_close(deco1)
 
@@ -238,8 +237,6 @@ class StarRailPlayerCard(StarRailDrawing):
                 (MARGIN_LEFT - ICON_SIZE - ICON_DE, MARGIN_TOP + 50 + ICON_SIZE + 10),
                 path_icon,
             )
-            await self._async_close(elem_icon)
-            await self._async_close(path_icon)
 
             # Eidolon
             await self._write_text(
@@ -272,7 +269,6 @@ class StarRailPlayerCard(StarRailDrawing):
                     (MARGIN_LEFT + round(chara_name_len) + 15 + (rarity * 30), MARGIN_TOP + 20),
                     star_icon,
                 )
-            await self._async_close(star_icon)
 
             MARGIN_TOP += 250
 
@@ -531,7 +527,6 @@ class StarRailPlayerCard(StarRailDrawing):
             (margin_left + chara_canvas.width + 20, margin_top + 120),
             path_icon,
         )
-        await self._async_close(path_icon)
 
         # Element
         element_icon = await self._async_open(self._assets_folder / chara.element.icon_url)
@@ -541,7 +536,6 @@ class StarRailPlayerCard(StarRailDrawing):
             (margin_left + chara_canvas.width + path_icon.width + 20 + 5, margin_top + 120),
             element_icon,
         )
-        await self._async_close(element_icon)
 
         # Stars icon (max width, right align)
         star_icon = await self._async_open(self._assets_folder / "icon" / "deco" / "StarBig.png")
@@ -569,7 +563,6 @@ class StarRailPlayerCard(StarRailDrawing):
                 ),
                 star_icon,
             )
-        await self._async_close(star_icon)
 
         # Eidolons
         await self._write_text(
@@ -649,8 +642,13 @@ class StarRailPlayerCard(StarRailDrawing):
         )
 
         # Save the image.
+        self.logger.info("Saving the image...")
         bytes_io = await self._async_save_bytes(self._canvas)
+
+        # Clean up
+        self.logger.info("Cleaning up...")
         await self._async_close(self._canvas)
+        await self.close()
 
         # Return the bytes.
         bytes_io.seek(0)

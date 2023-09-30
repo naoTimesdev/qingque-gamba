@@ -725,6 +725,7 @@ class StarRailDrawing:
             The alpha value to add to the image.
         """
 
+        # TODO: Improve speed and performance
         def _process(im: Image.Image, factor: int):
             in_img = im.convert("RGBA")
             out_img = Image.new("RGBA", in_img.size, (0, 0, 0, 0))
