@@ -29,6 +29,7 @@ import functools
 import gc
 import math
 from collections.abc import MutableMapping
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from datetime import datetime, timezone
 from io import BytesIO
 from logging import Logger, LoggerAdapter
@@ -132,6 +133,7 @@ class StarRailDrawing:
         *,
         language: MihomoLanguage | HYLanguage | QingqueLanguage = MihomoLanguage.EN,
         loader: SRSDataLoader | None = None,
+        executor: ProcessPoolExecutor | ThreadPoolExecutor | None = None,
     ) -> None:
         """Initialize the asynchronous drawing mechanism.
 
@@ -170,6 +172,14 @@ class StarRailDrawing:
         self._extend_right_by: int = 0
 
         self._cached_images: dict[str, Image.Image] = {}
+        self.__executor = executor or ThreadPoolExecutor(
+            max_workers=8, thread_name_prefix=self.__class__.__name__ + "-thread"
+        )
+
+    @property
+    def executor(self) -> ProcessPoolExecutor | ThreadPoolExecutor:
+        """:class:`ProcessPoolExecutor` | :class:`ThreadPoolExecutor`: The executor used for drawing."""
+        return self.__executor
 
     def _make_canvas(self, *, width: int, height: int, color: int | RGB | RGBA = (255, 255, 255)) -> None:
         """Create the base canvas.
@@ -214,7 +224,7 @@ class StarRailDrawing:
             The font object.
         """
 
-        font = await self._loop.run_in_executor(None, ImageFont.truetype, str(font_path), size)
+        font = await self._loop.run_in_executor(self.__executor, ImageFont.truetype, str(font_path), size)
         return font
 
     async def _get_draw(self, *, canvas: Image.Image | None = None) -> ImageDraw.ImageDraw:
@@ -239,7 +249,7 @@ class StarRailDrawing:
         if not self.has_canvas() and canvas is None:
             raise RuntimeError("Canvas is not initialized, and no canvas is provided.")
         canvas = canvas or self._canvas
-        return await self._loop.run_in_executor(None, ImageDraw.Draw, canvas)
+        return await self._loop.run_in_executor(self.__executor, ImageDraw.Draw, canvas)
 
     async def _extend_canvas_down(self, height: int) -> None:
         if not self.has_canvas():
@@ -358,14 +368,14 @@ class StarRailDrawing:
 
             original_content = content
             # Get the text length
-            text_width = await self._loop.run_in_executor(None, draw.textlength, content, font)
+            text_width = await self._loop.run_in_executor(self.__executor, draw.textlength, content, font)
             while text_width > box_width:
                 # Cut off content + ...
                 content = content[:-1]
                 if not content:
                     break
                 tst_content = content + " ..." if not no_elipsis else content
-                text_width = await self._loop.run_in_executor(None, draw.textlength, tst_content, font)
+                text_width = await self._loop.run_in_executor(self.__executor, draw.textlength, tst_content, font)
             if not no_elipsis and original_content != content:
                 content += " ..."
 
@@ -376,10 +386,10 @@ class StarRailDrawing:
         draw_text = functools.partial(
             draw.text, fill=fill_col, font=font, stroke_width=stroke, stroke_fill=stroke_color, **kwargs
         )
-        await self._loop.run_in_executor(None, draw_text, box, content)
-        length_width = await self._loop.run_in_executor(None, draw.textlength, content, font)
+        await self._loop.run_in_executor(self.__executor, draw_text, box, content)
+        length_width = await self._loop.run_in_executor(self.__executor, draw.textlength, content, font)
         if composite is not None:
-            await self._loop.run_in_executor(None, canvas.alpha_composite, composite)
+            await self._loop.run_in_executor(self.__executor, canvas.alpha_composite, composite)
         return length_width
 
     async def _calc_text(
@@ -517,13 +527,13 @@ class StarRailDrawing:
             draw_polygon = functools.partial(draw.polygon, fill=None, outline="white", width=width * antialias)
         else:
             draw_polygon = functools.partial(draw.polygon, fill="white", outline=None, width=width)
-        await self._loop.run_in_executor(None, draw_polygon, square_verticies)
+        await self._loop.run_in_executor(self.__executor, draw_polygon, square_verticies)
         # Downsample the mask if angle is not 0.0
         if angle != 0.0:
             mask = await self._resize_image(mask, canvas.size, resampling=resampling)
         # Paste into overlay first for compositing
         await self._paste_image(fill, mask=mask, canvas=overlay)
-        await self._loop.run_in_executor(None, canvas.alpha_composite, overlay)
+        await self._loop.run_in_executor(self.__executor, canvas.alpha_composite, overlay)
 
     async def _create_box_2_gradient(
         self,
@@ -630,9 +640,11 @@ class StarRailDrawing:
             for offset, fill in (width / -2.0, "white"), (width / 2.0, "black"):
                 left, top = [(value + offset) * antialias for value in bounds[:2]]
                 right, bottom = [(value - offset) * antialias for value in bounds[2:]]
-                await self._loop.run_in_executor(None, draw.ellipse, [left, top, right, bottom], fill)
+                await self._loop.run_in_executor(self.__executor, draw.ellipse, [left, top, right, bottom], fill)
         else:
-            await self._loop.run_in_executor(None, draw.ellipse, [value * antialias for value in bounds], "white")
+            await self._loop.run_in_executor(
+                self.__executor, draw.ellipse, [value * antialias for value in bounds], "white"
+            )
 
         # downsample the mask using PIL.Image.LANCZOS
         # (a high-quality downsampling filter).
@@ -646,7 +658,7 @@ class StarRailDrawing:
         overlay = Image.new("RGBA", canvas.size, cast(RGBA, fill_overlay))
         await self._paste_image(color, mask=mask, canvas=overlay)
         # Paste the overlay onto the canvas
-        await self._loop.run_in_executor(None, canvas.alpha_composite, overlay)
+        await self._loop.run_in_executor(self.__executor, canvas.alpha_composite, overlay)
 
     async def _create_line(
         self,
@@ -692,7 +704,7 @@ class StarRailDrawing:
 
         line_draw = functools.partial(draw.line, fill="white", width=width * antialias)
         act_points = tuple(point * antialias for point in points)
-        await self._loop.run_in_executor(None, line_draw, act_points)
+        await self._loop.run_in_executor(self.__executor, line_draw, act_points)
 
         # downsample the mask using PIL.Image.LANCZOS
         # (a high-quality downsampling filter).
@@ -706,13 +718,13 @@ class StarRailDrawing:
         overlay = Image.new("RGBA", canvas.size, cast(RGBA, fill_overlay))
         await self._paste_image(color, mask=mask, canvas=overlay)
         # Paste the overlay onto the canvas
-        await self._loop.run_in_executor(None, canvas.alpha_composite, overlay)
+        await self._loop.run_in_executor(self.__executor, canvas.alpha_composite, overlay)
 
     async def _tint_image(self, im: Image.Image, color: RGB) -> Image.Image:
         alpha = im.split()[3]
-        gray = await self._loop.run_in_executor(None, ImageOps.grayscale, im)
-        result = await self._loop.run_in_executor(None, ImageOps.colorize, gray, color, color)
-        await self._loop.run_in_executor(None, result.putalpha, alpha)
+        gray = await self._loop.run_in_executor(self.__executor, ImageOps.grayscale, im)
+        result = await self._loop.run_in_executor(self.__executor, ImageOps.colorize, gray, color, color)
+        await self._loop.run_in_executor(self.__executor, result.putalpha, alpha)
         return result
 
     async def _set_transparency(self, im: Image.Image, factor: int) -> Image.Image:
@@ -738,7 +750,7 @@ class StarRailDrawing:
                         out_img.putpixel((x, y), (r, g, b, new_alpha))
             return out_img
 
-        return await self._loop.run_in_executor(None, _process, im, factor)
+        return await self._loop.run_in_executor(self.__executor, _process, im, factor)
 
     async def _set_transparency_fast(self, im: Image.Image, factor: float):
         """(Fast) Add transparency to an image.
@@ -757,7 +769,7 @@ class StarRailDrawing:
         # Adjust the alpha channel according to the factor, use brightness
         alpha = await AsyncImageEnhance.process(alpha, factor, subclass=ImageEnhance.Brightness)
         # Paste the alpha channel back into the image
-        await self._loop.run_in_executor(None, im.putalpha, alpha)
+        await self._loop.run_in_executor(self.__executor, im.putalpha, alpha)
 
     async def _paste_image(
         self,
@@ -789,7 +801,7 @@ class StarRailDrawing:
         if not self.has_canvas() and canvas is None:
             raise RuntimeError("Canvas is not initialized, and no canvas is provided.")
         canvas = canvas or self._canvas
-        await self._loop.run_in_executor(None, canvas.paste, img, box, mask)
+        await self._loop.run_in_executor(self.__executor, canvas.paste, img, box, mask)
 
     async def _crop_image(self, img: Image.Image, box: tuple[float, float, float, float]) -> Image.Image:
         """Crop an image.
@@ -808,7 +820,7 @@ class StarRailDrawing:
 
         """
 
-        return await self._loop.run_in_executor(None, img.crop, box)
+        return await self._loop.run_in_executor(self.__executor, img.crop, box)
 
     async def _resize_image(
         self, img: Image.Image, size: tuple[int, int], resampling: Image.Resampling | None = None
@@ -831,7 +843,7 @@ class StarRailDrawing:
             The cropped image.
         """
 
-        return await self._loop.run_in_executor(None, img.resize, size, resampling)
+        return await self._loop.run_in_executor(self.__executor, img.resize, size, resampling)
 
     async def _resize_image_side(
         self,
@@ -870,7 +882,7 @@ class StarRailDrawing:
                 width = target
                 height = round(width / img.width * img.height)
 
-        return await self._loop.run_in_executor(None, img.resize, (width, height), resampling)
+        return await self._loop.run_in_executor(self.__executor, img.resize, (width, height), resampling)
 
     async def _point_image(
         self, img: Image.Image, handler: Image.ImagePointHandler | Callable[[int | float], int | float]
@@ -893,7 +905,7 @@ class StarRailDrawing:
         def _process(img: Image.Image, handler: Image.ImagePointHandler | Callable[[int | float], int | float]):
             return img.point(handler)
 
-        return await self._loop.run_in_executor(None, _process, img, handler)
+        return await self._loop.run_in_executor(self.__executor, _process, img, handler)
 
     async def _async_open(self, img_path: AsyncPath) -> Image.Image:
         """Open an image asynchronously.
@@ -928,7 +940,7 @@ class StarRailDrawing:
         io.write(read_data)
         io.seek(0)
         # Open as RGBA in case the image is transparent.
-        as_image = (await self._loop.run_in_executor(None, Image.open, io)).convert("RGBA")
+        as_image = (await self._loop.run_in_executor(self.__executor, Image.open, io)).convert("RGBA")
         self._cached_images[str(abs_path)] = as_image
         setattr(as_image, CACHE_IMG_PATH, abs_path)
         if not io.closed:
@@ -953,7 +965,7 @@ class StarRailDrawing:
         """
 
         io = BytesIO()
-        await self._loop.run_in_executor(None, canvas.save, io, "PNG")
+        await self._loop.run_in_executor(self.__executor, canvas.save, io, "PNG")
         io.seek(0)
         return io
 
@@ -972,7 +984,7 @@ class StarRailDrawing:
             except KeyError:
                 pass
 
-        await self._loop.run_in_executor(None, canvas.close)
+        await self._loop.run_in_executor(self.__executor, canvas.close)
         del canvas
         gc.collect()
 
@@ -1042,3 +1054,6 @@ class StarRailDrawing:
             if isinstance(img.im, DeferredError):
                 continue
             await self._async_close(img)
+
+    def shutdown_thread(self):
+        self.__executor.shutdown()

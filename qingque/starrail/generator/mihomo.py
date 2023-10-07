@@ -24,6 +24,7 @@ SOFTWARE.
 
 from __future__ import annotations
 
+import asyncio
 from typing import TYPE_CHECKING, TypeAlias, cast
 
 from aiopath import AsyncPath
@@ -618,18 +619,18 @@ class StarRailMihomoCard(StarRailDrawing):
                 # Roll count for detailed
                 if detailed and sub_stat.count >= 0:
                     # The maximum possible roll count for each sub stat is:
-                    # - Rarity 5: 4
-                    # - Rarity 4: 3
-                    # - Rarity 3: 2
-                    # - Rarity 2: 1
+                    # - Rarity 5: 5
+                    # - Rarity 4: 4
+                    # - Rarity 3: 3
+                    # - Rarity 2: 2
                     # We want to adjust the alpha based on the roll count
                     # and the rarity. So each rarity will have different alpha scaling
                     # from 0.5 to 1.0
                     ALPHA_MAP = {
-                        2: {1: 1.0},
-                        3: {1: 0.5, 2: 1},
-                        4: {1: 0.5, 2: 0.75, 3: 1},
-                        5: {1: 0.5, 2: 0.67, 3: 0.84, 4: 1},
+                        2: {1: 0.5, 2: 1},
+                        3: {1: 0.5, 2: 0.75, 3: 1},
+                        4: {1: 0.5, 2: 0.67, 3: 0.84, 4: 1},
+                        5: {1: 0.5, 2: 0.625, 3: 0.75, 4: 0.875, 5: 1},
                     }
                     await self._write_text(
                         f"+{sub_stat.count} |",
@@ -1020,6 +1021,66 @@ class StarRailMihomoCard(StarRailDrawing):
             # Close image
             await self._async_close(trace_icon)
 
+    async def _create_character_card_information_wrap(self) -> None:
+        async def _step_card_head() -> None:
+            # Character header
+            self.logger.info("Creating the character card header...")
+            await self._create_character_card_header()
+
+        async def _step_card_stats() -> None:
+            # Character stats
+            self.logger.info("Creating the character card stats...")
+            await self._create_character_stats()
+
+        tasks = [asyncio.create_task(step()) for step in (_step_card_head, _step_card_stats)]
+        await asyncio.gather(*tasks)
+
+    async def _create_relics_light_cone_wrap(self, *, detailed: bool = False) -> None:
+        try:
+            self.logger.info("Trying to get relic scores...")
+            relic_scores = self._relic_scorer.calculate(self._character, loader=self._index_data)
+        except RelicScoringNoSuchCharacterException:
+            relic_scores = None
+
+        async def _step_relic_main(scores: RelicScores | None = None) -> None:
+            # Main relics
+            self.logger.info("Creating the character relics...")
+            await self._create_main_relics(relic_scores=scores, detailed=detailed)
+
+        async def _step_relic_planar_and_lc(scores: RelicScores | None = None) -> None:
+            # Planar and light cone
+            self.logger.info("Creating the character planar and light cone...")
+            await self._create_planar_and_light_cone(relic_scores=scores, detailed=detailed)
+
+        async def _step_relic_set_bonus() -> None:
+            # Relic set bonus
+            self.logger.info("Creating relic set bonus...")
+            await self._create_relic_sets_bonus()
+
+        tasks = [
+            asyncio.create_task(_step_relic_main(relic_scores)),
+            asyncio.create_task(_step_relic_planar_and_lc(relic_scores)),
+            asyncio.create_task(_step_relic_set_bonus()),
+        ]
+        await asyncio.gather(*tasks)
+
+    async def _create_eidolons_and_skills_wrap(self) -> None:
+        async def _step_eidolons():
+            # Create eidolons
+            self.logger.info("Creating the character eidolons...")
+            await self._create_eidolons()
+
+        async def _step_skills_traces():
+            # Create skills
+            self.logger.info("Creating the character skills...")
+            await self._create_skills_and_traces()
+
+        tasks = [
+            asyncio.create_task(_step_eidolons()),
+            asyncio.create_task(_step_skills_traces()),
+        ]
+        await asyncio.gather(*tasks)
+
     async def create(self, *, hide_uid: bool = False, hide_credits: bool = False, detailed: bool = False) -> bytes:
         self._assets_folder = await self._assets_folder.absolute()
         if not await self._assets_folder.exists():
@@ -1071,31 +1132,13 @@ class StarRailMihomoCard(StarRailDrawing):
         await self._async_close(avatar_icon)
 
         # Create the character card header.
-        self.logger.info("Creating the character card header...")
-        await self._create_character_card_header()
-        self.logger.info("Creating the character card stats...")
-        await self._create_character_stats()
+        await self._create_character_card_information_wrap()
 
-        # Create relics sets
-        try:
-            self.logger.info("Trying to get relic scores...")
-            relic_scores = self._relic_scorer.calculate(self._character, loader=self._index_data)
-        except RelicScoringNoSuchCharacterException:
-            relic_scores = None
-        self.logger.info("Creating the character relics...")
-        await self._create_main_relics(relic_scores=relic_scores, detailed=detailed)
-        self.logger.info("Creating the character planar and light cone...")
-        await self._create_planar_and_light_cone(relic_scores=relic_scores, detailed=detailed)
-        self.logger.info("Creating relic set bonus...")
-        await self._create_relic_sets_bonus()
+        # Create relics and light cone information.
+        await self._create_relics_light_cone_wrap(detailed=detailed)
 
-        # Create eidolons
-        self.logger.info("Creating the character eidolons...")
-        await self._create_eidolons()
-
-        # Create skills
-        self.logger.info("Creating the character skills...")
-        await self._create_skills_and_traces()
+        # Create eidolons and skills information.
+        await self._create_eidolons_and_skills_wrap()
 
         # Create footer
         self.logger.info("Creating the character footer...")
@@ -1164,6 +1207,7 @@ class StarRailMihomoCard(StarRailDrawing):
 
         # Return the bytes.
         bytes_io.seek(0)
-        all_bytes = await self._loop.run_in_executor(None, bytes_io.read)
+        all_bytes = await self._loop.run_in_executor(self.executor, bytes_io.read)
         bytes_io.close()
+        self.shutdown_thread()
         return all_bytes

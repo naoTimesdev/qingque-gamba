@@ -232,6 +232,7 @@ class StarRailMoCCard(StarRailDrawGradientMixin, StarRailDrawCharacterMixin, Sta
 
         # Return the bytes.
         bytes_io.seek(0)
-        all_bytes = await self._loop.run_in_executor(None, bytes_io.read)
+        all_bytes = await self._loop.run_in_executor(self.executor, bytes_io.read)
         bytes_io.close()
+        self.shutdown_thread()
         return all_bytes
