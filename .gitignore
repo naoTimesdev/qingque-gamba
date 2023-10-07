@@ -378,3 +378,4 @@ chronicles_image_test*.png
 
 config.toml
 *.7z
+message*.json

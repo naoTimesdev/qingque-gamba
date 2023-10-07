@@ -37,7 +37,6 @@ from qingque.mihomo.models.player import PlayerInfo
 from qingque.mihomo.models.relics import Relic, RelicSet
 from qingque.mihomo.models.stats import StatsAtrributes, StatsField, StatsProperties, StatsPropertiesAffix
 from qingque.models.region import HYVServer
-from qingque.starrail.imaging import interpolate_color
 from qingque.starrail.models.relics import SRSRelicType
 from qingque.starrail.models.stats import SRSProperties
 from qingque.starrail.scoring import RelicScores, RelicScoring, RelicScoringNoSuchCharacterException
@@ -874,10 +873,11 @@ class StarRailMihomoCard(StarRailDrawing):
 
         for idx, eidolon in enumerate(eidolons_data):
             active = eidolon.rank <= self._character.eidolon
-            tint_col = self._foreground if active else interpolate_color(self._foreground, self._background, 128 / 255)
 
             eidolon_icon = await self._async_open(self._assets_folder / eidolon.icon_url)
-            eidolon_icon = await self._tint_image(eidolon_icon, tint_col)
+            eidolon_icon = await self._tint_image(eidolon_icon, self._foreground)
+            if not active:
+                await self._set_transparency_fast(eidolon_icon, 0.5)
             eidolon_icon = await self._resize_image(eidolon_icon, (ICON_SIZE, ICON_SIZE))
 
             await self._paste_image(
@@ -922,12 +922,11 @@ class StarRailMihomoCard(StarRailDrawing):
 
         for idx, skill in enumerate(sorted_skills):
             skill_icon = await self._async_open(self._assets_folder / skill.icon_url)
+            skill_icon = await self._tint_image(skill_icon, self._foreground)
             skill_alpha = 1
-            tint_col = self._foreground
             if skill.type == SkillUsageType.Technique and skill.level == 0:
                 skill_alpha = 0.5
-                tint_col = interpolate_color(self._foreground, self._background, 128 / 255)
-            skill_icon = await self._tint_image(skill_icon, tint_col)
+                await self._set_transparency_fast(skill_icon, skill_alpha)
             skill_icon = await self._resize_image(skill_icon, (box_size - 4, box_size - 4))
 
             # Skill icon
@@ -997,12 +996,11 @@ class StarRailMihomoCard(StarRailDrawing):
 
         for idx, trace in enumerate(major_traces):
             trace_icon = await self._async_open(self._assets_folder / trace.icon_url)
+            trace_icon = await self._tint_image(trace_icon, self._foreground)
             trace_alpha = 1
-            tint_col = self._foreground
             if trace.level < 1:
                 trace_alpha = 0.5
-                tint_col = interpolate_color(self._foreground, self._background, 128 / 255)
-            trace_icon = await self._tint_image(trace_icon, tint_col)
+                await self._set_transparency_fast(trace_icon, trace_alpha)
             trace_icon = await self._resize_image(trace_icon, (box_size - 4, box_size - 4))
 
             await self._paste_image(
