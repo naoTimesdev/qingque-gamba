@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import asyncio
 import functools
+from concurrent.futures import ThreadPoolExecutor
 from datetime import timezone
 from io import BytesIO
 from typing import TYPE_CHECKING, Any, Coroutine, Final
@@ -201,28 +202,39 @@ async def qqprofile_srprofile(
     if not data_player.characters:
         return await original_message.edit(content=t("srprofile.no_characters"))
 
-    task_creation = [
-        asyncio.create_task(
+    def _batch_gen_player_card_threadsafe(
+        idx: int,
+        player: PlayerInfo,
+        character: Character,
+    ) -> PagingChoice:
+        return asyncio.run(
             _batch_gen_player_card(
                 idx,
-                data_player.player,
+                player,
                 character,
                 t,
                 lang,
                 inter.client.get_srs(lang),
                 inter.client.relic_scorer,
                 detailed=detailed,
-            ),
-            name=f"srprofile_{inter.created_at.timestamp():.0f}_{character.id}_{uid}",
+            )
         )
-        for idx, character in enumerate(data_player.characters)
-    ]
+
+    executor = ThreadPoolExecutor(max_workers=None)
+    ev_loop = asyncio.get_event_loop()
+    future_executors: list[asyncio.Future[PagingChoice]] = []
+    for idx, character in enumerate(data_player.characters):
+        future_executors.append(
+            ev_loop.run_in_executor(executor, _batch_gen_player_card_threadsafe, idx, data_player.player, character)
+        )
+
     try:
-        profile_choices: list[PagingChoice] = await asyncio.gather(*task_creation)
+        profile_choices: list[PagingChoice] = await asyncio.gather(*future_executors)
     except Exception as e:
         logger.error(f"Error generating profile card for UID {uid}: {e}", exc_info=e)
         await original_message.edit(content=t("exception", [f"```{e!s}```"]))
         return
+    executor.shutdown(wait=False)
 
     logger.info("Sending to Discord...")
     pagination_view = EmbedPagingSelectView(profile_choices, inter.locale, user_id=inter.user.id)
