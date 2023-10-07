@@ -2,6 +2,7 @@
     "srprofile": {
         "desc": "See your profile characters card.",
         "uid_desc": "Your in-game UID, if not provided will use the binded UID.",
+        "detailed_desc": "Get detailed relic rolls information.",
         "no_characters": "No characters are set as support or starfaring companions."
     },
     "srplayer": {

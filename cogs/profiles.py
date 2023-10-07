@@ -101,6 +101,8 @@ async def _batch_gen_player_card(
     language: QingqueLanguage,
     loader: SRSDataLoader,
     scorer: RelicScoring,
+    *,
+    detailed: bool = False,
 ) -> PagingChoice:
     logger.info(f"Generating character {character.name} profile card for UID {player.id}")
     card_char = StarRailMihomoCard(
@@ -110,7 +112,7 @@ async def _batch_gen_player_card(
         loader=loader,
         relic_scorer=scorer,
     )
-    card_data = await card_char.create(hide_credits=True)
+    card_data = await card_char.create(hide_credits=True, detailed=detailed)
 
     logger.info(f"Adding character {character.name} profile card for UID {player.id}")
     filename = f"{player.id}_{idx:02d}_{character.id}.QingqueBot.png"
@@ -151,8 +153,10 @@ async def _batch_gen_player_card(
 
 
 @app_commands.command(name="srprofile", description=locale_str("srprofile.desc"))
-@app_commands.describe(uid=locale_str("srprofile.uid_desc"))
-async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: int | None = None):
+@app_commands.describe(uid=locale_str("srprofile.uid_desc"), detailed=locale_str("srprofile.detailed_desc"))
+async def qqprofile_srprofile(
+    inter: discord.Interaction[QingqueClient], uid: int | None = None, detailed: bool = False
+):
     mihomo = inter.client.mihomo
     lang = QingqueLanguage.from_discord(inter.locale)
     t = functools.partial(get_i18n().t, language=lang)
@@ -197,15 +201,19 @@ async def qqprofile_srprofile(inter: discord.Interaction[QingqueClient], uid: in
     if not data_player.characters:
         return await original_message.edit(content=t("srprofile.no_characters"))
 
-    task_creation: list[Coroutine[Any, Any, PagingChoice]] = [
-        _batch_gen_player_card(
-            idx,
-            data_player.player,
-            character,
-            t,
-            lang,
-            inter.client.get_srs(lang),
-            inter.client.relic_scorer,
+    task_creation = [
+        asyncio.create_task(
+            _batch_gen_player_card(
+                idx,
+                data_player.player,
+                character,
+                t,
+                lang,
+                inter.client.get_srs(lang),
+                inter.client.relic_scorer,
+                detailed=detailed,
+            ),
+            name=f"srprofile_{inter.created_at.timestamp():.0f}_{character.id}_{uid}",
         )
         for idx, character in enumerate(data_player.characters)
     ]

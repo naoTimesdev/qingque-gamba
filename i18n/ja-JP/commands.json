@@ -2,6 +2,7 @@
     "srprofile": {
         "desc": "See your profile characters card.",
         "uid_desc": "あなたのゲーム内UIDが提供されていない場合は、バインドされたUIDが使用されます。",
+        "detailed_desc": "Get detailed relic rolls information.",
         "no_characters": "No characters are set as support or starfaring companions."
     },
     "srplayer": {
