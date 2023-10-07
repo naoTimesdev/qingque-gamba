@@ -24,7 +24,6 @@ SOFTWARE.
 
 from __future__ import annotations
 
-import asyncio
 from typing import TYPE_CHECKING, TypeAlias, cast
 
 from aiopath import AsyncPath
@@ -1021,66 +1020,6 @@ class StarRailMihomoCard(StarRailDrawing):
             # Close image
             await self._async_close(trace_icon)
 
-    async def _create_character_card_information_wrap(self) -> None:
-        async def _step_card_head() -> None:
-            # Character header
-            self.logger.info("Creating the character card header...")
-            await self._create_character_card_header()
-
-        async def _step_card_stats() -> None:
-            # Character stats
-            self.logger.info("Creating the character card stats...")
-            await self._create_character_stats()
-
-        tasks = [asyncio.create_task(step()) for step in (_step_card_head, _step_card_stats)]
-        await asyncio.gather(*tasks)
-
-    async def _create_relics_light_cone_wrap(self, *, detailed: bool = False) -> None:
-        try:
-            self.logger.info("Trying to get relic scores...")
-            relic_scores = self._relic_scorer.calculate(self._character, loader=self._index_data)
-        except RelicScoringNoSuchCharacterException:
-            relic_scores = None
-
-        async def _step_relic_main(scores: RelicScores | None = None) -> None:
-            # Main relics
-            self.logger.info("Creating the character relics...")
-            await self._create_main_relics(relic_scores=scores, detailed=detailed)
-
-        async def _step_relic_planar_and_lc(scores: RelicScores | None = None) -> None:
-            # Planar and light cone
-            self.logger.info("Creating the character planar and light cone...")
-            await self._create_planar_and_light_cone(relic_scores=scores, detailed=detailed)
-
-        async def _step_relic_set_bonus() -> None:
-            # Relic set bonus
-            self.logger.info("Creating relic set bonus...")
-            await self._create_relic_sets_bonus()
-
-        tasks = [
-            asyncio.create_task(_step_relic_main(relic_scores)),
-            asyncio.create_task(_step_relic_planar_and_lc(relic_scores)),
-            asyncio.create_task(_step_relic_set_bonus()),
-        ]
-        await asyncio.gather(*tasks)
-
-    async def _create_eidolons_and_skills_wrap(self) -> None:
-        async def _step_eidolons():
-            # Create eidolons
-            self.logger.info("Creating the character eidolons...")
-            await self._create_eidolons()
-
-        async def _step_skills_traces():
-            # Create skills
-            self.logger.info("Creating the character skills...")
-            await self._create_skills_and_traces()
-
-        tasks = [
-            asyncio.create_task(_step_eidolons()),
-            asyncio.create_task(_step_skills_traces()),
-        ]
-        await asyncio.gather(*tasks)
-
     async def create(self, *, hide_uid: bool = False, hide_credits: bool = False, detailed: bool = False) -> bytes:
         self._assets_folder = await self._assets_folder.absolute()
         if not await self._assets_folder.exists():
@@ -1132,13 +1071,37 @@ class StarRailMihomoCard(StarRailDrawing):
         await self._async_close(avatar_icon)
 
         # Create the character card header.
-        await self._create_character_card_information_wrap()
+        ## Character header
+        self.logger.info("Creating the character card header...")
+        await self._create_character_card_header()
+        ## Character stats
+        self.logger.info("Creating the character card stats...")
+        await self._create_character_stats()
 
         # Create relics and light cone information.
-        await self._create_relics_light_cone_wrap(detailed=detailed)
+        try:
+            self.logger.info("Trying to get relic scores...")
+            relic_scores = self._relic_scorer.calculate(self._character, loader=self._index_data)
+        except RelicScoringNoSuchCharacterException:
+            relic_scores = None
+
+        ## Main relics
+        self.logger.info("Creating the character relics...")
+        await self._create_main_relics(relic_scores=relic_scores, detailed=detailed)
+        ## Planar and light cone
+        self.logger.info("Creating the character planar and light cone...")
+        await self._create_planar_and_light_cone(relic_scores=relic_scores, detailed=detailed)
+        ## Relic set bonus
+        self.logger.info("Creating relic set bonus...")
+        await self._create_relic_sets_bonus()
 
         # Create eidolons and skills information.
-        await self._create_eidolons_and_skills_wrap()
+        ## Create eidolons
+        self.logger.info("Creating the character eidolons...")
+        await self._create_eidolons()
+        ## Create skills
+        self.logger.info("Creating the character skills...")
+        await self._create_skills_and_traces()
 
         # Create footer
         self.logger.info("Creating the character footer...")
