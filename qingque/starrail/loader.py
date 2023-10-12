@@ -35,6 +35,7 @@ from msgspec import Struct
 
 from qingque.i18n import QingqueLanguage
 from qingque.mihomo.models.constants import MihomoLanguage
+from qingque.tooling import get_logger
 
 from .models import (
     SRSAchievement,
@@ -64,6 +65,7 @@ from .models import (
 )
 
 __all__ = ("SRSDataLoader",)
+logger = get_logger("qingque.starrail.loader")
 INDEX_ROOT_DIR = Path(__file__).absolute().parent.parent / "assets" / "srs" / "index"
 
 SRSModelT = TypeVar("SRSModelT", bound=Struct)
@@ -173,9 +175,14 @@ class SRSDataLoader:
         for key, (model, attr) in self.__loader_maps.items():
             if getattr(self, attr) is not None:
                 continue
+            logger.debug(f"Loading `{key}` index for lang {self._language.value!r}")
             index_json = self.base_path / self._language.value / f"{key}.json"
             index_data = index_json.read_bytes()
-            loaded_models = self._load_models(index_data, model)
+            try:
+                loaded_models = self._load_models(index_data, model)
+            except Exception as exc:
+                logger.error(f"Failed to load `{key}` index.", exc_info=exc)
+                raise exc
             setattr(self, attr, loaded_models)
         nickname = self.base_path / self._language.value / "nickname.json"
         nickname_data = nickname.read_bytes()
@@ -185,9 +192,13 @@ class SRSDataLoader:
         for key, (model, attr) in self.__loader_maps.items():
             if getattr(self, attr) is not None:
                 continue
+            logger.debug(f"Loading `{key}` index for lang {self._language.value!r}")
             index_json = AsyncPath(self.base_path / self._language.value / f"{key}.json")
             index_data = await index_json.read_bytes()
-            loaded_models = self._load_models(index_data, model)
+            try:
+                loaded_models = self._load_models(index_data, model)
+            except Exception as exc:
+                logger.error(f"Failed to load `{key}` index.", exc_info=exc)
             setattr(self, attr, loaded_models)
         nickname = AsyncPath(self.base_path / self._language.value / "nickname.json")
         nickname_data = await nickname.read_bytes()
