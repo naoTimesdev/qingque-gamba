@@ -70,11 +70,11 @@ class PlayerAvatar(MihomoBase, frozen=True):
 
 
 class PlayerForgottenHall(MihomoBase, frozen=True):
-    finished_floor: int = field(name="maze_group_index")
+    finished_floor: int = field(name="pre_maze_group_index")
     """:class:`ForgottenHallFloor`: The finished floor index of the Forgotten Hall."""
-    moc_finished_floor: int = field(name="maze_group_id")
+    moc_finished_floor: int = field(name="maze_group_index")
     """:class:`MemoryOfChaosFloor`: The finished floor index of the Memory of Chaos."""
-    moc_floor_id: int = field(name="pre_maze_group_index")
+    moc_floor_id: int = field(name="maze_group_id")
     """:class:`int`: The floor ID of the Memory of Chaos."""
 
 
