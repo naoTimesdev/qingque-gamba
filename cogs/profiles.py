@@ -425,8 +425,8 @@ async def qqprofile_srchronicle(inter: discord.Interaction[QingqueClient]):
 
     logger.info(f"Generating profile card for {sel_uid}...")
     card_char = StarRailChronicleNotesCard(
-        hoyo_overview,
-        hoyo_realtime,
+        overview=hoyo_overview,
+        chronicle=hoyo_realtime,
         language=lang,
         loader=loader,
         img_cache=inter.client.srs_img_cache,
