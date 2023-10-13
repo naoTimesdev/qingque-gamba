@@ -72,9 +72,11 @@ class StarRailImageCache:
         io.write(read_data)
         io.seek(0)
 
+        loop = asyncio.get_running_loop()
+
         # Open as RGBA
-        as_img = await self._loop.run_in_executor(None, Image.open, io)
-        as_img = await self._loop.run_in_executor(None, as_img.convert, "RGBA")
+        as_img = await loop.run_in_executor(None, Image.open, io)
+        as_img = await loop.run_in_executor(None, as_img.convert, "RGBA")
         setattr(as_img, CACHE_IMG_PATH, abs_path)
 
         if not io.closed:
@@ -87,9 +89,10 @@ class StarRailImageCache:
     async def clear(self) -> None:
         """Close all the images."""
 
+        loop = asyncio.get_running_loop()
         for img in self._cache.values():
             # Close
-            await self._loop.run_in_executor(None, img.close)
+            await loop.run_in_executor(None, img.close)
         self._cache.clear()
         gc.collect()
 
@@ -109,6 +112,7 @@ class StarRailImageCache:
                 pass
             gc.collect()
 
-        await self._loop.run_in_executor(None, canvas.close)
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, canvas.close)
         del canvas
         gc.collect()
