@@ -93,7 +93,7 @@ class QingqueClient(discord.Client):
         self._custom_emojis = CustomEmoji()
         self._srs_folder = ROOT_DIR / "qingque" / "assets" / "srs"
         self._srs_extras = ROOT_DIR / "qingque" / "assets" / "images"
-        self._srs_img_cache = StarRailImageCache()
+        self._srs_img_cache: StarRailImageCache | None = None
 
     @property
     def mihomo(self) -> MihomoAPI:
@@ -130,6 +130,8 @@ class QingqueClient(discord.Client):
 
     @property
     def srs_img_cache(self) -> StarRailImageCache:
+        if self._srs_img_cache is None:
+            raise RuntimeError("SRS image cache is not setup yet.")
         return self._srs_img_cache
 
     async def setup_hook(self) -> None:
@@ -175,6 +177,7 @@ class QingqueClient(discord.Client):
             self._srs_datas[lang] = loader
 
     async def _preload_srs_assets(self):
+        self._srs_img_cache = StarRailImageCache(loop=self.loop)
         # Element
         elem_folder = AsyncPath(self._srs_folder / "icon" / "element")
         logger.debug(f"Preloading SRS assets: {elem_folder}...")
@@ -266,8 +269,9 @@ class QingqueClient(discord.Client):
         for loader in self._srs_datas.values():
             loader.unloads()
         self.logger.info("SRS data unloaded.")
-        self.logger.info("Clearing image cache...")
-        await self._srs_img_cache.clear()
+        if self._srs_img_cache is not None:
+            self.logger.info("Clearing image cache...")
+            await self._srs_img_cache.clear()
 
         self.logger.info("Unloading relic scorer...")
         self._relic_scorer.unload()

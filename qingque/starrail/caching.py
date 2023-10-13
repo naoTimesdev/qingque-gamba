@@ -38,9 +38,9 @@ CACHE_IMG_PATH: Final[str] = "_wrapped_path_"
 
 
 class StarRailImageCache:
-    def __init__(self) -> None:
+    def __init__(self, *, loop: asyncio.AbstractEventLoop | None = None) -> None:
         self._cache: dict[str, Image.Image] = {}
-        self._loop = asyncio.get_running_loop()
+        self._loop = loop or asyncio.get_running_loop()
 
     async def get(self, path: AsyncPath) -> Image.Image:
         """Open an image asynchronously.
