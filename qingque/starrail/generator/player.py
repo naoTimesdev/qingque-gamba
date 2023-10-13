@@ -33,6 +33,7 @@ from qingque.i18n import QingqueLanguage
 from qingque.mihomo.models.characters import Character
 from qingque.mihomo.models.constants import MihomoLanguage
 from qingque.mihomo.models.player import Player
+from qingque.starrail.caching import StarRailImageCache
 from qingque.starrail.imaging import AsyncImageFilter
 from qingque.starrail.loader import SRSDataLoader
 from qingque.tooling import get_logger
@@ -51,8 +52,9 @@ class StarRailPlayerCard(StarRailDrawing):
         *,
         language: MihomoLanguage | HYLanguage | QingqueLanguage = MihomoLanguage.EN,
         loader: SRSDataLoader | None = None,
+        img_cache: StarRailImageCache | None = None,
     ) -> None:
-        super().__init__(language=language, loader=loader)
+        super().__init__(language=language, loader=loader, img_cache=img_cache)
         self.logger = get_logger(
             "qingque.starrail.generator.player", adapter=StarRailDrawingLogger.create(f"UID-{player.player.id}")
         )
@@ -613,7 +615,7 @@ class StarRailPlayerCard(StarRailDrawing):
             )
             MARGIN_TOP += 250
 
-    async def create(self) -> bytes:
+    async def create(self, *, clear_cache: bool = True) -> bytes:
         self._assets_folder = await self._assets_folder.absolute()
         if not await self._assets_folder.exists():
             raise FileNotFoundError("The assets folder does not exist.")
@@ -656,8 +658,7 @@ class StarRailPlayerCard(StarRailDrawing):
 
         # Clean up
         self.logger.info("Cleaning up...")
-        await self._async_close(self._canvas)
-        await self.close()
+        await self.close(clear_cache)
 
         # Return the bytes.
         bytes_io.seek(0)

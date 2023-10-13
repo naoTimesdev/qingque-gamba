@@ -30,6 +30,7 @@ from PIL import ImageEnhance
 
 from qingque.hylab.models.forgotten_hall import ChronicleFHFloor, ChronicleFHNode
 from qingque.mihomo.models.constants import MihomoLanguage
+from qingque.starrail.caching import StarRailImageCache
 from qingque.starrail.imaging import AsyncImageEnhance
 from qingque.tooling import get_logger
 
@@ -54,8 +55,9 @@ class StarRailMoCCard(StarRailDrawGradientMixin, StarRailDrawCharacterMixin, Sta
         *,
         language: MihomoLanguage | HYLanguage | QingqueLanguage = MihomoLanguage.EN,
         loader: SRSDataLoader | None = None,
+        img_cache: StarRailImageCache | None = None,
     ) -> None:
-        super().__init__(language=language, loader=loader)
+        super().__init__(language=language, loader=loader, img_cache=img_cache)
         self._floor: ChronicleFHFloor = floor
         self.logger = get_logger(
             "qingque.starrail.generator.moc",
@@ -159,7 +161,9 @@ class StarRailMoCCard(StarRailDrawGradientMixin, StarRailDrawCharacterMixin, Sta
             alpha=round(0.8 * 255),
         )
 
-    async def create(self, *, hide_credits: bool = False, hide_timestamp: bool = False) -> bytes:
+    async def create(
+        self, *, hide_credits: bool = False, hide_timestamp: bool = False, clear_cache: bool = True
+    ) -> bytes:
         self._assets_folder = await self._assets_folder.absolute()
         if not await self._assets_folder.exists():
             raise FileNotFoundError("The assets folder does not exist.")
@@ -227,8 +231,7 @@ class StarRailMoCCard(StarRailDrawGradientMixin, StarRailDrawCharacterMixin, Sta
         bytes_io = await self._async_save_bytes(self._canvas)
 
         self.logger.info("Cleaning up...")
-        await self._async_close(self._canvas)
-        await self.close()
+        await self.close(clear_cache)
 
         # Return the bytes.
         bytes_io.seek(0)

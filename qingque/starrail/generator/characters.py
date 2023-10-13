@@ -29,6 +29,7 @@ from typing import TYPE_CHECKING
 from qingque.hylab.models.characters import ChronicleCharacters
 from qingque.hylab.models.overview import ChronicleUserInfo
 from qingque.mihomo.models.constants import MihomoLanguage
+from qingque.starrail.caching import StarRailImageCache
 from qingque.tooling import get_logger
 
 from .base import StarRailDrawing, StarRailDrawingLogger
@@ -58,8 +59,9 @@ class StarRailCharactersCard(StarRailDrawDecoMixin, StarRailDrawCharacterMixin, 
         *,
         language: MihomoLanguage | HYLanguage | QingqueLanguage = MihomoLanguage.EN,
         loader: SRSDataLoader | None = None,
+        img_cache: StarRailImageCache | None = None,
     ) -> None:
-        super().__init__(language=language, loader=loader)
+        super().__init__(language=language, loader=loader, img_cache=img_cache)
         self._characters: ChronicleCharacters = characters
 
         self._user_info: ChronicleUserInfo = user_info
@@ -116,7 +118,7 @@ class StarRailCharactersCard(StarRailDrawDecoMixin, StarRailDrawCharacterMixin, 
             )
             MARGIN_TOP += self.CHARACTER_SIZE + 30 + self.MARGIN_CHAR_TOP
 
-    async def create(self, *, hide_credits: bool = False) -> bytes:
+    async def create(self, *, hide_credits: bool = False, clear_cache: bool = True) -> bytes:
         self._assets_folder = await self._assets_folder.absolute()
         if not await self._assets_folder.exists():
             raise FileNotFoundError("The assets folder does not exist.")
@@ -174,8 +176,7 @@ class StarRailCharactersCard(StarRailDrawDecoMixin, StarRailDrawCharacterMixin, 
         bytes_io = await self._async_save_bytes(self._canvas)
 
         self.logger.info("Cleaning up...")
-        await self._async_close(self._canvas)
-        await self.close()
+        await self.close(clear_cache)
 
         # Return the bytes.
         bytes_io.seek(0)

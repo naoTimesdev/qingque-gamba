@@ -40,6 +40,7 @@ from qingque.hylab.models.simuniverse import (
 )
 from qingque.i18n import get_roman_numeral
 from qingque.mihomo.models.constants import MihomoLanguage
+from qingque.starrail.caching import StarRailImageCache
 from qingque.starrail.imaging import AsyncImageEnhance, AsyncImageFilter
 from qingque.tooling import get_logger
 from qingque.utils import strip_unity_rich_text
@@ -89,8 +90,9 @@ class StarRailSimulatedUniverseCard(
         *,
         language: MihomoLanguage | HYLanguage | QingqueLanguage = MihomoLanguage.EN,
         loader: SRSDataLoader | None = None,
+        img_cache: StarRailImageCache | None = None,
     ) -> None:
-        super().__init__(language=language, loader=loader)
+        super().__init__(language=language, loader=loader, img_cache=img_cache)
         self._record = record
         self._user = user
         self._swarm_striders = swarm_striders or []
@@ -693,7 +695,9 @@ class StarRailSimulatedUniverseCard(
             MARGIN_TOP += 50
         await self._async_close(default_block_bg)
 
-    async def create(self, *, hide_credits: bool = False, hide_timestamp: bool = False) -> bytes:
+    async def create(
+        self, *, hide_credits: bool = False, hide_timestamp: bool = False, clear_cache: bool = True
+    ) -> bytes:
         self._assets_folder = await self._assets_folder.absolute()
         if not await self._assets_folder.exists():
             raise FileNotFoundError("The assets folder does not exist.")
@@ -763,8 +767,7 @@ class StarRailSimulatedUniverseCard(
         bytes_io = await self._async_save_bytes(self._canvas)
 
         self.logger.info("Cleaning up...")
-        await self._async_close(self._canvas)
-        await self.close()
+        await self.close(clear_cache)
 
         # Return the bytes.
         bytes_io.seek(0)

@@ -37,6 +37,7 @@ from qingque.mihomo.models.player import PlayerInfo
 from qingque.mihomo.models.relics import Relic, RelicSet
 from qingque.mihomo.models.stats import StatsAtrributes, StatsField, StatsProperties, StatsPropertiesAffix
 from qingque.models.region import HYVServer
+from qingque.starrail.caching import StarRailImageCache
 from qingque.starrail.models.relics import SRSRelicType
 from qingque.starrail.models.stats import SRSProperties
 from qingque.starrail.scoring import RelicScores, RelicScoring, RelicScoringNoSuchCharacterException
@@ -181,8 +182,9 @@ class StarRailMihomoCard(StarRailDrawing):
         language: MihomoLanguage | QingqueLanguage | HYLanguage = MihomoLanguage.EN,
         loader: SRSDataLoader | None = None,
         relic_scorer: RelicScoring | None = None,
+        img_cache: StarRailImageCache | None = None,
     ) -> None:
-        super().__init__(language=language, loader=loader)
+        super().__init__(language=language, loader=loader, img_cache=img_cache)
         self.logger = get_logger(
             "qingque.starrail.generator.mihomo",
             adapter=StarRailDrawingLogger.create(f"UID-{player.id}/C-{character.id}"),
@@ -199,7 +201,7 @@ class StarRailMihomoCard(StarRailDrawing):
         )
 
     def is_trailblazer(self):
-        return int(self._character.id) >= 8001
+        return int(self._character.id) >= 8000
 
     def _get_element(self, element: ElementType) -> AsyncPath:
         elem_txt = element.name
@@ -1020,7 +1022,14 @@ class StarRailMihomoCard(StarRailDrawing):
             # Close image
             await self._async_close(trace_icon)
 
-    async def create(self, *, hide_uid: bool = False, hide_credits: bool = False, detailed: bool = False) -> bytes:
+    async def create(
+        self,
+        *,
+        hide_uid: bool = False,
+        hide_credits: bool = False,
+        detailed: bool = False,
+        clear_cache: bool = True,
+    ) -> bytes:
         self._assets_folder = await self._assets_folder.absolute()
         if not await self._assets_folder.exists():
             raise FileNotFoundError("The assets folder does not exist.")
@@ -1165,8 +1174,7 @@ class StarRailMihomoCard(StarRailDrawing):
 
         self.logger.info("Cleaning up...")
         await self._async_close(main_canvas)
-        await self._async_close(self._canvas)
-        await self.close()
+        await self.close(clear_cache)
 
         # Return the bytes.
         bytes_io.seek(0)
