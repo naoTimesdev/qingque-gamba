@@ -24,6 +24,7 @@ SOFTWARE.
 
 from __future__ import annotations
 
+import gc
 import importlib
 from pathlib import Path
 from typing import Any
@@ -47,6 +48,7 @@ from qingque.i18n import QingqueLanguage, get_i18n, load_i18n_languages
 from qingque.mihomo.client import MihomoAPI
 from qingque.models.config import QingqueConfig
 from qingque.redisdb import RedisDatabase
+from qingque.starrail.caching import StarRailImageCache
 from qingque.starrail.loader import SRSDataLoader
 from qingque.starrail.scoring import RelicScoring
 from qingque.tooling import get_logger
@@ -89,6 +91,9 @@ class QingqueClient(discord.Client):
         self._relic_scorer = RelicScoring(ROOT_DIR / "qingque" / "assets" / "relic_scores.json")
 
         self._custom_emojis = CustomEmoji()
+        self._srs_folder = ROOT_DIR / "qingque" / "assets" / "srs"
+        self._srs_extras = ROOT_DIR / "qingque" / "assets" / "images"
+        self._srs_img_cache = StarRailImageCache()
 
     @property
     def mihomo(self) -> MihomoAPI:
@@ -123,6 +128,10 @@ class QingqueClient(discord.Client):
     def relic_scorer(self) -> RelicScoring:
         return self._relic_scorer
 
+    @property
+    def srs_img_cache(self) -> StarRailImageCache:
+        return self._srs_img_cache
+
     async def setup_hook(self) -> None:
         self.logger.info("Setting up the bot...")
         await self.tree.set_translator(QingqueClientI18n())
@@ -147,6 +156,9 @@ class QingqueClient(discord.Client):
             self._hoyoapi = hoyolab
         logger.info("Setting up SRS data...")
         await self.load_srs_data()
+        logger.info("Preloading SRS assets...")
+        await self._preload_srs_assets()
+        logger.info("Loading all extensions/cogs...")
         await self.load_extensions()
         logger.info("Setting up relic scorer...")
         await self._relic_scorer.async_load()
@@ -161,6 +173,40 @@ class QingqueClient(discord.Client):
             logger.debug(f"Loading SRS data for {lang}...")
             await loader.async_loads()
             self._srs_datas[lang] = loader
+
+    async def _preload_srs_assets(self):
+        # Element
+        elem_folder = AsyncPath(self._srs_folder / "icon" / "element")
+        logger.debug(f"Preloading SRS assets: {elem_folder}...")
+        async for elem_icon in elem_folder.glob("*.png"):
+            await self._srs_img_cache.get(elem_icon)
+
+        SELECTED_DECO = [
+            "DecoShortLineRing177R@3x.png",
+            "DialogFrameDeco1.png",
+            "DialogFrameDeco1@3x.png",
+            "NewSystemDecoLine.png",
+            "StarBig.png",
+            "StarBig_WhiteGlow.png",
+            "IconCompassDeco.png",
+        ]
+        logger.debug("Preloading SRS assets: pre-selected deco...")
+        for deco in SELECTED_DECO:
+            await self._srs_img_cache.get(AsyncPath(self._srs_folder / "icon" / "deco" / deco))
+        await self._srs_img_cache.get(AsyncPath(self._srs_extras / "MihomoCardDeco50.png"))
+        await self._srs_img_cache.get(AsyncPath(self._srs_extras / "PomPomDecoStamp.png"))
+
+        # Path
+        path_folder = AsyncPath(self._srs_folder / "icon" / "path")
+        logger.debug(f"Preloading SRS assets: {path_folder}...")
+        async for path_icon in path_folder.glob("*.png"):
+            await self._srs_img_cache.get(path_icon)
+
+        # Property
+        prop_folder = AsyncPath(self._srs_folder / "icon" / "property")
+        logger.debug(f"Preloading SRS assets: {prop_folder}...")
+        async for prop_icon in prop_folder.glob("*.png"):
+            await self._srs_img_cache.get(prop_icon)
 
     async def available_extensions(self) -> list[app_commands.Command]:
         COGS_FOLDER = AsyncPath(ROOT_DIR / "cogs")
@@ -220,10 +266,14 @@ class QingqueClient(discord.Client):
         for loader in self._srs_datas.values():
             loader.unloads()
         self.logger.info("SRS data unloaded.")
+        self.logger.info("Clearing image cache...")
+        await self._srs_img_cache.clear()
 
         self.logger.info("Unloading relic scorer...")
         self._relic_scorer.unload()
         self.logger.info("Relic scorer unloaded.")
+
+        gc.collect()
 
         return await super().close()
 

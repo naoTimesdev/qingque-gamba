@@ -54,6 +54,7 @@ from qingque.models.account_select import AccountSelectView
 from qingque.models.embed_paging import EmbedPagingSelectView, PagingChoice
 from qingque.models.persistence import QingqueProfile, QingqueProfileV2
 from qingque.redisdb import RedisDatabase
+from qingque.starrail.caching import StarRailImageCache
 from qingque.starrail.generator import StarRailMihomoCard
 from qingque.starrail.generator.characters import StarRailCharactersCard
 from qingque.starrail.generator.chronicles import StarRailChronicleNotesCard
@@ -102,6 +103,7 @@ async def _batch_gen_player_card(
     language: QingqueLanguage,
     loader: SRSDataLoader,
     scorer: RelicScoring,
+    img_cache: StarRailImageCache,
     *,
     detailed: bool = False,
 ) -> PagingChoice:
@@ -112,8 +114,9 @@ async def _batch_gen_player_card(
         language=language,
         loader=loader,
         relic_scorer=scorer,
+        img_cache=img_cache,
     )
-    card_data = await card_char.create(hide_credits=True, detailed=detailed)
+    card_data = await card_char.create(hide_credits=True, detailed=detailed, clear_cache=False)
 
     logger.info(f"Adding character {character.name} profile card for UID {player.id}")
     filename = f"{player.id}_{idx:02d}_{character.id}.QingqueBot.png"
@@ -216,6 +219,7 @@ async def qqprofile_srprofile(
                 lang,
                 inter.client.get_srs(lang),
                 inter.client.relic_scorer,
+                inter.client.srs_img_cache,
                 detailed=detailed,
             )
         )
@@ -285,8 +289,13 @@ async def qqprofile_srplayer(inter: discord.Interaction[QingqueClient], uid: int
         return
     logger.info(f"Getting profile card for UID {uid}")
 
-    generator = StarRailPlayerCard(data_player, language=lang, loader=inter.client.get_srs(lang))
-    card_bytes = await generator.create()
+    generator = StarRailPlayerCard(
+        data_player,
+        language=lang,
+        loader=inter.client.get_srs(lang),
+        img_cache=inter.client.srs_img_cache,
+    )
+    card_bytes = await generator.create(clear_cache=False)
 
     player_io = BytesIO(card_bytes)
     player_io.seek(0)
@@ -420,8 +429,9 @@ async def qqprofile_srchronicle(inter: discord.Interaction[QingqueClient]):
         hoyo_realtime,
         language=lang,
         loader=loader,
+        img_cache=inter.client.srs_img_cache,
     )
-    card_data = await card_char.create(hide_credits=True)
+    card_data = await card_char.create(hide_credits=True, clear_cache=False)
 
     card_io = BytesIO(card_data)
     card_file = discord.File(card_io, f"{sel_uid}_ChroniclesOverview.QingqueBot.png")
@@ -536,9 +546,13 @@ async def qqprofile_srcharacters(inter: discord.Interaction[QingqueClient]):
 
     logger.info(f"Generating profile characters card for {sel_uid}...")
     chara_gen = StarRailCharactersCard(
-        hoyo_user_info, hoyo_characters, language=lang, loader=inter.client.get_srs(lang)
+        hoyo_user_info,
+        hoyo_characters,
+        language=lang,
+        loader=inter.client.get_srs(lang),
+        img_cache=inter.client.srs_img_cache,
     )
-    chara_bytes = await chara_gen.create(hide_credits=True)
+    chara_bytes = await chara_gen.create(hide_credits=True, clear_cache=False)
 
     chara_io = BytesIO(chara_bytes)
     chara_io.seek(0)
@@ -601,11 +615,12 @@ async def _make_rogue_card(
         overview.destiny if isinstance(overview, ChronicleRogueLocustOverview) else [],
         language=lang,
         loader=inter.client.get_srs(lang),
+        img_cache=inter.client.srs_img_cache,
     )
 
     end_time_fmt = end_time.strftime("%a, %b %d %Y %H:%M")
 
-    card_bytes = await gen_card.create(hide_credits=True)
+    card_bytes = await gen_card.create(hide_credits=True, clear_cache=False)
     card_fn = f"SimulatedUniverse_Run{filename_pre}.QingqueBot.png"
     card_io = FileBytes(card_bytes, filename=card_fn)
     title = t("chronicles.rogue.title")
@@ -822,11 +837,12 @@ async def _make_moc_card(
         floor,
         language=lang,
         loader=inter.client.get_srs(lang),
+        img_cache=inter.client.srs_img_cache,
     )
 
     challenge_time_fmt = challenge_time.strftime("%a, %b %d %Y %H:%M")
 
-    card_bytes = await gen_card.create(hide_credits=True)
+    card_bytes = await gen_card.create(hide_credits=True, clear_cache=False)
     card_fn = f"MemoryOfChaos_{sorter}.QingqueBot.png"
     card_io = FileBytes(card_bytes, filename=card_fn)
     title = strip_unity_rich_text(floor.name) + " | " + challenge_time_fmt
