@@ -9,6 +9,7 @@ The internal module for StarRail.
 
 from . import generator, models
 from .caching import *
+from .fuqing import *
 from .imaging import *
 from .loader import *
 from .scoring import *

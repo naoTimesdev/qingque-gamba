@@ -49,6 +49,7 @@ from qingque.mihomo.client import MihomoAPI
 from qingque.models.config import QingqueConfig
 from qingque.redisdb import RedisDatabase
 from qingque.starrail.caching import StarRailImageCache
+from qingque.starrail.fuqing import QingqueAPI
 from qingque.starrail.loader import SRSDataLoader
 from qingque.starrail.scoring import RelicScoring
 from qingque.tooling import get_logger
@@ -87,6 +88,7 @@ class QingqueClient(discord.Client):
         self._mihomo: MihomoAPI | None = None
         self._hoyoapi: HYLabClient | None = None
         self._redis: RedisDatabase | None = None
+        self._fuqing: QingqueAPI | None = None
         self._srs_datas = {}
         self._relic_scorer = RelicScoring(ROOT_DIR / "qingque" / "assets" / "relic_scores.json")
 
@@ -120,6 +122,12 @@ class QingqueClient(discord.Client):
     @property
     def custom_emojis(self) -> CustomEmoji:
         return self._custom_emojis
+
+    @property
+    def fuqing(self) -> QingqueAPI:
+        if self._fuqing is None:
+            raise RuntimeError("Fuqing client is not setup yet.")
+        return self._fuqing
 
     def get_srs(self, lang: QingqueLanguage) -> SRSDataLoader:
         return self._srs_datas[lang]
@@ -156,6 +164,10 @@ class QingqueClient(discord.Client):
             hoyolab = HYLabClient(self._config.hoyolab.ltuid, self._config.hoyolab.ltoken)
             self.logger.info("HYLab client connected.")
             self._hoyoapi = hoyolab
+        self.logger.info("Setting up Fuqing client...")
+        fuqing = QingqueAPI(self._config.api_endpoint, token_exchange=self._config.api_token)
+        self.logger.info("Fuqing client connected.")
+        self._fuqing = fuqing
         logger.info("Setting up SRS data...")
         await self.load_srs_data()
         logger.info("Preloading SRS assets...")

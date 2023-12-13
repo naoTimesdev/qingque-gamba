@@ -72,23 +72,18 @@ class PlayerAvatar(MihomoBase, frozen=True):
 
 
 class PlayerForgottenHall(MihomoBase, frozen=True):
-    # TODO: Change with chaos_level
-    finished_floor: int = field(name="pre_maze_group_index")
+    finished_floor: int = field(name="chaos_level")
     """:class:`ForgottenHallFloor`: The finished floor index of the Forgotten Hall."""
-    # TODO: Change with level
-    moc_finished_floor: int = field(name="maze_group_index")
+    moc_finished_floor: int = field(name="level")
     """:class:`MemoryOfChaosFloor`: The finished floor index of the Memory of Chaos."""
-    # TODO: Change with chaos_id
-    moc_floor_id: int = field(name="maze_group_id")
+    moc_floor_id: int = field(name="chaos_id")
     """:class:`int`: The floor ID of the Memory of Chaos."""
 
 
 class PlayerProgression(MihomoBase, frozen=True):
-    # TODO: Change with memory_data
-    forgotten_hall: PlayerForgottenHall = field(name="challenge_data")
+    forgotten_hall: PlayerForgottenHall = field(name="memory_data")
     """:class:`PlayerForgottenHall`: The player's Forgotten Hall progression."""
-    # TODO: Change with universe_level
-    simulated_universe: SimulatedUniverse = field(name="pass_area_progress")
+    simulated_universe: SimulatedUniverse = field(name="universe_level")
     """:class:`SimulatedUniverse`: The player's Simulated Universe progression."""
     light_cones: int = field(name="light_cone_count")
     """:class:`int`: The player's Light Cone count."""

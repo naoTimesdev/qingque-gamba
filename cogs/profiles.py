@@ -26,10 +26,9 @@ from __future__ import annotations
 
 import asyncio
 import functools
-from concurrent.futures import ThreadPoolExecutor
 from datetime import timezone
 from io import BytesIO
-from typing import TYPE_CHECKING, Any, Coroutine, Final
+from typing import Any, Coroutine, Final
 
 import discord
 from discord import app_commands
@@ -54,20 +53,13 @@ from qingque.models.account_select import AccountSelectView
 from qingque.models.embed_paging import EmbedPagingSelectView, PagingChoice
 from qingque.models.persistence import QingqueProfile, QingqueProfileV2
 from qingque.redisdb import RedisDatabase
-from qingque.starrail.caching import StarRailImageCache
-from qingque.starrail.generator import StarRailMihomoCard
 from qingque.starrail.generator.characters import StarRailCharactersCard
 from qingque.starrail.generator.chronicles import StarRailChronicleNotesCard
 from qingque.starrail.generator.mihomo import get_mihomo_dominant_color
 from qingque.starrail.generator.moc import StarRailMoCCard
-from qingque.starrail.generator.player import StarRailPlayerCard
 from qingque.starrail.generator.simuniverse import StarRailSimulatedUniverseCard
-from qingque.starrail.loader import SRSDataLoader
 from qingque.tooling import get_logger
 from qingque.utils import strip_unity_rich_text
-
-if TYPE_CHECKING:
-    from qingque.starrail.scoring import RelicScoring
 
 __all__ = (
     "qqprofile_srprofile",
@@ -96,31 +88,9 @@ async def get_profile_from_persistent(discord_id: int, redis: RedisDatabase) -> 
 
 
 async def _batch_gen_player_card(
-    idx: int,
-    player: PlayerInfo,
-    character: Character,
-    t: PartialTranslate,
-    language: QingqueLanguage,
-    loader: SRSDataLoader,
-    scorer: RelicScoring,
-    img_cache: StarRailImageCache,
-    *,
-    detailed: bool = False,
+    idx: int, player: PlayerInfo, character: Character, t: PartialTranslate, *, image_url: str
 ) -> PagingChoice:
-    logger.info(f"Generating character {character.name} profile card for UID {player.id}")
-    card_char = StarRailMihomoCard(
-        character,
-        player,
-        language=language,
-        loader=loader,
-        relic_scorer=scorer,
-        img_cache=img_cache,
-    )
-    card_data = await card_char.create(hide_credits=True, detailed=detailed, clear_cache=False)
-
     logger.info(f"Adding character {character.name} profile card for UID {player.id}")
-    filename = f"{player.id}_{idx:02d}_{character.id}.QingqueBot.png"
-    file = FileBytes(card_data, filename=filename)
     char_color = get_mihomo_dominant_color(character.id)
     char_disc_color = discord.Colour.from_rgb(*char_color) if char_color is not None else None
     char_header = t("character_header", [character.name, f"{character.level:02d}"])
@@ -148,12 +118,12 @@ async def _batch_gen_player_card(
         em_emote = None
 
     embed.description = "\n".join(description)
-    embed.set_image(url=f"attachment://{filename}")
+    embed.set_image(url=image_url)
     embed.set_author(
         name=player.name,
         icon_url=f"{SRS_BASE}{player.avatar.icon_url}",
     )
-    return PagingChoice(title=char_header, embed=embed, file=file, emoji=em_emote)
+    return PagingChoice(title=char_header, embed=embed, emoji=em_emote)
 
 
 @app_commands.command(name="srprofile", description=locale_str("srprofile.desc"))
@@ -161,7 +131,6 @@ async def _batch_gen_player_card(
 async def qqprofile_srprofile(
     inter: discord.Interaction[QingqueClient], uid: int | None = None, detailed: bool = False
 ):
-    mihomo = inter.client.mihomo
     lang = QingqueLanguage.from_discord(inter.locale)
     t = functools.partial(get_i18n().t, language=lang)
 
@@ -192,53 +161,45 @@ async def qqprofile_srprofile(
 
             uid = select_account.account.uid
 
+    logger.info(f"Exchanging token for UID {uid}")
+    try:
+        token_res = await inter.client.fuqing.exchange_mihomo(uid)
+    except Exception as e:
+        logger.error(f"Error exchanging token for UID {uid}: {e}")
+        error_message = str(e)
+        await original_message.edit(content=t("exception", [f"```{error_message}```"]))
+        return
+
+    if token_res is None:
+        logger.warning(f"Token exchange for UID {uid} failed.")
+        await original_message.edit(content=t("invalid_token"))
+        return
+
+    token = token_res.token
+
     logger.info(f"Getting profile info for UID {uid}")
     try:
-        data_player, _ = await mihomo.get_player(uid)
+        player_data = await inter.client.fuqing.get_mihomo(token)
     except Exception as e:
         logger.error(f"Error getting profile info for UID {uid}: {e}")
         error_message = str(e)
         await original_message.edit(content=t("exception", [f"```{error_message}```"]))
         return
-    logger.info(f"Getting profile card for UID {uid}")
 
-    if not data_player.characters:
+    if not player_data.characters:
         return await original_message.edit(content=t("srprofile.no_characters"))
 
-    def _batch_gen_player_card_threadsafe(
-        idx: int,
-        player: PlayerInfo,
-        character: Character,
-    ) -> PagingChoice:
-        return asyncio.run(
-            _batch_gen_player_card(
+    profile_choices: list[PagingChoice] = []
+    for idx, character in enumerate(player_data.characters):
+        profile_choices.append(
+            await _batch_gen_player_card(
                 idx,
-                player,
+                player_data.player,
                 character,
                 t,
-                lang,
-                inter.client.get_srs(lang),
-                inter.client.relic_scorer,
-                inter.client.srs_img_cache,
-                detailed=detailed,
+                image_url=inter.client.fuqing.get_mihomo_profile(idx + 1, token, lang, detailed=detailed),
             )
         )
-
-    executor = ThreadPoolExecutor(max_workers=None)
-    ev_loop = asyncio.get_event_loop()
-    future_executors: list[asyncio.Future[PagingChoice]] = []
-    for idx, character in enumerate(data_player.characters):
-        future_executors.append(
-            ev_loop.run_in_executor(executor, _batch_gen_player_card_threadsafe, idx, data_player.player, character)
-        )
-
-    try:
-        profile_choices: list[PagingChoice] = await asyncio.gather(*future_executors)
-    except Exception as e:
-        logger.error(f"Error generating profile card for UID {uid}: {e}", exc_info=e)
-        await original_message.edit(content=t("exception", [f"```{e!s}```"]))
-        return
-    executor.shutdown(wait=False)
 
     logger.info("Sending to Discord...")
     pagination_view = EmbedPagingSelectView(profile_choices, inter.locale, user_id=inter.user.id)
@@ -248,7 +209,6 @@ async def qqprofile_srprofile(
 @app_commands.command(name="srplayer", description=locale_str("srplayer.desc"))
 @app_commands.describe(uid=locale_str("srplayer.uid_desc"))
 async def qqprofile_srplayer(inter: discord.Interaction[QingqueClient], uid: int | None = None):
-    mihomo = inter.client.mihomo
     lang = QingqueLanguage.from_discord(inter.locale)
     t = functools.partial(get_i18n().t, language=lang)
 
@@ -279,30 +239,27 @@ async def qqprofile_srplayer(inter: discord.Interaction[QingqueClient], uid: int
 
             uid = select_account.account.uid
 
-    logger.info(f"Getting profile info for UID {uid}")
+    logger.info(f"Exchanging token for UID {uid}")
     try:
-        data_player, _ = await mihomo.get_player(uid)
+        token_res = await inter.client.fuqing.exchange_mihomo(uid)
     except Exception as e:
-        logger.error(f"Error getting profile info for UID {uid}: {e}")
+        logger.error(f"Error exchanging token for UID {uid}: {e}")
         error_message = str(e)
         await original_message.edit(content=t("exception", [f"```{error_message}```"]))
         return
-    logger.info(f"Getting profile card for UID {uid}")
 
-    generator = StarRailPlayerCard(
-        data_player,
-        language=lang,
-        loader=inter.client.get_srs(lang),
-        img_cache=inter.client.srs_img_cache,
-    )
-    card_bytes = await generator.create(clear_cache=False)
+    if token_res is None:
+        logger.warning(f"Token exchange for UID {uid} failed.")
+        await original_message.edit(content=t("invalid_token"))
+        return
 
-    player_io = BytesIO(card_bytes)
-    player_io.seek(0)
-    player_file = discord.File(player_io, filename=f"{uid}.QingqueBot.png")
+    token = token_res.token
+
+    embed = discord.Embed()
+    embed.set_image(url=inter.client.fuqing.get_mihomo_player(token, lang))
 
     logger.info("Sending to Discord...")
-    await original_message.edit(attachments=[player_file])
+    await original_message.edit(embed=embed)
 
 
 @app_commands.command(name="srchronicle", description=locale_str("srchronicle.desc"))
