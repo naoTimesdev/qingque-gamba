@@ -40,6 +40,7 @@ class CustomEmoji:
         "su_world5": "5️⃣",
         "su_world6": "6️⃣",
         "su_world7": "7️⃣",
+        "su_world8": "8️⃣",
         "su_swarmdlc": "🕸️",
     }
 
@@ -51,6 +52,7 @@ class CustomEmoji:
         "su_world5": PartialEmoji(name="_qq_su_world5", id=1149271784705769553),
         "su_world6": PartialEmoji(name="_qq_su_world6", id=1149271791072727120),
         "su_world7": PartialEmoji(name="_qq_su_world7", id=1149271798861541376),
+        "su_world8": PartialEmoji(name="_qq_su_world8", id=1184392472403648583),
         "su_swarmdlc": PartialEmoji(name="_qq_su_dlcworld", id=1149271756306141245),
     }
 

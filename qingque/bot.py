@@ -272,6 +272,11 @@ class QingqueClient(discord.Client):
             await self._hoyoapi.close()
             self.logger.info("HYLab client closed.")
 
+        if self._fuqing is not None:
+            self.logger.info("Closing Fuqing client...")
+            await self._fuqing.close()
+            self.logger.info("Fuqing client closed.")
+
         if self._redis is not None:
             self.logger.info("Closing Redis client...")
             await self._redis.close()
