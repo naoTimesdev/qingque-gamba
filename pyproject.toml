@@ -8,21 +8,22 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-msgspec = {extras = ["toml"], version = "^0.18.2"}
-"discord.py" = "^2.3.2"
-coloredlogs = "^15.0.1"
-orjson = "^3.9.5"
-redis = {extras = ["hiredis"], version = "^5.0.0"}
-aiopath = "^0.6.11"
-pillow = "^10.0.0"
-babel = "^2.12.1"
+msgspec = {extras = ["toml"], version = "0.18.5"}
+"discord.py" = "2.3.2"
+coloredlogs = "15.0.1"
+orjson = "3.9.10"
+redis = {extras = ["hiredis"], version = "5.0.1"}
+aiopath = "0.6.11"
+aiohttp = "3.9.1"
+pillow = "10.1.0"
+babel = "2.14.0"
 
 [tool.poetry.group.dev.dependencies]
-ruff = "^0.0.286"
-isort = "^5.12.0"
-black = "^23.7.0"
-typing-extensions = "^4.7.1"
-colorthief = "^0.2.1"
+ruff = "0.1.7"
+isort = "5.13.1"
+black = "23.12.0"
+typing-extensions = "4.9.0"
+colorthief = "0.2.1"
 
 [tool.poetry.scripts]
 srscard = "qingque.cli.generator:main"
