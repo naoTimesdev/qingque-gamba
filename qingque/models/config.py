@@ -61,16 +61,12 @@ class QingqueConfig(Struct):
     """:class:`int`: The bot ID."""
     bot_token: str
     """:class:`str`: The bot token."""
-    api_endpoint: str
-    """:class:`str`: The API endpoint of Qingque API."""
 
     redis: QingqueConfigRedis
     """:class:`QingqueConfigRedis`: The Redis config."""
 
     hoyolab: QingqueConfigHoyolab | None = None
     """:class:`QingqueConfigHoyolab | None`: The HoyoLab config."""
-    api_token: str | None = None
-    """:class:`str | None`: The strict API token of Qingque API."""
 
 
 def load_config() -> QingqueConfig:
