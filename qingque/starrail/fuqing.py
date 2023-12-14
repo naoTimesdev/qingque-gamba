@@ -135,7 +135,12 @@ class QingqueAPI:
         return data.data
 
     async def get_mihomo(self, token: str) -> Player:
-        resp = await self._client.get(f"/api/mihomo?token={token}")
+        resp = await self._client.get(
+            "/api/mihomo",
+            headers={
+                "X-Strict-Token": token,
+            },
+        )
         try:
             data = msgspec.json.decode(await resp.read(), type=Player)
         except msgspec.DecodeError as err:
