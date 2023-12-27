@@ -104,6 +104,8 @@ class SRSRogueBlessingKind(int, Enum):
     """Elation/Joy"""
     Propagation = 127
     """Propagation"""
+    Erudition = 128
+    """Erudition"""
     # Explore/Trailblazer/Akivili: ???
 
     @property
