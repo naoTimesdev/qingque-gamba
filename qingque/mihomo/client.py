@@ -30,9 +30,15 @@ import aiohttp
 import msgspec
 
 from qingque.mihomo.models import BASE_URL, MihomoLanguage, Player
+from qingque.tooling import get_logger
 
-__all__ = ("MihomoAPI",)
+__all__ = ("MihomoAPI", "MihomoError")
 MihomoT = TypeVar("MihomoT", bound=msgspec.Struct)
+logger = get_logger("qingque.mihomo.client")
+
+
+class MihomoError(msgspec.Struct):
+    detail: str
 
 
 class MihomoAPI:
@@ -53,7 +59,7 @@ class MihomoAPI:
         if not self._outside_client:
             await self.client.close()
 
-    async def _make_response(self, response: aiohttp.ClientResponse, *, type: type[MihomoT]) -> MihomoT:
+    async def _make_response(self, response: aiohttp.ClientResponse, *, type: type[MihomoT]) -> MihomoT | MihomoError:
         """Create an entity response from the given HTTP response.
 
         Parameters
@@ -75,11 +81,19 @@ class MihomoAPI:
         """
 
         response.raise_for_status()
-        return msgspec.json.decode(await response.read(), type=type)
+        resp_data = await response.read()
+        try:
+            return msgspec.json.decode(resp_data, type=type)
+        except msgspec.DecodeError:
+            try:
+                return msgspec.json.decode(resp_data, type=MihomoError)
+            except msgspec.DecodeError:
+                logger.error(f"An unknown error occurred when trying to decode the response.\n:{resp_data}")
+                return MihomoError(detail="An unknown occurred when trying to decode the response.")
 
     async def get_player(
         self, uid: int, *, language: MihomoLanguage = MihomoLanguage.EN
-    ) -> tuple[Player, MihomoLanguage]:
+    ) -> tuple[Player | MihomoError, MihomoLanguage]:
         """Get a player by their UID.
 
         Parameters
@@ -91,7 +105,7 @@ class MihomoAPI:
 
         Returns
         -------
-        tuple[:class:`Player`, :class:`MihomoLanguage`]
+        tuple[:class:`Player` | :class:`MihomoError`, :class:`MihomoLanguage`]
             The player object and the language used for the response.
 
         Raises

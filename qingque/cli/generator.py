@@ -30,6 +30,7 @@ from pathlib import Path
 from typing import cast
 
 from qingque.mihomo import MihomoAPI
+from qingque.mihomo.client import MihomoError
 from qingque.mihomo.models.characters import Character
 from qingque.mihomo.models.constants import MihomoLanguage
 from qingque.starrail.generator import StarRailMihomoCard
@@ -50,6 +51,9 @@ async def runner(args: Argument) -> tuple[bytes | None, Character | None]:
     log.info(f"Fetching player data for {args.uid}")
     player, _ = await client.get_player(args.uid)
     await client.close()
+    if isinstance(player, MihomoError):
+        log.error(f"Failed to fetch player data: {player.detail}")
+        return None, None
 
     if not player.characters:
         log.error("No characters found")

@@ -48,6 +48,7 @@ from qingque.hylab.models.simuniverse import (
     ChronicleRogueUserInfo,
 )
 from qingque.i18n import PartialTranslate, QingqueLanguage, get_i18n, get_i18n_discord, get_roman_numeral
+from qingque.mihomo.client import MihomoError
 from qingque.mihomo.models.characters import Character
 from qingque.mihomo.models.player import PlayerInfo
 from qingque.models.account_select import AccountSelectView
@@ -200,6 +201,12 @@ async def qqprofile_srprofile(
         error_message = str(e)
         await original_message.edit(content=t("exception", [f"```{error_message}```"]))
         return
+
+    if isinstance(data_player, MihomoError):
+        logger.error(f"Error getting profile info for UID {uid}: {data_player}")
+        await original_message.edit(content=t("exception", [f"```{data_player.detail}```"]))
+        return
+
     logger.info(f"Getting profile card for UID {uid}")
 
     if not data_player.characters:
@@ -287,6 +294,12 @@ async def qqprofile_srplayer(inter: discord.Interaction[QingqueClient], uid: int
         error_message = str(e)
         await original_message.edit(content=t("exception", [f"```{error_message}```"]))
         return
+
+    if isinstance(data_player, MihomoError):
+        logger.error(f"Error getting profile info for UID {uid}: {data_player}")
+        await original_message.edit(content=t("exception", [f"```{data_player.detail}```"]))
+        return
+
     logger.info(f"Getting profile card for UID {uid}")
 
     generator = StarRailPlayerCard(
