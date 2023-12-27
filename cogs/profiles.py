@@ -136,10 +136,10 @@ async def _batch_gen_player_card(
         rogue_world = t("rogue_world", [str(progression.simulated_universe.value)])
         description.append(f"**{t('rogue')}**: {rogue_world}")
     forgotten_hall = progression.forgotten_hall
-    if forgotten_hall.finished_floor > 0:
+    if forgotten_hall and forgotten_hall.finished_floor > 0:
         abyss_floor = t("moc_floor", [str(forgotten_hall.finished_floor)])
         description.append(f"**{t('abyss')}**: {abyss_floor}")
-    if forgotten_hall.moc_finished_floor > 0:
+    if forgotten_hall and forgotten_hall.moc_finished_floor > 0:
         abyss_moc_floor = t("moc_floor", [str(forgotten_hall.moc_finished_floor)])
         description.append(f"**{t('abyss_hard')}**: {abyss_moc_floor}")
 

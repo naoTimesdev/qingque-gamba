@@ -426,7 +426,7 @@ class StarRailPlayerCard(StarRailDrawing):
                 stroke_color=self._background,
             )
             MARGIN_TOP += 70
-        if forgotten_hall.moc_finished_floor > 0:
+        if forgotten_hall and forgotten_hall.moc_finished_floor > 0:
             moc_text = self._i18n.t("abyss_hard")
             moc_floor = self._i18n.t("moc_floor", [str(forgotten_hall.moc_finished_floor)])
             moc_icon = await self._async_open(self._assets_folder / "icon" / "sign" / "AbyssIcon02.png")

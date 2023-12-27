@@ -84,11 +84,7 @@ class PlayerForgottenHall(MihomoBase, frozen=True):
 
 
 class PlayerProgression(MihomoBase, frozen=True):
-    # TODO: Change with memory_data
-    forgotten_hall: PlayerForgottenHall = field(name="challenge_data")
-    """:class:`PlayerForgottenHall`: The player's Forgotten Hall progression."""
-    # TODO: Change with universe_level
-    simulated_universe: SimulatedUniverse = field(name="pass_area_progress")
+    simulated_universe: SimulatedUniverse = field(name="universe_level")
     """:class:`SimulatedUniverse`: The player's Simulated Universe progression."""
     light_cones: int = field(name="light_cone_count")
     """:class:`int`: The player's Light Cone count."""
@@ -96,6 +92,9 @@ class PlayerProgression(MihomoBase, frozen=True):
     """:class:`int`: The player's Avatar count."""
     achivements: int = field(name="achievement_count")
     """:class:`int`: The player's unlocked Achievement count."""
+    # TODO: Change with memory_data
+    forgotten_hall: PlayerForgottenHall | None = field(name="challenge_data", default=None)
+    """:class:`PlayerForgottenHall`: The player's Forgotten Hall progression."""
 
 
 class PlayerInfo(MihomoBase, frozen=True):
