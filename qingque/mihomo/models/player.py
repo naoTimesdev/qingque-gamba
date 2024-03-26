@@ -60,6 +60,8 @@ class SimulatedUniverse(int, Enum):
     """World 7: Abundant Ebon Deer (Xianzhou) as Boss Enemy"""
     YanqingWorld = 8
     """World 8: Yanqing (Xianzhou) as Boss Enemy"""
+    SUDWorld = 9
+    """World 9: Something Unto Death (Penacony) as Boss Enemy"""
 
 
 class PlayerAvatar(MihomoBase, frozen=True):
