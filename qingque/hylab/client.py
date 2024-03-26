@@ -52,10 +52,14 @@ from .constants import (
 from .ds import generate_dynamic_salt, get_ds_headers
 from .models.base import HYBasicResponse, HYGeeTestError, HYLanguage, HYResponse
 from .models.characters import ChronicleCharacters
-from .models.forgotten_hall import ChronicleForgottenHall
+from .models.forgotten_hall import ChronicleForgottenHall, ChroniclePureFiction
 from .models.notes import ChronicleNotes
 from .models.overview import ChronicleOverview, ChronicleUserInfo, ChronicleUserOverview
-from .models.simuniverse import ChronicleSimulatedUniverse, ChronicleSimulatedUniverseSwarmDLC
+from .models.simuniverse import (
+    ChronicleSimulatedUniverse,
+    ChronicleSimulatedUniverseGoldAndGearsDLC,
+    ChronicleSimulatedUniverseSwarmDLC,
+)
 
 __all__ = ("HYLabClient",)
 HYModelT = TypeVar("HYModelT", bound=msgspec.Struct)
@@ -560,6 +564,69 @@ class HYLabClient:
 
         return resp.data
 
+    async def get_battle_chronicles_pure_fiction(
+        self,
+        uid: int,
+        *,
+        previous: bool = False,
+        hylab_id: int | None = None,
+        hylab_token: str | None = None,
+        hylab_cookie: str | None = None,
+        hylab_mid_token: str | None = None,
+        lang: HYLanguage = HYLanguage.EN,
+    ) -> ChroniclePureFiction | None:
+        """
+        Get the battle chronicles pure fiction for the given UID.
+
+        Parameters
+        ----------
+        uid: :class:`int`
+            The UID to get the battle chronicles for.
+        previous: :class:`bool`
+            Whether to get the previous record or not.
+        hylab_id: :class:`int | None`
+            Override HoyoLab ID. (ltuid)
+        hylab_token: :class:`str | None`
+            Override HoyoLab token. (ltoken)
+        hylab_cookie: :class:`str | None`
+            Override HoyoLab cookie token. (cookie_token)
+        lang: :class:`HYLanguage`
+            The language to use.
+
+        Returns
+        -------
+        :class:`ChroniclePureFiction`
+            The battle chronicles pure fiction for the given UID.
+
+        Raises
+        ------
+        :exc:`.HYLabException`
+            An error occurred while getting the battle chronicles.
+        :exc:`aiohttp.ClientResponseError`
+            An error occurred while requesting the battle chronicles.
+        """
+
+        server = HYVServer.from_uid(str(uid))
+        region = HYVRegion.from_server(server)
+
+        params = {
+            "server": STARRAIL_SERVER[server],
+            "role_id": str(uid),
+            "schedule_type": 2 if previous else 1,
+            "need_all": "true",
+        }
+
+        resp = await self._request(
+            "GET",
+            CHRONICLES_ROUTE.get_route(region) / "challenge_story",
+            params,
+            get_ds_headers(HYVRegion.from_server(server), lang=lang),
+            cookies=self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, hylab_mid_token, lang=lang),
+            type=ChroniclePureFiction,
+        )
+
+        return resp.data
+
     async def get_battle_chronicles_simulated_universe(
         self,
         uid: int,
@@ -675,6 +742,65 @@ class HYLabClient:
             get_ds_headers(HYVRegion.from_server(server), lang=lang),
             cookies=self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, hylab_mid_token, lang=lang),
             type=ChronicleSimulatedUniverseSwarmDLC,
+        )
+
+        return resp.data
+
+    async def get_battle_chronicles_simulated_universe_swarm_dlc2(
+        self,
+        uid: int,
+        *,
+        hylab_id: int | None = None,
+        hylab_token: str | None = None,
+        hylab_cookie: str | None = None,
+        hylab_mid_token: str | None = None,
+        lang: HYLanguage = HYLanguage.EN,
+    ) -> ChronicleSimulatedUniverseGoldAndGearsDLC | None:
+        """
+        Get the battle chronicles simulated universe gold and gears DLC for the given UID.
+
+        Parameters
+        ----------
+        uid: :class:`int`
+            The UID to get the battle chronicles for.
+        hylab_id: :class:`int | None`
+            Override HoyoLab ID. (ltuid)
+        hylab_token: :class:`str | None`
+            Override HoyoLab token. (ltoken)
+        hylab_cookie: :class:`str | None`
+            Override HoyoLab cookie token. (cookie_token)
+        lang: :class:`HYLanguage`
+            The language to use.
+
+        Returns
+        -------
+        :class:`ChronicleSimulatedUniverseGoldAndGearsDLC`
+            The battle chronicles simulated universe gold and gears DLC for the given UID.
+
+        Raises
+        ------
+        :exc:`.HYLabException`
+            An error occurred while getting the battle chronicles.
+        :exc:`aiohttp.ClientResponseError`
+            An error occurred while requesting the battle chronicles.
+        """
+
+        server = HYVServer.from_uid(str(uid))
+        region = HYVRegion.from_server(server)
+
+        params = {
+            "server": STARRAIL_SERVER[server],
+            "role_id": str(uid),
+            "need_detail": "true",
+        }
+
+        resp = await self._request(
+            "GET",
+            CHRONICLES_ROUTE.get_route(region) / "rogue_nous",
+            params,
+            get_ds_headers(HYVRegion.from_server(server), lang=lang),
+            cookies=self._create_hylab_cookie(hylab_id, hylab_token, hylab_cookie, hylab_mid_token, lang=lang),
+            type=ChronicleSimulatedUniverseGoldAndGearsDLC,
         )
 
         return resp.data

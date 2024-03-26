@@ -41,7 +41,9 @@ class CustomEmoji:
         "su_world6": "6️⃣",
         "su_world7": "7️⃣",
         "su_world8": "8️⃣",
+        "su_world9": "9️⃣",
         "su_swarmdlc": "🕸️",
+        "su_gngdlc": "⚙️",
     }
 
     _LOADER_CUSTOM: ClassVar[dict[str, PartialEmoji]] = {
@@ -53,6 +55,7 @@ class CustomEmoji:
         "su_world6": PartialEmoji(name="_qq_su_world6", id=1149271791072727120),
         "su_world7": PartialEmoji(name="_qq_su_world7", id=1149271798861541376),
         "su_world8": PartialEmoji(name="_qq_su_world8", id=1184392472403648583),
+        "su_world9": PartialEmoji(name="_qq_su_world9", id=1222312912056615032),
         "su_swarmdlc": PartialEmoji(name="_qq_su_dlcworld", id=1149271756306141245),
     }
 
@@ -83,5 +86,5 @@ class CustomEmoji:
         """
 
         if self._has_guilds:
-            return self._LOADER_CUSTOM.get(key)
+            return self._LOADER_CUSTOM.get(key, self._LOADER_DEFAULT.get(key))
         return self._LOADER_DEFAULT.get(key)

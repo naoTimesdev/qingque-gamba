@@ -723,7 +723,7 @@ class StarRailDrawing:
     async def _tint_image(self, im: Image.Image, color: RGB) -> Image.Image:
         alpha = im.split()[3]
         gray = await self._loop.run_in_executor(self.__executor, ImageOps.grayscale, im)
-        result = await self._loop.run_in_executor(self.__executor, ImageOps.colorize, gray, color, color)
+        result = await self._loop.run_in_executor(self.__executor, ImageOps.colorize, gray, color, color)  # type: ignore
         await self._loop.run_in_executor(self.__executor, result.putalpha, alpha)
         return result
 
@@ -801,7 +801,7 @@ class StarRailDrawing:
         if not self.has_canvas() and canvas is None:
             raise RuntimeError("Canvas is not initialized, and no canvas is provided.")
         canvas = canvas or self._canvas
-        await self._loop.run_in_executor(self.__executor, canvas.paste, img, box, mask)
+        await self._loop.run_in_executor(self.__executor, canvas.paste, img, box, mask)  # type: ignore
 
     async def _crop_image(self, img: Image.Image, box: tuple[float, float, float, float]) -> Image.Image:
         """Crop an image.
@@ -820,7 +820,7 @@ class StarRailDrawing:
 
         """
 
-        return await self._loop.run_in_executor(self.__executor, img.crop, box)
+        return await self._loop.run_in_executor(self.__executor, img.crop, box)  # type: ignore
 
     async def _resize_image(
         self, img: Image.Image, size: tuple[int, int], resampling: Image.Resampling | None = None

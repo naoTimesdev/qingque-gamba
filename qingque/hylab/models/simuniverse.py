@@ -52,10 +52,16 @@ __all__ = (
     "ChronicleRogueLocustOverviewDestiny",
     "ChronicleRogueLocustOverview",
     "ChronicleRogueLocustBlock",
-    "ChronicleRogueLocustFury",
+    "ChronicleRogueFury",
     "ChronicleRogueLocustDetailRecord",
     "ChronicleRogueLocustDetail",
     "ChronicleSimulatedUniverseSwarmDLC",
+    "ChronicleRogueNousOverview",
+    "ChronicleRogueNousDiceFaceSides",
+    "ChronicleRogueNousDiceFace",
+    "ChronicleRogueNousDetailRecord",
+    "ChronicleRogueNousDetail",
+    "ChronicleSimulatedUniverseGoldAndGearsDLC",
 )
 
 
@@ -317,7 +323,7 @@ class ChronicleRogueLocustFuryType(int, Enum):
     """Disruption"""
 
 
-class ChronicleRogueLocustFury(Struct):
+class ChronicleRogueFury(Struct):
     type: ChronicleRogueLocustFuryType
     """:class:`int`: The type of the fury."""
     point: str
@@ -329,7 +335,7 @@ class ChronicleRogueLocustDetailRecord(ChronicleRogueRecordBase):
     """:class:`list[ChronicleRogueLocustBlock]`: The list of visited blocks on the run."""
     swarm_weakness: list[str] = field(name="worm_weak")
     """:class:`list[str]`: The list of applied weaknesses for the final boss True Stings."""
-    fury: ChronicleRogueLocustFury
+    fury: ChronicleRogueFury
     """:class:`ChronicleRogueLocustFury`: The planar disarray of the run."""
 
     @property
@@ -349,3 +355,82 @@ class ChronicleSimulatedUniverseSwarmDLC(Struct):
     """:class:`ChronicleRogueLocustOverview`: The overview of the user."""
     details: ChronicleRogueLocustDetail = field(name="detail")
     """:class:`ChronicleRogueLocustDetail`: The details of the user."""
+
+
+"""
+Simulated Universe: Gold and Gears (DLC)
+"""
+
+
+class ChronicleRogueNousOverview(Struct):
+    progress: int = field(name="cur_progress")
+    """:class:`int`: The number of unlocked secrets."""
+    max_progress: int
+    """:class:`int`: The number of total secrets."""
+    dices: int = field(name="cur_rolling")
+    """:class:`int`: The number of unlocked Dice Faces."""
+    max_dices: int = field(name="max_rolling")
+    """:class:`int`: The number of total Dice Faces."""
+    curios: int = field(name="unlock_miracle")
+    """:class:`int`: The number of unlocked Curios."""
+    events: int = field(name="unlock_event")
+    """:class:`int`: The number of unlocked Events."""
+    neurons: int = field(name="active_nerve")
+    """:class:`int`: The number of active Neurons."""
+
+
+class ChronicleRogueNousDiceFaceSides(Struct):
+    rarity: int
+    """:class:`int`: The dice face side rarity"""
+    icon_url: str = field(name="icon")
+    """:class:`str`: The URL of the icon of the dice face side."""
+
+
+class ChronicleRogueNousDiceFace(Struct):
+    id: int
+    """:class:`int`: The ID of the dice face."""
+    name: str = field(name="name_mi18n")
+    """:class:`str`: The name of the dice face."""
+    icon_url: str = field(name="icon")
+    """:class:`str`: The URL of the icon of the dice face."""
+    main_buff: str = field(name="main_buff_mi18n")
+    """:class:`str`: The main buff of the dice face."""
+    sides: list[ChronicleRogueNousDiceFaceSides]
+    """:class:`list[ChronicleRogueNousDiceFaceSides]`: The used sides of the dice face."""
+    aeon_id: int
+    """:class:`int`: The Aeon ID of the dice face."""
+
+
+class ChronicleRogueNousDetailRecord(ChronicleRogueRecordBase):
+    blocks: list[ChronicleRogueLocustBlock]
+    """:class:`list[ChronicleRogueLocustBlock]`: The list of visited blocks on the run."""
+    boss_effect: list[str]
+    """:class:`list[str]`: The list of applied effects for the final boss."""
+    fury: ChronicleRogueFury
+    """:class:`ChronicleRogueFury`: The planar disarray of the run."""
+    dices: ChronicleRogueNousDiceFace = field(name="sides")
+    """:class:`ChronicleRogueNousDiceFace`: The used dice face for the run."""
+    has_conondrum: bool = field(name="has_difficulty_type")
+    """:class:`bool`: Whether the run has a conundrum modifier or not."""
+    stats_conondrum: str = field(name="difficulty_type1_value")
+    """:class:`str`: The stats conundrum modifier of the run."""
+    auxilary_conondrum: str = field(name="difficulty_type2_value")
+    """:class:`str`: The auxilary conundrum modifier of the run."""
+
+    @property
+    def icon_url(self) -> str:
+        return "icon/rogue/worlds/PlanetDLC.png"
+
+
+class ChronicleRogueNousDetail(Struct):
+    records: list[ChronicleRogueNousDetailRecord]
+    """:class:`list[ChronicleRogueNousDetailRecord]`: The list of records."""
+
+
+class ChronicleSimulatedUniverseGoldAndGearsDLC(Struct):
+    user: ChronicleRogueUserInfo = field(name="role")
+    """:class:`ChronicleRogueUserInfo`: The user info."""
+    overview: ChronicleRogueNousOverview = field(name="basic")
+    """:class:`ChronicleRogueNousOverview`: The overview of the user."""
+    details: ChronicleRogueNousDetail = field(name="detail")
+    """:class:`ChronicleRogueNousDetail`: The details of the user."""

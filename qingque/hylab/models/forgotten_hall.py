@@ -32,7 +32,11 @@ __all__ = (
     "ChronicleFHCharacter",
     "ChronicleFHNode",
     "ChronicleFHFloor",
+    "ChroniclePFBuff",
+    "ChroniclePFNode",
+    "ChroniclePFFloor",
     "ChronicleForgottenHall",
+    "ChroniclePureFiction",
 )
 
 
@@ -70,7 +74,7 @@ class ChronicleFHNode(Struct):
     challenge_time: ChronicleDate
     """:class:`ChronicleFHDate`: The challenge time of the node."""
     characters: list[ChronicleFHCharacter] = field(name="avatars")
-    """:class:`list[ChronicleMoCCharacter]`: The list of characters used for the node."""
+    """:class:`list[ChronicleFHCharacter]`: The list of characters used for the node."""
 
 
 class ChronicleFHFloor(Struct):
@@ -105,3 +109,55 @@ class ChronicleForgottenHall(Struct):
     """:class:`bool`: Whether the forgotten hall has data or not."""
     floors: list[ChronicleFHFloor] = field(name="all_floor_detail")
     """:class:`list[ChroniclesFHFloor]`: The list of floors for the forgotten hall."""
+
+
+class ChroniclePFBuff(Struct):
+    id: int
+    """:class:`int`: The ID of the buff."""
+    name: str = field(name="name_mi18n")
+    """:class:`str`: The name of the buff."""
+    description: str = field(name="desc_mi18n")
+    """:class:`str`: The description of the buff."""
+    icon: str
+    """:class:`str`: The URL of the buff's icon."""
+
+
+class ChroniclePFNode(Struct):
+    challenge_time: ChronicleDate
+    """:class:`ChronicleFHDate`: The challenge time of the node."""
+    characters: list[ChronicleFHCharacter] = field(name="avatars")
+    """:class:`list[ChronicleFHCharacter]`: The list of characters used for the node."""
+    buff: ChroniclePFBuff
+    """:class:`ChroniclePFBuff`: The buff of the node."""
+    score: str
+    """:class:`str`: The score of the node."""
+
+
+class ChroniclePFFloor(Struct):
+    name: str
+    """:class:`str`: The name of the floor."""
+    is_fast: bool
+    """:class:`bool`: Whether the floor is forgotten hall or not."""
+    round_total: int = field(name="round_num")
+    """:class:`int`: The number of rounds used for the floor."""
+    stars_total: int = field(name="star_num")
+    """:class:`int`: The number of stars obtained for the floor."""
+    node_1: ChroniclePFNode
+    """:class:`ChroniclePFNode`: The first node of the floor."""
+    node_2: ChroniclePFNode
+    """:class:`ChroniclePFNode`: The second node of the floor."""
+
+
+class ChroniclePureFiction(Struct):
+    id: int = field(name="max_floor_id")
+    """:class:`int`: The ID of the pure fiction."""
+    total_stars: int = field(name="star_num")
+    """:class:`int`: The total stars of the pure fiction."""
+    max_floor: str
+    """:class:`str`: The maximum floor finished for the pure fiction."""
+    total_battles: int = field(name="battle_num")
+    """:class:`int`: The total battles conducted for this pure fiction."""
+    has_data: bool
+    """:class:`bool`: Whether the pure fiction has data or not."""
+    floors: list[ChroniclePFFloor] = field(name="all_floor_detail")
+    """:class:`list[ChroniclePFFloor]`: The list of floors for the pure fiction."""
